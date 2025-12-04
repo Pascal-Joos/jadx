@@ -627,6 +627,7 @@ public abstract class ArgType {
 		return null;
 	}
 
+	@Nullable
 	public ArgType getInnerType() {
 		return null;
 	}
