@@ -78,18 +78,18 @@ public class InlineMethods extends AbstractVisitor {
 	}
 
 	private void inlineMethod(MethodNode mth, MethodNode callMth, MethodInlineAttr mia, BlockNode block, InvokeNode insn) {
-		InsnNode inlInsn = java.util.Objects.requireNonNull(mia.getInsn());
-		InsnNode inlCopy = inlInsn.copyWithoutResult();
+		InsnNode inlCopy = mia.getInsn().copyWithoutResult();
 		RegisterArg resultArg = insn.getResult();
 		if (resultArg != null) {
 			inlCopy.setResult(resultArg.duplicate());
-		} else if (isAssignNeeded(inlInsn, insn, callMth)) {
+		} else if (isAssignNeeded(mia.getInsn(), insn, callMth)) {
 			// add fake result to make correct java expression (see test TestGetterInlineNegative)
 			inlCopy.setResult(makeFakeArg(mth, callMth.getReturnType(), "unused"));
 		}
 		if (!callMth.getMethodInfo().getArgumentsTypes().isEmpty()) {
+			// remap args
 			InsnArg[] regs = new InsnArg[callMth.getRegsCount()];
-			int[] regNums = java.util.Objects.requireNonNull(mia.getArgsRegNums());
+			int[] regNums = mia.getArgsRegNums();
 			for (int i = 0; i < regNums.length; i++) {
 				InsnArg arg = insn.getArg(i);
 				regs[regNums[i]] = arg;
