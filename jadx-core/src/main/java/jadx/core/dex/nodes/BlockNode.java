@@ -41,7 +41,7 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 
 	private List<BlockNode> predecessors = new ArrayList<>(1);
 	private List<BlockNode> successors = new ArrayList<>(1);
-	private List<BlockNode> cleanSuccessors;
+	private List<BlockNode> cleanSuccessors = new ArrayList<>(1);
 
 	/**
 	 * All dominators, excluding self
