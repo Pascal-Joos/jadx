@@ -53,9 +53,6 @@ public class ConditionGen extends InsnGen {
 	}
 
 	private void add(ICodeWriter code, CondStack stack, @Nullable IfCondition condition) throws CodegenException {
-		if (condition == null) {
-			throw new JadxRuntimeException("Null condition in ConditionGen.add");
-		}
 		stack.push(condition);
 		switch (condition.getMode()) {
 			case COMPARE:
