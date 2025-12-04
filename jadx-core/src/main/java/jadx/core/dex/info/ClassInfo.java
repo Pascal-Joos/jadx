@@ -89,7 +89,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 		if (isInner()) {
 			return parentClass.getAliasPkg();
 		}
-		return alias == null ? (getPackage() == null ? "" : getPackage()) : (alias.getPkg() == null ? "" : alias.getPkg());
+		return alias == null ? getPackage() : alias.getPkg();
 	}
 
 	public String getAliasShortName() {
