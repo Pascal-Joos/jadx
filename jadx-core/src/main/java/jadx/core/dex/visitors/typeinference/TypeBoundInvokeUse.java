@@ -2,7 +2,6 @@ package jadx.core.dex.visitors.typeinference;
 
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.RootNode;
 
@@ -35,11 +34,7 @@ public final class TypeBoundInvokeUse implements ITypeBoundDynamic {
 
 	@Override
 	public ArgType getType() {
-		InsnArg instanceArg = invokeNode.getInstanceArg();
-		if (instanceArg == null) {
-			return arg.getType();
-		}
-		return getArgType(((RegisterArg) instanceArg).getType(), arg.getType());
+		return getArgType(invokeNode.getInstanceArg().getType(), arg.getType());
 	}
 
 	private ArgType getArgType(ArgType instanceType, ArgType argType) {
