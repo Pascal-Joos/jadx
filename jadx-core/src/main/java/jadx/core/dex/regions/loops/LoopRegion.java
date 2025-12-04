@@ -8,12 +8,15 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.ICodeWriter;
 import jadx.core.codegen.RegionGen;
 import jadx.core.dex.attributes.nodes.LoopInfo;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.conditions.ConditionRegion;
+import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.CodegenException;
 
 public final class LoopRegion extends ConditionRegion {
@@ -52,7 +55,6 @@ public final class LoopRegion extends ConditionRegion {
 		return header == null;
 	}
 
-	@Nullable
 	public IRegion getBody() {
 		return body;
 	}
@@ -74,53 +76,49 @@ public final class LoopRegion extends ConditionRegion {
 
 	/**
 	 * Check if pre-conditions can be inlined into loop condition
-	 * public boolean checkPreCondition() {
-	 * if (preCondition == null) {
-	 * return false;
-	 * }
-	 * List<InsnNode> insns = preCondition.getInstructions();
-	 * public boolean checkPreCondition() {
-	 * List<InsnNode> insns = preCondition.getInstructions();
-	 * if (insns.isEmpty()) {
-	 * return true;
-	 * }
-	 * IfCondition condition = getCondition();
-	 * if (condition == null) {
-	 * return false;
-	 * }
-	 * List<RegisterArg> conditionArgs = condition.getRegisterArgs();
-	 * if (conditionArgs.isEmpty()) {
-	 * return false;
-	 * }
-	 * int size = insns.size();
-	 * for (int i = 0; i < size; i++) {
-	 * InsnNode insn = insns.get(i);
-	 * if (insn.getResult() == null) {
-	 * return false;
-	 * }
-	 * RegisterArg res = insn.getResult();
-	 * if (res.getSVar().getUseCount() > 1) {
-	 * return false;
-	 * }
-	 * boolean found = false;
-	 * // search result arg in other insns
-	 * for (int j = i + 1; j < size; j++) {
-	 * if (insns.get(i).containsVar(res)) {
-	 * found = true;
-	 * }
-	 * }
-	 * // or in if insn
-	 * if (!found && InsnUtils.containsVar(conditionArgs, res)) {
-	 * found = true;
-	 * }
-	 * if (!found) {
-	 * return false;
-	 * }
-	 * }
-	 * return true;
-	 * }
-	 *
-	 * /**
+	 */
+	public boolean checkPreCondition() {
+		List<InsnNode> insns = preCondition.getInstructions();
+		if (insns.isEmpty()) {
+			return true;
+		}
+		IfCondition condition = getCondition();
+		if (condition == null) {
+			return false;
+		}
+		List<RegisterArg> conditionArgs = condition.getRegisterArgs();
+		if (conditionArgs.isEmpty()) {
+			return false;
+		}
+		int size = insns.size();
+		for (int i = 0; i < size; i++) {
+			InsnNode insn = insns.get(i);
+			if (insn.getResult() == null) {
+				return false;
+			}
+			RegisterArg res = insn.getResult();
+			if (res.getSVar().getUseCount() > 1) {
+				return false;
+			}
+			boolean found = false;
+			// search result arg in other insns
+			for (int j = i + 1; j < size; j++) {
+				if (insns.get(i).containsVar(res)) {
+					found = true;
+				}
+			}
+			// or in if insn
+			if (!found && InsnUtils.containsVar(conditionArgs, res)) {
+				found = true;
+			}
+			if (!found) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Move all preCondition block instructions before conditionBlock instructions
 	 */
 	public void mergePreCondition() {
