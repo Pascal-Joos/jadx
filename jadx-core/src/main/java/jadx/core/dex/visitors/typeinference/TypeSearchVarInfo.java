@@ -81,8 +81,9 @@ public class TypeSearchVarInfo {
 		this.candidateTypes = candidateTypes;
 	}
 
-	public List<ITypeConstraint> getConstraints() {
-		return constraints;
+ 		public List<ITypeConstraint> getConstraints() {
+			return constraints != null ? constraints : Collections.emptyList();
+		}
 	}
 
 	public void setConstraints(List<ITypeConstraint> constraints) {
