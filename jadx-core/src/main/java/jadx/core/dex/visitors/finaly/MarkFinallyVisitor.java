@@ -338,6 +338,9 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 			return false;
 		}
 		BlockNode startBlock = extractInfo.getStartBlock();
+		if (startBlock == null) {
+			return false;
+		}
 		InsnsSlice dupSlice = searchFromFirstBlock(checkBlock, startBlock, extractInfo);
 		if (dupSlice == null) {
 			return false;
