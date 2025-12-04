@@ -1173,9 +1173,6 @@ public class BlockUtils {
 					continue;
 				}
 				BitSet d = map.get(block);
-				if (d == null) {
-					continue;
-				}
 				if (!changed) {
 					domSet.clear();
 					domSet.or(d);
