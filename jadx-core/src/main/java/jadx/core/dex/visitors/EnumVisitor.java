@@ -298,13 +298,9 @@ public class EnumVisitor extends AbstractVisitor {
 	}
 
 	@Nullable
- 		@Nullable
-		private BlockInsnPair getValuesInitInsn(EnumData data) {
-			FieldNode valuesField = data.valuesField;
-			if (valuesField == null) {
-				return null;
-			}
-			FieldInfo searchField = valuesField.getFieldInfo();
+	private BlockInsnPair getValuesInitInsn(EnumData data) {
+		FieldInfo searchField = data.valuesField.getFieldInfo();
+		for (BlockNode blockNode : data.staticBlocks) {
 			for (InsnNode insn : blockNode.getInstructions()) {
 				if (insn.getType() == InsnType.SPUT) {
 					IndexInsnNode indexInsnNode = (IndexInsnNode) insn;
@@ -662,8 +658,7 @@ public class EnumVisitor extends AbstractVisitor {
 		final MethodNode classInitMth;
 		final List<BlockNode> staticBlocks;
 		final List<InsnNode> toRemove = new ArrayList<>();
-		@Nullable
-			FieldNode valuesField;
+		FieldNode valuesField;
 		InsnNode valuesInitInsn;
 
 		public EnumData(ClassNode cls, MethodNode classInitMth, List<BlockNode> staticBlocks) {
