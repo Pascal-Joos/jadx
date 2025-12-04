@@ -1,0 +1,44 @@
+from pathlib import Path
+
+path = Path("jadx-core/src/main/java/jadx/core/dex/visitors/InlineMethods.java")
+text = path.read_text()
+
+old = """\t\t\t} else if (isAssignNeeded(mia.getInsn(), insn, callMth)) {
+\t\t\t\t// add fake result to make correct java expression (see test TestGetterInlineNegative)
+\t\t\t\tinlCopy.setResult(makeFakeArg(mth, callMth.getReturnType(), "unused"));
+\t\t\t}
+\t\t\tif (!callMth.getMethodInfo().getArgumentsTypes().isEmpty()) {
+\t\t\t\t// remap args
+\t\t\t\tInsnArg[] regs = new InsnArg[callMth.getRegsCount()];
+\t\t\t\tint[] regNums = mia.getArgsRegNums();
+\t\t\t\tfor (int i = 0; i < regNums.length; i++) {
+\t\t\t\t\tInsnArg arg = insn.getArg(i);
+\t\t\t\t\tregs[regNums[i]] = arg;
+\t\t\t\t}
+"""
+
+new = """\t\t\t} else if (isAssignNeeded(mia.getInsn(), insn, callMth)) {
+\t\t\t\t// add fake result to make correct java expression (see test TestGetterInlineNegative)
+\t\t\t\tinlCopy.setResult(makeFakeArg(mth, callMth.getReturnType(), "unused"));
+\t\t\t}
+\t\t\tif (!callMth.getMethodInfo().getArgumentsTypes().isEmpty()) {
+\t\t\t\tint[] regNums = mia.getArgsRegNums();
+\t\t\t\tif (regNums == null) {
+\t\t\t\t\tLOG.warn("Missing argsRegNums for inline method: {} from {}", callMth, mth);
+\t\t\t\t\treturn;
+\t\t\t\t}
+\t\t\t\t// remap args
+\t\t\t\tInsnArg[] regs = new InsnArg[callMth.getRegsCount()];
+\t\t\t\tfor (int i = 0; i < regNums.length; i++) {
+\t\t\t\t\tInsnArg arg = insn.getArg(i);
+\t\t\t\t\tregs[regNums[i]] = arg;
+\t\t\t\t}
+"""
+
+if old not in text:
+    raise SystemExit("Expected original snippet not found; file may have been modified unexpectedly.")
+
+path.write_text(text.replace(old, new))
+PYEOF
+&& nl -ba jadx-core/src/main/java/jadx/core/dex/visitors/InlineMethods.java | sed -n '80,120p' && \
+./gradlew jadx-core:compileJava -x test -q > new_build_output.log 2>&1
