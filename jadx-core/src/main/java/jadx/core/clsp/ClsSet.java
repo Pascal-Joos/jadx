@@ -417,7 +417,7 @@ public class ClsSet {
 	private ArgType readArgType(DataInputStream in) throws IOException {
 		int ordinal = in.readByte();
 		if (ordinal == -1) {
-			return null;
+			throw new jadx.core.utils.exceptions.JadxRuntimeException("Incorrect ordinal for type enum: " + ordinal);
 		}
 		if (ordinal >= TypeEnum.values().length) {
 			throw new JadxRuntimeException("Incorrect ordinal for type enum: " + ordinal);
