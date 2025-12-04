@@ -714,9 +714,6 @@ public class ClassGen {
 	}
 
 	private static boolean isClassInnerFor(@Nullable ClassInfo inner, ClassInfo parent) {
-		if (inner == null) {
-			return false;
-		}
 		if (inner.isInner()) {
 			ClassInfo p = inner.getParentClass();
 			return Objects.equals(p, parent) || isClassInnerFor(p, parent);
