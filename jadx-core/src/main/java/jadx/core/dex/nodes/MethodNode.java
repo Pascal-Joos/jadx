@@ -65,12 +65,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private List<RegisterArg> argsList;
 	@Nullable
 	private InsnNode[] instructions;
-	@Nullable
 	private List<BlockNode> blocks;
 	private int blocksMaxCId;
 	@Nullable
 	private BlockNode enterBlock;
-	@Nullable
 	private BlockNode exitBlock;
 	private List<SSAVar> sVars;
 	private List<ExceptionHandler> exceptionHandlers;
@@ -355,22 +353,15 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	public void setExitBlock(BlockNode exitBlock) {
 		this.exitBlock = exitBlock;
 	}
-\t	public List<BlockNode> getPreExitBlocks() {\
-			if (exitBlock == null) {\
-				return Collections.emptyList();\
-			}\
-			return exitBlock.getPredecessors();\
-		}\
-\
-		public boolean isPreExitBlocks(BlockNode block) {\
-			if (exitBlock == null) {\
-				return false;\
-			}\
-			List<BlockNode> successors = block.getSuccessors();\
-			if (successors.size() == 1) {\
-				return successors.get(0).equals(exitBlock);\
-			}\
-			return exitBlock.getPredecessors().contains(block);\
+
+	public List<BlockNode> getPreExitBlocks() {
+		return exitBlock.getPredecessors();
+	}
+
+	public boolean isPreExitBlocks(BlockNode block) {
+		List<BlockNode> successors = block.getSuccessors();
+		if (successors.size() == 1) {
+			return successors.get(0).equals(exitBlock);
 		}
 		return exitBlock.getPredecessors().contains(block);
 	}
