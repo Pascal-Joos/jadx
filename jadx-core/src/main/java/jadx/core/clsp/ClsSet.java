@@ -60,7 +60,6 @@ public class ClsSet {
 
 	public ClsSet(RootNode root) {
 		this.root = root;
-		this.classes = new ClspClass[0];
 	}
 
 	private enum TypeEnum {
@@ -119,16 +118,6 @@ public class ClsSet {
 		}
 	}
 
-	public int getClassesCount() {
-		return classes.length;
-	}
-
-	public void addToMap(Map<String, ClspClass> map) {
-		for (ClspClass cls : classes) {
-			map.put(cls.getName(), cls);
-		}
-	}
-
 	private List<ClspMethod> getMethodsDetails(ClassNode cls) {
 		List<MethodNode> methodsList = cls.getMethods();
 		List<ClspMethod> methods = new ArrayList<>(methodsList.size());
@@ -176,9 +165,7 @@ public class ClsSet {
 	private static ClspClass getCls(String fullName, Map<String, ClspClass> names) {
 		ClspClass cls = names.get(fullName);
 		if (cls == null) {
-			String msg = "Class not found: " + fullName;
-			LOG.error(msg);
-			throw new JadxRuntimeException(msg);
+			LOG.debug("Class not found: {}", fullName);
 		}
 		return cls;
 	}
@@ -430,7 +417,7 @@ public class ClsSet {
 	private ArgType readArgType(DataInputStream in) throws IOException {
 		int ordinal = in.readByte();
 		if (ordinal == -1) {
-			return ArgType.UNKNOWN;
+			return null;
 		}
 		if (ordinal >= TypeEnum.values().length) {
 			throw new JadxRuntimeException("Incorrect ordinal for type enum: " + ordinal);
@@ -443,48 +430,83 @@ public class ClsSet {
 				}
 				ArgType objType = readArgType(in);
 				return ArgType.wildcard(objType, bound);
+
 			case OUTER_GENERIC:
 				ArgType outerType = readArgType(in);
 				ArgType innerType = readArgType(in);
 				return ArgType.outerGeneric(outerType, innerType);
+
 			case GENERIC:
-				String obj = in.readUTF();
-				int count = in.readByte();
-				ArgType[] generics = new ArgType[count];
-				for (int i = 0; i < count; i++) {
-					generics[i] = readArgType(in);
-				}
-				return ArgType.generic(obj, generics);
+				ArgType clsType = classes[in.readInt()].getClsType();
+				return ArgType.generic(clsType, readArgTypesList(in));
+
 			case GENERIC_TYPE_VARIABLE:
-				return ArgType.genericType(in.readUTF());
+				String typeVar = readString(in);
+				List<ArgType> extendTypes = readArgTypesList(in);
+				return ArgType.genericType(typeVar, extendTypes);
+
 			case OBJECT:
-				return ArgType.object(in.readUTF());
+				return classes[in.readInt()].getClsType();
+
 			case ARRAY:
 				return ArgType.array(readArgType(in));
+
 			case PRIMITIVE:
-				return ArgType.parse(in.readUTF());
+				char shortName = (char) in.readByte();
+				return ArgType.parse(shortName);
+
 			default:
-				throw new JadxRuntimeException("Unknown type enum: " + ordinal);
+				throw new JadxRuntimeException("Unsupported Arg Type: " + ordinal);
 		}
 	}
 
-	private static void writeString(DataOutputStream out, String str) throws IOException {
-		byte[] bytes = str.getBytes(STRING_CHARSET);
+	private static void writeString(DataOutputStream out, String name) throws IOException {
+		byte[] bytes = name.getBytes(STRING_CHARSET);
+		int len = bytes.length;
+		if (len >= 0xFF) {
+			throw new JadxRuntimeException("String is too long: " + name);
+		}
 		writeUnsignedByte(out, bytes.length);
 		out.write(bytes);
 	}
 
+	private static String readString(DataInputStream in) throws IOException {
+		int len = readUnsignedByte(in);
+		return readString(in, len);
+	}
+
+	private static String readString(DataInputStream in, int len) throws IOException {
+		byte[] bytes = new byte[len];
+		int count = in.read(bytes);
+		while (count != len) {
+			int res = in.read(bytes, count, len - count);
+			if (res == -1) {
+				throw new IOException("String read error");
+			} else {
+				count += res;
+			}
+		}
+		return new String(bytes, STRING_CHARSET);
+	}
+
 	private static void writeUnsignedByte(DataOutputStream out, int value) throws IOException {
-		if (value < 0 || value > 255) {
-			throw new JadxRuntimeException("Unsigned byte value out of range: " + value);
+		if (value < 0 || value >= 0xFF) {
+			throw new JadxRuntimeException("Unsigned byte value is too big: " + value);
 		}
 		out.writeByte(value);
 	}
 
-	private static String readString(DataInputStream in) throws IOException {
-		int len = in.readUnsignedByte();
-		byte[] bytes = new byte[len];
-		in.readFully(bytes);
-		return new String(bytes, STRING_CHARSET);
+	private static int readUnsignedByte(DataInputStream in) throws IOException {
+		return ((int) in.readByte()) & 0xFF;
+	}
+
+	public int getClassesCount() {
+		return classes.length;
+	}
+
+	public void addToMap(Map<String, ClspClass> nameMap) {
+		for (ClspClass cls : classes) {
+			nameMap.put(cls.getName(), cls);
+		}
 	}
 }
