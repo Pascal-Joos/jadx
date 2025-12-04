@@ -45,7 +45,7 @@ public class DeboxingVisitor extends AbstractVisitor {
 
 	@Override
 	public void init(RootNode root) {
-
+		valueOfMths = new HashSet<>();
 		valueOfMths.add(valueOfMth(root, ArgType.INT, "java.lang.Integer"));
 		valueOfMths.add(valueOfMth(root, ArgType.BOOLEAN, "java.lang.Boolean"));
 		valueOfMths.add(valueOfMth(root, ArgType.BYTE, "java.lang.Byte"));
