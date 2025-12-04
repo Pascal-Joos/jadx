@@ -26,7 +26,7 @@ public final class IfRegion extends ConditionRegion implements IBranchRegion {
 		super(parent);
 	}
 
-	public IContainer getThenRegion() {
+	public @Nullable IContainer getThenRegion() {
 		return thenRegion;
 	}
 
