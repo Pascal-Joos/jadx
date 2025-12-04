@@ -80,21 +80,12 @@ public final class IfInfo {
 		return skipBlocks;
 	}
 
-	@Nullable
 	public BlockNode getThenBlock() {
 		return thenBlock;
 	}
 
-	/**
-	 * Return else block if present, otherwise fall back to then block.
-	 * This guarantees a non-null result for callers that expect a block.
-	 */
 	public BlockNode getElseBlock() {
-		BlockNode block = elseBlock;
-		if (block != null) {
-			return block;
-		}
-		return thenBlock;
+		return elseBlock;
 	}
 
 	@Nullable
