@@ -21,11 +21,16 @@ import jadx.core.utils.exceptions.JadxException;
 
 public class SignatureProcessor extends AbstractVisitor {
 
+	@Nullable
 	private RootNode root;
 
 	@Override
 	public void init(RootNode root) {
 		this.root = root;
+	}
+
+	private RootNode getRoot() {
+		return java.util.Objects.requireNonNull(root, "SignatureProcessor root not initialized");
 	}
 
 	@Override
@@ -91,7 +96,7 @@ public class SignatureProcessor extends AbstractVisitor {
 				field.addWarnComment("Incorrect inner types in field signature: " + sp.getSignature());
 				return;
 			}
-			ArgType type = root.getTypeUtils().expandTypeVariables(cls, signatureType);
+			ArgType type = getRoot().getTypeUtils().expandTypeVariables(cls, signatureType);
 			if (!validateParsedType(type, field.getType())) {
 				cls.addWarnComment("Incorrect field signature: " + sp.getSignature());
 				return;
@@ -118,7 +123,7 @@ public class SignatureProcessor extends AbstractVisitor {
 			}
 
 			mth.updateTypeParameters(typeParameters); // apply before expand args
-			TypeUtils typeUtils = root.getTypeUtils();
+			TypeUtils typeUtils = getRoot().getTypeUtils();
 			ArgType retType = typeUtils.expandTypeVariables(mth, parsedRetType);
 			List<ArgType> argTypes = Utils.collectionMap(parsedArgTypes, t -> typeUtils.expandTypeVariables(mth, t));
 
@@ -182,7 +187,7 @@ public class SignatureProcessor extends AbstractVisitor {
 	}
 
 	private boolean validateParsedType(ArgType parsedType, ArgType currentType) {
-		TypeCompareEnum result = root.getTypeCompare().compareTypes(parsedType, currentType);
+		TypeCompareEnum result = getRoot().getTypeCompare().compareTypes(parsedType, currentType);
 		return result != TypeCompareEnum.CONFLICT;
 	}
 
@@ -202,7 +207,7 @@ public class SignatureProcessor extends AbstractVisitor {
 		}
 		// check in outer type has inner type as inner class
 		ArgType outerType = type.getOuterType();
-		ClassNode outerCls = root.resolveClass(outerType);
+		ClassNode outerCls = getRoot().resolveClass(outerType);
 		if (outerCls == null) {
 			// can't check class not found
 			return true;
@@ -224,7 +229,7 @@ public class SignatureProcessor extends AbstractVisitor {
 			return false;
 		}
 		// full name
-		ClassNode innerCls = root.resolveClass(innerObj);
+		ClassNode innerCls = getRoot().resolveClass(innerObj);
 		if (innerCls == null) {
 			return false;
 		}
