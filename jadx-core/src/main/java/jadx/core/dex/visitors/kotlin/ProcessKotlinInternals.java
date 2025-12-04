@@ -109,6 +109,9 @@ public class ProcessKotlinInternals extends AbstractVisitor {
 			return;
 		}
 		MethodInfo invokeMth = ((InvokeNode) insn).getCallMth();
+		if (kotlinVarNameSourceMethods == null) {
+			return;
+		}
 		if (!kotlinVarNameSourceMethods.contains(invokeMth)) {
 			return;
 		}
