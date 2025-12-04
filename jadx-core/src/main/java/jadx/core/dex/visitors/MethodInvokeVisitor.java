@@ -45,6 +45,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 		}
 )
 public class MethodInvokeVisitor extends AbstractVisitor {
+	@Nullable
 	private RootNode root;
 
 	@Override
@@ -79,7 +80,7 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		if (callMth.getArgsCount() == 0) {
 			return;
 		}
-		IMethodDetails mthDetails = root.getMethodUtils().getMethodDetails(invokeInsn);
+		IMethodDetails mthDetails = java.util.Objects.requireNonNull(root).getMethodUtils().getMethodDetails(invokeInsn);
 		if (mthDetails == null) {
 			if (Consts.DEBUG) {
 				parentMth.addDebugComment("Method info not found: " + callMth);
@@ -99,7 +100,8 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 	private void processOverloaded(MethodNode parentMth, BaseInvokeNode invokeInsn, IMethodDetails mthDetails) {
 		MethodInfo callMth = invokeInsn.getCallMth();
 		ArgType callCls = getCallClassFromInvoke(parentMth, invokeInsn, callMth);
-		List<IMethodDetails> overloadMethods = root.getMethodUtils().collectOverloadedMethods(callCls, callMth);
+		List<IMethodDetails> overloadMethods =
+				java.util.Objects.requireNonNull(root).getMethodUtils().collectOverloadedMethods(callCls, callMth);
 		if (overloadMethods.isEmpty()) {
 			// not overloaded
 			return;
@@ -154,7 +156,7 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		ArgType declClsType = callMthInfo.getDeclClass().getType();
 		ArgType callClsType = getClsCallType(invokeInsn, declClsType);
 
-		TypeUtils typeUtils = root.getTypeUtils();
+		TypeUtils typeUtils = java.util.Objects.requireNonNull(root).getTypeUtils();
 		Map<ArgType, ArgType> clsTypeVars = typeUtils.getTypeVariablesMapping(callClsType);
 		Map<ArgType, ArgType> mthTypeVars = typeUtils.getTypeVarMappingForInvoke(invokeInsn);
 		return Utils.mergeMaps(clsTypeVars, mthTypeVars);
@@ -215,7 +217,8 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 				throw new JadxRuntimeException("Null arg type in " + mthDetails + " at: " + argNum + " in: " + argTypes);
 			}
 			if (argType.containsTypeVariable()) {
-				ArgType resolvedType = root.getTypeUtils().replaceTypeVariablesUsingMap(argType, typeVarsMapping);
+				ArgType resolvedType =
+						java.util.Objects.requireNonNull(root).getTypeUtils().replaceTypeVariablesUsingMap(argType, typeVarsMapping);
 				if (resolvedType == null || resolvedType.equals(argType)) {
 					// type variables erased from method info by compiler
 					resolvedType = mthDetails.getMethodInfo().getArgumentsTypes().get(argNum);
@@ -228,7 +231,8 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		}
 		ArgType returnType = mthDetails.getReturnType();
 		if (returnType.containsTypeVariable()) {
-			ArgType resolvedType = root.getTypeUtils().replaceTypeVariablesUsingMap(returnType, typeVarsMapping);
+			ArgType resolvedType =
+					java.util.Objects.requireNonNull(root).getTypeUtils().replaceTypeVariablesUsingMap(returnType, typeVarsMapping);
 			if (resolvedType == null || resolvedType.containsTypeVariable()) {
 				returnType = mthDetails.getMethodInfo().getReturnType();
 				fixed = true;
