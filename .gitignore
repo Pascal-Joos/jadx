@@ -21,6 +21,7 @@ build/
 classes/
 idea/
 .gradle/
+.gradle-cache
 node_modules/
 
 jadx-output/
