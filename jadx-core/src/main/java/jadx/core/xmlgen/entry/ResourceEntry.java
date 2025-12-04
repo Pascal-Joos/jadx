@@ -1,5 +1,6 @@
 package jadx.core.xmlgen.entry;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -17,8 +18,7 @@ public final class ResourceEntry {
 	private ProtoValue protoValue;
 	@Nullable
 	private RawValue simpleValue;
-	@Nullable
-	private List<RawNamedValue> namedValues;
+	private List<RawNamedValue> namedValues = Collections.emptyList();
 
 	public ResourceEntry(int id, String pkgName, String typeName, String keyName, String config) {
 		this.id = id;
