@@ -170,6 +170,9 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	}
 
 	public BitSet getDomFrontier() {
+		if (domFrontier == null) {
+			domFrontier = EmptyBitSet.EMPTY;
+		}
 		return domFrontier;
 	}
 
@@ -178,6 +181,8 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	}
 
 	/**
+	 *
+	 * /**
 	 * Immediate dominator
 	 */
 	public BlockNode getIDom() {
