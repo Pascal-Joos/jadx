@@ -280,16 +280,9 @@ public class ClsSet {
 			out.writeByte(TypeEnum.PRIMITIVE.ordinal());
 			out.writeByte(argType.getPrimitiveType().getShortName().charAt(0));
 		} else if (argType.getOuterType() != null) {
-			ArgType innerType = argType.getInnerType();
-			if (innerType == null) {
-				out.writeByte(TypeEnum.OUTER_GENERIC.ordinal());
-				writeArgType(out, argType.getOuterType(), names);
-				out.writeByte(-1);
-				return;
-			}
 			out.writeByte(TypeEnum.OUTER_GENERIC.ordinal());
 			writeArgType(out, argType.getOuterType(), names);
-			writeArgType(out, innerType, names);
+			writeArgType(out, argType.getInnerType(), names);
 		} else if (argType.getWildcardType() != null) {
 			out.writeByte(TypeEnum.WILDCARD.ordinal());
 			ArgType.WildcardBound bound = argType.getWildcardBound();
