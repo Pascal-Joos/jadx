@@ -56,6 +56,7 @@ public final class TryCatchRegion extends AbstractRegion implements IBranchRegio
 		return catchRegions;
 	}
 
+	@Nullable
 	public TryCatchBlockAttr getTryCatchBlock() {
 		return tryCatchBlock;
 	}
