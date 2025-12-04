@@ -18,6 +18,9 @@ public class EdgeInsnAttr implements IJadxAttribute {
 	private final InsnNode insn;
 
 	public static void addEdgeInsn(@Nullable Edge edge, InsnNode insn) {
+		if (edge == null) {
+			return;
+		}
 		addEdgeInsn(edge.getSource(), edge.getTarget(), insn);
 	}
 
