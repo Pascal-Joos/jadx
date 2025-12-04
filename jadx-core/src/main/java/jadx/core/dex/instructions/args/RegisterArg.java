@@ -76,7 +76,6 @@ public class RegisterArg extends InsnArg implements Named {
 		return contains(AFlag.IMMUTABLE_TYPE);
 	}
 
-	@Nullable
 	public SSAVar getSVar() {
 		return sVar;
 	}
@@ -189,45 +188,11 @@ public class RegisterArg extends InsnArg implements Named {
 	}
 
 	public boolean sameCodeVar(RegisterArg arg) {
-
-		SSAVar thisSVar = this.getSVar();
-
-		SSAVar otherSVar = arg.getSVar();
-
-		if (thisSVar == null || otherSVar == null) {
-
-			return false;
-
-		}
-
-		CodeVar thisCodeVar = thisSVar.getCodeVar();
-
-		CodeVar otherCodeVar = otherSVar.getCodeVar();
-
-		if (thisCodeVar == null || otherCodeVar == null) {
-
-			return false;
-
-		}
-
-		return thisCodeVar == otherCodeVar;
-
+		return this.getSVar().getCodeVar() == arg.getSVar().getCodeVar();
 	}
 
 	public boolean isLinkedToOtherSsaVars() {
-
-		SSAVar ssaVar = getSVar();
-
-		CodeVar codeVar = ssaVar != null ? ssaVar.getCodeVar() : null;
-
-		if (codeVar == null) {
-
-			return false;
-
-		}
-
-		return codeVar.getSsaVars().size() > 1;
-
+		return getSVar().getCodeVar().getSsaVars().size() > 1;
 	}
 
 	@Override
