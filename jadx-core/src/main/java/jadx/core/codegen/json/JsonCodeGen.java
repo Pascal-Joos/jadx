@@ -106,19 +106,18 @@ public class JsonCodeGen {
 		if (innerClasses.isEmpty()) {
 			return;
 		}
-		List<JsonClass> innerJsonClasses = new ArrayList<>(innerClasses.size());
-		jsonCls.setInnerClasses(innerJsonClasses);
+		jsonCls.setInnerClasses(new ArrayList<>(innerClasses.size()));
 		for (ClassNode innerCls : innerClasses) {
 			if (innerCls.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
 			JsonClass innerJsonCls = processCls(innerCls, classGen);
-			innerJsonClasses.add(innerJsonCls);
+			jsonCls.getInnerClasses().add(innerJsonCls);
 		}
 	}
+
 	private void addFields(ClassNode cls, JsonClass jsonCls, ClassGen classGen) {
-		List<JsonField> jsonFields = new ArrayList<>();
-		jsonCls.setFields(jsonFields);
+		jsonCls.setFields(new ArrayList<>());
 		for (FieldNode field : cls.getFields()) {
 			if (field.contains(AFlag.DONT_GENERATE)) {
 				continue;
@@ -133,13 +132,12 @@ public class JsonCodeGen {
 			classGen.addField(cw, field);
 			jsonField.setDeclaration(cw.getCodeStr());
 			jsonField.setAccessFlags(field.getAccessFlags().rawValue());
-			jsonFields.add(jsonField);
+			jsonCls.getFields().add(jsonField);
 		}
 	}
 
 	private void addMethods(ClassNode cls, JsonClass jsonCls, ClassGen classGen) {
-		List<JsonMethod> jsonMethods = new ArrayList<>();
-		jsonCls.setMethods(jsonMethods);
+		jsonCls.setMethods(new ArrayList<>());
 		for (MethodNode mth : cls.getMethods()) {
 			if (mth.contains(AFlag.DONT_GENERATE)) {
 				continue;
@@ -160,9 +158,7 @@ public class JsonCodeGen {
 			jsonMth.setAccessFlags(mth.getAccessFlags().rawValue());
 			jsonMth.setLines(fillMthCode(mth, mthGen));
 			jsonMth.setOffset("0x" + Long.toHexString(mth.getMethodCodeOffset()));
-			jsonMethods.add(jsonMth);
-		}
-	}
+			jsonCls.getMethods().add(jsonMth);
 		}
 	}
 
@@ -202,14 +198,14 @@ public class JsonCodeGen {
 			if (obj instanceof InsnCodeOffset) {
 				long offset = ((InsnCodeOffset) obj).getOffset();
 				jsonCodeLine.setOffset("0x" + Long.toHexString(mthCodeOffset + offset * 2));
-t	ArgType clsType = cls.getAliasClsType();
-		if (clsType == null) {
-			return null;
+			}
+			codeLines.add(jsonCodeLine);
+			lineStartPos += codeLine.length() + newLineLen;
 		}
-		if (clsType.isObject()) {
-			return clsType.getObject();
-		}
-		return cls.getAliasFullName();
+		return codeLines;
+	}
+
+	private String getTypeAlias(@Nullable ArgType clsType) {
 		if (Objects.equals(clsType, ArgType.OBJECT)) {
 			return ArgType.OBJECT.getObject();
 		}
