@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import jadx.core.dex.instructions.args.ArgType;
 
 public class TypeInfo {
-
+	@Nullable
 	private ArgType type = ArgType.UNKNOWN;
 
 	private final Set<ITypeBound> bounds = new LinkedHashSet<>();
@@ -21,7 +21,7 @@ public class TypeInfo {
 	}
 
 	public void setType(@Nullable ArgType type) {
-		this.type = type != null ? type : ArgType.UNKNOWN;
+		this.type = type;
 	}
 
 	public Set<ITypeBound> getBounds() {
