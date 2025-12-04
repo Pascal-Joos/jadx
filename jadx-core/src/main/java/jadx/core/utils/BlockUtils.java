@@ -1191,13 +1191,18 @@ public class BlockUtils {
 			}
 		} while (changed);
 
-		blockNodes.forEach(block -> {
-			BitSet postDoms = map.get(block);
-			postDoms.clear(block.getId());
-			if (postDoms.isEmpty()) {
-				map.put(block, EmptyBitSet.EMPTY);
-			}
-		});
+ 			blockNodes.forEach(block -> {
+				BitSet postDoms = map.get(block);
+				if (postDoms == null) {
+					return;
+				}
+				postDoms.clear(block.getId());
+				if (postDoms.isEmpty()) {
+					map.put(block, EmptyBitSet.EMPTY);
+				}
+			});
+			return map;
+		}
 		return map;
 	}
 
