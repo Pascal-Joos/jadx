@@ -258,6 +258,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		List<RegisterArg> itUseList = sVar.getUseList();
 		InsnNode assignInsn = iteratorArg.getAssignInsn();
+		if (assignInsn == null) {
+			return false;
+		}
 		if (itUseList.size() != 2) {
 			return false;
 		}
@@ -267,6 +270,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		InsnArg iterableArg = assignInsn.getArg(0);
 		InsnNode hasNextCall = itUseList.get(0).getParentInsn();
 		InsnNode nextCall = itUseList.get(1).getParentInsn();
+		if (nextCall == null) {
+			return false;
+		}
 		if (!checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z")
 				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;")) {
 			return false;
