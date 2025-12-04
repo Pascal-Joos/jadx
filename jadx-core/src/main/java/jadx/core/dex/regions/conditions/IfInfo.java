@@ -3,7 +3,6 @@ package jadx.core.dex.regions.conditions;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -47,7 +46,7 @@ public final class IfInfo {
 
 	public static IfInfo invert(IfInfo info) {
 		return new IfInfo(info.getMth(),
-				IfCondition.invert(Objects.requireNonNull(info.getCondition())),
+				IfCondition.invert(info.getCondition()),
 				info.getElseBlock(), info.getThenBlock(),
 				info.getMergedBlocks(), info.getSkipBlocks(), info.getForceInlineInsns());
 	}

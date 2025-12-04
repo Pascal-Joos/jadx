@@ -1,7 +1,6 @@
 package jadx.core.dex.instructions.mods;
 
 import java.util.Collection;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
@@ -23,7 +22,7 @@ public final class TernaryInsn extends InsnNode {
 
 		if (th.isFalse() && els.isTrue()) {
 			// inverted
-			this.condition = IfCondition.invert(Objects.requireNonNull(condition));
+			this.condition = IfCondition.invert(condition);
 			addArg(els);
 			addArg(th);
 		} else {
@@ -50,7 +49,7 @@ public final class TernaryInsn extends InsnNode {
 	}
 
 	private void invert() {
-		condition = IfCondition.invert(Objects.requireNonNull(condition));
+		condition = IfCondition.invert(condition);
 		InsnArg tmp = getArg(0);
 		setArg(0, getArg(1));
 		setArg(1, tmp);

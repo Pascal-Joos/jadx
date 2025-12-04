@@ -119,9 +119,6 @@ public final class IfCondition extends AttrNode {
 	}
 
 	public static IfCondition invert(@Nullable IfCondition cond) {
-		if (cond == null) {
-			throw new JadxRuntimeException("Null condition passed to invert");
-		}
 		Mode mode = cond.getMode();
 		switch (mode) {
 			case COMPARE:
