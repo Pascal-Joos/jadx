@@ -303,12 +303,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return noCode;
 	}
 
-	@NotNull
 	public InsnNode[] getInstructions() {
-		if (instructions == null) {
-			throw new JadxRuntimeException("Method instructions not loaded: " + this
-					+ ", class status: " + parentClass.getTopParentClass().getState());
-		}
 		return instructions;
 	}
 
