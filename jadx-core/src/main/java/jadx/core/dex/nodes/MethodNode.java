@@ -65,8 +65,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private List<RegisterArg> argsList;
 	@Nullable
 	private InsnNode[] instructions;
+	@Nullable
 	private List<BlockNode> blocks;
 	private int blocksMaxCId;
+	@Nullable
 	@Nullable
 	private BlockNode enterBlock;
 	private BlockNode exitBlock;
