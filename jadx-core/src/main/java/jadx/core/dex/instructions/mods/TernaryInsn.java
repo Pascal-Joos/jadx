@@ -16,7 +16,7 @@ public final class TernaryInsn extends InsnNode {
 
 	private IfCondition condition;
 
-	public TernaryInsn(@Nullable IfCondition condition, @Nullable RegisterArg result, InsnArg th, InsnArg els) {
+	public TernaryInsn(IfCondition condition, @Nullable RegisterArg result, InsnArg th, InsnArg els) {
 		this();
 		setResult(result);
 
@@ -32,6 +32,7 @@ public final class TernaryInsn extends InsnNode {
 		}
 		visitInsns(this::inheritMetadata);
 	}
+t@SuppressWarnings("NullAway.Init")
 
 	private TernaryInsn() {
 		super(InsnType.TERNARY, 2);
