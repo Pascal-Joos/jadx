@@ -258,6 +258,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		List<RegisterArg> itUseList = sVar.getUseList();
 		InsnNode assignInsn = iteratorArg.getAssignInsn();
+		if (assignInsn == null) {
+			return false;
+		}
 		if (itUseList.size() != 2) {
 			return false;
 		}
