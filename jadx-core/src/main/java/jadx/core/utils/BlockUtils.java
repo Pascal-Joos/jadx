@@ -361,7 +361,7 @@ public class BlockUtils {
 
 	public static BitSet copyBlocksBitSet(MethodNode mth, @Nullable BitSet bitSet) {
 		BitSet copy = new BitSet(mth.getBasicBlocks().size());
-		if (bitSet != null && !bitSet.isEmpty()) {
+		if (!bitSet.isEmpty()) {
 			copy.or(bitSet);
 		}
 		return copy;
