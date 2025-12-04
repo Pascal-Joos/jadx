@@ -77,10 +77,6 @@ public class JsonMappingGen {
 			return;
 		}
 		jsonCls.setMethods(new ArrayList<>(methods.size()));
-		List<JsonMthMapping> jsonMethods = jsonCls.getMethods();
-		if (jsonMethods == null) {
-			return;
-		}
 		for (MethodNode method : methods) {
 			JsonMthMapping jsonMethod = new JsonMthMapping();
 			MethodInfo methodInfo = method.getMethodInfo();
@@ -88,7 +84,7 @@ public class JsonMappingGen {
 			jsonMethod.setName(methodInfo.getName());
 			jsonMethod.setAlias(methodInfo.getAlias());
 			jsonMethod.setOffset("0x" + Long.toHexString(method.getMethodCodeOffset()));
-			jsonMethods.add(jsonMethod);
+			jsonCls.getMethods().add(jsonMethod);
 		}
 	}
 
@@ -97,13 +93,12 @@ public class JsonMappingGen {
 		if (fields.isEmpty()) {
 			return;
 		}
-		List<JsonFieldMapping> jsonFields = new ArrayList<>(fields.size());
-		jsonCls.setFields(jsonFields);
+		jsonCls.setFields(new ArrayList<>(fields.size()));
 		for (FieldNode field : fields) {
 			JsonFieldMapping jsonField = new JsonFieldMapping();
 			jsonField.setName(field.getName());
 			jsonField.setAlias(field.getAlias());
-			jsonFields.add(jsonField);
+			jsonCls.getFields().add(jsonField);
 		}
 	}
 
