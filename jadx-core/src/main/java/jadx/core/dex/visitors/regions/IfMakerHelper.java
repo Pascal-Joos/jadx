@@ -48,7 +48,6 @@ public class IfMakerHelper {
 		return info;
 	}
 
-	@Nullable
 	static IfInfo searchNestedIf(@Nullable IfInfo info) {
 		IfInfo next = mergeNestedIfNodes(info);
 		if (next != null) {
