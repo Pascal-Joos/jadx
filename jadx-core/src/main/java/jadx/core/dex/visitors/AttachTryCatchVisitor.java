@@ -86,6 +86,9 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 			}
 		}
 		if (tryBlockStarted) {
+			if (insn == null) {
+				throw new IllegalStateException("TRY_ENTER set but insn is null");
+			}
 			insn.add(AFlag.TRY_LEAVE);
 		} else {
 			// no instructions found in range -> add nop at start offset
