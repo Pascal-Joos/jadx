@@ -2,7 +2,6 @@ package jadx.core.xmlgen;
 
 import java.io.IOException;
 import java.util.Arrays;
-import javax.annotation.Nullable;
 
 public class CommonBinaryParser extends ParserConstants {
 	protected ParserStream is;

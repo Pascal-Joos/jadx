@@ -7,7 +7,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.nodes.InsnNode;
-import javax.annotation.Nullable;
 
 public final class FillArrayInsn extends InsnNode {
 	private final int target;
