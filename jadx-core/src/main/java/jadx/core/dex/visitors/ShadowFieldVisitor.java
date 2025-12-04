@@ -138,6 +138,9 @@ public class ShadowFieldVisitor extends AbstractVisitor {
 		if (fieldInfo == null) {
 			return;
 		}
+		if (fixInfoMap == null) {
+			return;
+		}
 		InsnArg arg = insn.getArg(insn.getArgsCount() - 1);
 		ArgType type = arg.getType();
 		if (!type.isTypeKnown() || !type.isObject()) {
@@ -147,7 +150,11 @@ public class ShadowFieldVisitor extends AbstractVisitor {
 		if (fieldFixInfo == null) {
 			return;
 		}
-		FieldFixType fieldFixType = fieldFixInfo.fieldFixMap.get(fieldInfo);
+		Map<FieldInfo, FieldFixType> fieldFixMap = fieldFixInfo.fieldFixMap;
+		if (fieldFixMap == null) {
+			return;
+		}
+		FieldFixType fieldFixType = fieldFixMap.get(fieldInfo);
 		if (fieldFixType == null) {
 			return;
 		}
