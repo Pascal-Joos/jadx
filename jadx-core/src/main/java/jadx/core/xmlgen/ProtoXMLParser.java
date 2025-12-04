@@ -20,7 +20,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.StringUtils;
 
 public class ProtoXMLParser {
-	private Map<String, String> nsMap;
+	private Map<String, String> nsMap = new HashMap<>();
 	private final Map<String, String> tagAttrDeobfNames = new HashMap<>();
 
 	private ICodeWriter writer;
@@ -33,14 +33,14 @@ public class ProtoXMLParser {
 
 	public ProtoXMLParser(RootNode rootNode) {
 		this.rootNode = rootNode;
+		this.nsMap = new HashMap<>();
+		this.writer = rootNode.makeCodeWriter();
 	}
 
 	public synchronized ICodeInfo parse(InputStream inputStream) throws IOException {
-		nsMap = new HashMap<>();
-		writer = rootNode.makeCodeWriter();
+		nsMap.clear();
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		decode(decodeProto(inputStream));
-		nsMap = null;
 		return writer.finish();
 	}
 
