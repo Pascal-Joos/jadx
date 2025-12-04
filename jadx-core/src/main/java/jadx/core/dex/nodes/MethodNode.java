@@ -113,7 +113,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		argsList = null;
 		sVars = Collections.emptyList();
 		instructions = null;
-		blocks = java.util.Collections.emptyList();
+		blocks = null;
 		enterBlock = null;
 		exitBlock = null;
 		region = null;
