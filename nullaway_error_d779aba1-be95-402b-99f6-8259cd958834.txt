@@ -1,4 +1,0 @@
-/home/nima/Developer/nullness-benchmarks/jadx/jadx-core/src/main/java/jadx/core/dex/nodes/RootNode.java:326: error: [NullAway] dereferenced expression clsType is @Nullable
-		if (!clsType.isTypeKnown() || clsType.isGenericType()) {
-		            ^
-    (see http://t.uber.com/nullaway )
