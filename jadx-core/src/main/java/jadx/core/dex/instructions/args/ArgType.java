@@ -770,7 +770,7 @@ public abstract class ArgType {
 				return VOID;
 
 			default:
-				throw new JadxRuntimeException("Unknown primitive type: " + f);
+				return null;
 		}
 	}
 
