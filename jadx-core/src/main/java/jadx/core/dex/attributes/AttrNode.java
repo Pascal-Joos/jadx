@@ -91,7 +91,7 @@ public abstract class AttrNode implements IAttributeNode {
 
 	@Override
 	public <T extends IJadxAttribute> T get(IJadxAttrType<T> type) {
-		return storage.get(type);
+		return java.util.Objects.requireNonNull(storage.get(type), "Attribute not found for type: " + type);
 	}
 
 	@Nullable
