@@ -56,7 +56,6 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 			return name;
 		}
 
-		@Nullable
 		public String[] getTypeStrings() {
 			return typeStrings;
 		}
