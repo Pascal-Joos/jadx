@@ -156,7 +156,7 @@ public class SignatureParser {
 				return ArgType.array(consumeType());
 
 			case STOP_CHAR:
-				throw new JadxRuntimeException("Unexpected end of signature: " + debugString());
+				return null;
 
 			default:
 				// primitive type (one char)
