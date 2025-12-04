@@ -179,10 +179,9 @@ public abstract class ArgType {
 			return getPrimitiveType() == type;
 		}
 
-		@Nullable
 		@Override
 		public ArgType selectFirst() {
-			return null;
+			return this;
 		}
 
 		@Override
