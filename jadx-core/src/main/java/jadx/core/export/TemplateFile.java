@@ -28,7 +28,7 @@ public class TemplateFile {
 
 	private static class ParserState {
 		private State state = State.NONE;
-		private StringBuilder curVariable = new StringBuilder();
+		private StringBuilder curVariable;
 		private boolean skip;
 	}
 
