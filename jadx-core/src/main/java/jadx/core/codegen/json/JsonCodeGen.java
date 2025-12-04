@@ -106,13 +106,14 @@ public class JsonCodeGen {
 		if (innerClasses.isEmpty()) {
 			return;
 		}
-		jsonCls.setInnerClasses(new ArrayList<>(innerClasses.size()));
+		List<jadx.core.codegen.json.cls.JsonClass> innerJsonClasses = new ArrayList<>(innerClasses.size());
+		jsonCls.setInnerClasses(innerJsonClasses);
 		for (ClassNode innerCls : innerClasses) {
 			if (innerCls.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
 			JsonClass innerJsonCls = processCls(innerCls, classGen);
-			jsonCls.getInnerClasses().add(innerJsonCls);
+			innerJsonClasses.add(innerJsonCls);
 		}
 	}
 
