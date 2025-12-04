@@ -14,22 +14,27 @@ import jadx.core.utils.InsnUtils;
 
 public final class TernaryInsn extends InsnNode {
 
-	private final IfCondition condition;
+	private IfCondition condition;
 
-	public TernaryInsn(IfCondition condition, @Nullable RegisterArg result, InsnArg th, InsnArg els) {
-		super(InsnType.TERNARY, 2);
-		this.condition = condition;
+	public TernaryInsn(@Nullable IfCondition condition, @Nullable RegisterArg result, InsnArg th, InsnArg els) {
+		this();
 		setResult(result);
 
 		if (th.isFalse() && els.isTrue()) {
 			// inverted
+			this.condition = IfCondition.invert(condition);
 			addArg(els);
 			addArg(th);
 		} else {
+			this.condition = condition;
 			addArg(th);
 			addArg(els);
 		}
 		visitInsns(this::inheritMetadata);
+	}
+
+	private TernaryInsn() {
+		super(InsnType.TERNARY, 2);
 	}
 
 	public IfCondition getCondition() {
@@ -37,13 +42,14 @@ public final class TernaryInsn extends InsnNode {
 	}
 
 	public void simplifyCondition() {
-		IfCondition simplified = IfCondition.simplify(condition);
-		if (simplified.getMode() == IfCondition.Mode.NOT) {
+		condition = IfCondition.simplify(condition);
+		if (condition.getMode() == IfCondition.Mode.NOT) {
 			invert();
 		}
 	}
 
 	private void invert() {
+		condition = IfCondition.invert(condition);
 		InsnArg tmp = getArg(0);
 		setArg(0, getArg(1));
 		setArg(1, tmp);
@@ -74,7 +80,8 @@ public final class TernaryInsn extends InsnNode {
 
 	@Override
 	public InsnNode copy() {
-		TernaryInsn copy = new TernaryInsn(condition, getResult(), getArg(0), getArg(1));
+		TernaryInsn copy = new TernaryInsn();
+		copy.condition = condition;
 		return copyCommonParams(copy);
 	}
 
