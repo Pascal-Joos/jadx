@@ -611,7 +611,7 @@ public abstract class ArgType {
 	}
 
 	public ArgType getWildcardType() {
-		throw new UnsupportedOperationException("ArgType.getWildcardType(), call wildcard type only: " + this.getClass());
+		return null;
 	}
 
 	public WildcardBound getWildcardBound() {
