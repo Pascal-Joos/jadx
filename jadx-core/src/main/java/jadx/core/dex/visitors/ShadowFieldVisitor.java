@@ -138,9 +138,6 @@ public class ShadowFieldVisitor extends AbstractVisitor {
 		if (fieldInfo == null) {
 			return;
 		}
-		if (fixInfoMap == null) {
-			return;
-		}
 		InsnArg arg = insn.getArg(insn.getArgsCount() - 1);
 		ArgType type = arg.getType();
 		if (!type.isTypeKnown() || !type.isObject()) {
