@@ -1,5 +1,7 @@
 package jadx.core.dex.regions;
 
+import java.util.Objects;
+
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -21,7 +23,7 @@ public abstract class AbstractRegion extends AttrNode implements IRegion {
 
 	@Override
 	public IRegion getParent() {
-		return parent;
+		return Objects.requireNonNull(parent);
 	}
 
 	@Override
