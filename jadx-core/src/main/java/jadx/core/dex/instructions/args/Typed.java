@@ -1,6 +1,7 @@
 package jadx.core.dex.instructions.args;
 
 import jadx.core.dex.attributes.AttrNode;
+import javax.annotation.Nullable;
 
 public abstract class Typed extends AttrNode {
 

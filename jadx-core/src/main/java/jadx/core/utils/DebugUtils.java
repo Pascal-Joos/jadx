@@ -41,6 +41,7 @@ import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.regions.TracedRegionVisitor;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxException;
+import javax.annotation.Nullable;
 
 /**
  * Use these methods only for debug purpose.

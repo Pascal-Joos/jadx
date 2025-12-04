@@ -87,9 +87,14 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 
 	public String getAliasPkg() {
 		if (isInner()) {
-			return parentClass.getAliasPkg();
+			ClassInfo parCls = parentClass;
+			if (parCls == null) {
+				throw new JadxRuntimeException("Inner class without parent class");
+			}
+			return parCls.getAliasPkg();
 		}
 		return alias == null ? getPackage() : alias.getPkg();
+	}
 	}
 
 	public String getAliasShortName() {
