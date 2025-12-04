@@ -1,6 +1,5 @@
 package jadx.core.xmlgen.entry;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -13,7 +12,8 @@ public class ProtoValue {
 	@Nullable
 	private String value;
 	private int type;
-	private List<ProtoValue> namedValues = new ArrayList<>();
+	@Nullable
+	private List<ProtoValue> namedValues;
 
 	public ProtoValue(@Nullable String value) {
 		this.value = value;
