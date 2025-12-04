@@ -496,7 +496,7 @@ public class ClassGen {
 		return 0;
 	}
 
-	private InsnGen makeInsnGen(@Nullable MethodNode mth) {
+	private InsnGen makeInsnGen(@NonNull MethodNode mth) {
 		MethodGen mthGen = new MethodGen(this, mth);
 		return new InsnGen(mthGen, false);
 	}
