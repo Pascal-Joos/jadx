@@ -298,13 +298,9 @@ public class EnumVisitor extends AbstractVisitor {
 	}
 
 	@Nullable
- 		@Nullable
-		private BlockInsnPair getValuesInitInsn(EnumData data) {
-			FieldNode valuesField = data.valuesField;
-			if (valuesField == null) {
-				return null;
-			}
-			FieldInfo searchField = valuesField.getFieldInfo();
+	private BlockInsnPair getValuesInitInsn(EnumData data) {
+		FieldInfo searchField = data.valuesField.getFieldInfo();
+		for (BlockNode blockNode : data.staticBlocks) {
 			for (InsnNode insn : blockNode.getInstructions()) {
 				if (insn.getType() == InsnType.SPUT) {
 					IndexInsnNode indexInsnNode = (IndexInsnNode) insn;
@@ -637,7 +633,7 @@ public class EnumVisitor extends AbstractVisitor {
 		return null;
 	}
 
-	@Nullable
+	private ConstructorInsn castConstructorInsn(@Nullable InsnNode coCandidate) {
 	private ConstructorInsn castConstructorInsn(@Nullable InsnNode coCandidate) {
 		if (coCandidate != null && coCandidate.getType() == InsnType.CONSTRUCTOR) {
 			return (ConstructorInsn) coCandidate;
@@ -657,19 +653,21 @@ public class EnumVisitor extends AbstractVisitor {
 		return null;
 	}
 
-	private static class EnumData {
-		final ClassNode cls;
-		final MethodNode classInitMth;
-		final List<BlockNode> staticBlocks;
-		final List<InsnNode> toRemove = new ArrayList<>();
-		@Nullable
+ 		private static class EnumData {
+			final ClassNode cls;
+			final MethodNode classInitMth;
+			final List<BlockNode> staticBlocks;
+			final List<InsnNode> toRemove = new ArrayList<>();
+			@Nullable
 			FieldNode valuesField;
-		InsnNode valuesInitInsn;
+			@Nullable
+			InsnNode valuesInitInsn;
 
-		public EnumData(ClassNode cls, MethodNode classInitMth, List<BlockNode> staticBlocks) {
-			this.cls = cls;
-			this.classInitMth = classInitMth;
-			this.staticBlocks = staticBlocks;
+			public EnumData(ClassNode cls, MethodNode classInitMth, List<BlockNode> staticBlocks) {
+				this.cls = cls;
+				this.classInitMth = classInitMth;
+				this.staticBlocks = staticBlocks;
+			}
 		}
 	}
-}
+

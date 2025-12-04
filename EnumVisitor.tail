@@ -1,0 +1,37 @@
+	@Nullable
+	private ConstructorInsn castConstructorInsn(@Nullable InsnNode coCandidate) {
+		if (coCandidate != null && coCandidate.getType() == InsnType.CONSTRUCTOR) {
+			return (ConstructorInsn) coCandidate;
+		}
+		return null;
+	}
+
+	@Nullable
+	private String getConstString(RootNode root, InsnArg arg) {
+		if (arg.isInsnWrap()) {
+			InsnNode constInsn = ((InsnWrapArg) arg).getWrapInsn();
+			Object constValue = InsnUtils.getConstValueByInsn(root, constInsn);
+			if (constValue instanceof String) {
+				return (String) constValue;
+			}
+		}
+		return null;
+	}
+
+	private static class EnumData {
+		final ClassNode cls;
+		final MethodNode classInitMth;
+		final List<BlockNode> staticBlocks;
+		final List<InsnNode> toRemove = new ArrayList<>();
+		@Nullable
+		FieldNode valuesField;
+		@Nullable
+		InsnNode valuesInitInsn;
+
+		public EnumData(ClassNode cls, MethodNode classInitMth, List<BlockNode> staticBlocks) {
+			this.cls = cls;
+			this.classInitMth = classInitMth;
+			this.staticBlocks = staticBlocks;
+		}
+	}
+}
