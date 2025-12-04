@@ -300,17 +300,8 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		}
 
 		int resRef = pkg.getId() << 24 | typeId << 16 | entryId;
-
 		String typeName = pkg.getTypeStrings()[typeId - 1];
-
-		String[] keyStrings = pkg.getKeyStrings();
-
-		String origKeyName = keyStrings != null && key >= 0 && key < keyStrings.length
-
-				? keyStrings[key]
-
-				: ("res_" + Integer.toHexString(resRef));
-
+		String origKeyName = pkg.getKeyStrings()[key];
 		ResourceEntry newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, getResName(typeName, resRef, origKeyName), config);
 		ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
 		if (prevResEntry != null) {
