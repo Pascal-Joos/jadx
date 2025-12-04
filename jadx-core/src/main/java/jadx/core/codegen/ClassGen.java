@@ -616,12 +616,6 @@ public class ClassGen {
 	}
 
 	private String useClassInternal(ClassInfo useCls, @Nullable ClassInfo extClsInfo) {
-		if (extClsInfo == null) {
-			return "";
-		}
-		if (extClsInfo == null) {
-			return "";
-		}
 		String fullName = extClsInfo.getAliasFullName();
 		if (fallback || !useImports) {
 			return fullName;
