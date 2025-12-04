@@ -104,7 +104,6 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	private Map<MethodInfo, MethodNode> mthInfoMap = Collections.emptyMap();
 
 	public ClassNode(RootNode root, IClassData cls) {
-		this.parentClass = this;
 		this.root = root;
 		this.clsInfo = ClassInfo.fromType(root, ArgType.object(cls.getType()));
 		this.clsData = cls.copy();
