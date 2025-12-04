@@ -36,7 +36,6 @@ public final class IfCondition extends AttrNode {
 
 	private final Mode mode;
 	private final List<IfCondition> args;
-	@Nullable
 	private final Compare compare;
 
 	private IfCondition(Compare compare) {
