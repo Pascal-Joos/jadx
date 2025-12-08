@@ -53,17 +53,9 @@ public class ManifestAttributes {
 
 	private final Map<String, MAttr> attrMap = new HashMap<>();
 
-	@Nullable
-	private static ManifestAttributes instance;
+	private static final ManifestAttributes instance = new ManifestAttributes();
 
 	public static ManifestAttributes getInstance() {
-		if (instance == null) {
-			try {
-				instance = new ManifestAttributes();
-			} catch (Exception e) {
-				LOG.error("Failed to create ManifestAttributes", e);
-			}
-		}
 		return instance;
 	}
 
