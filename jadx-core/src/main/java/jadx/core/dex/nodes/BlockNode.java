@@ -69,6 +69,7 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 		this.cid = cid;
 		this.id = id;
 		this.startOffset = offset;
+		this.cleanSuccessors = this.successors;
 	}
 
 	public int getCId() {
