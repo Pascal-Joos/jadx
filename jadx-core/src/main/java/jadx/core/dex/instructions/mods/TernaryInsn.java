@@ -17,7 +17,7 @@ public final class TernaryInsn extends InsnNode {
 	private IfCondition condition;
 
 	public TernaryInsn(@Nullable IfCondition condition, @Nullable RegisterArg result, InsnArg th, InsnArg els) {
-		this();
+		super(InsnType.TERNARY, 2);
 		setResult(result);
 
 		if (th.isFalse() && els.isTrue()) {
@@ -31,10 +31,6 @@ public final class TernaryInsn extends InsnNode {
 			addArg(els);
 		}
 		visitInsns(this::inheritMetadata);
-	}
-
-	private TernaryInsn() {
-		super(InsnType.TERNARY, 2);
 	}
 
 	public IfCondition getCondition() {
@@ -80,7 +76,7 @@ public final class TernaryInsn extends InsnNode {
 
 	@Override
 	public InsnNode copy() {
-		TernaryInsn copy = new TernaryInsn();
+		TernaryInsn copy = new TernaryInsn(condition, (RegisterArg) getResult(), getArg(0), getArg(1));
 		copy.condition = condition;
 		return copyCommonParams(copy);
 	}
