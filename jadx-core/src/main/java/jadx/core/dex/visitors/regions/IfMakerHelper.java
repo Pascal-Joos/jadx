@@ -53,7 +53,7 @@ public class IfMakerHelper {
 		if (next != null) {
 			return next;
 		}
-		return info;
+		return Objects.requireNonNull(info, "IfInfo must not be null in searchNestedIf");
 	}
 
 	@Nullable
