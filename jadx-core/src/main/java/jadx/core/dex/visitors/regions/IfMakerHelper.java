@@ -128,11 +128,11 @@ public class IfMakerHelper {
 
 	@Nullable
 	static IfInfo mergeNestedIfNodes(@Nullable IfInfo currentIf) {
-		BlockNode curThen = currentIf.getThenBlock();
-		BlockNode curElse = currentIf.getElseBlock();
-		if (curThen == curElse) {
+		if (currentIf == null) {
 			return null;
 		}
+		BlockNode curThen = currentIf.getThenBlock();
+		BlockNode curElse = currentIf.getElseBlock();
 		if (BlockUtils.isFollowBackEdge(curThen)
 				|| BlockUtils.isFollowBackEdge(curElse)) {
 			return null;
