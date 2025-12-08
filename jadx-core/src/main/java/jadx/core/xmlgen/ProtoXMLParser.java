@@ -33,6 +33,8 @@ public class ProtoXMLParser {
 
 	public ProtoXMLParser(RootNode rootNode) {
 		this.rootNode = rootNode;
+		this.nsMap = new HashMap<>();
+		this.writer = rootNode.makeCodeWriter();
 	}
 
 	public synchronized ICodeInfo parse(InputStream inputStream) throws IOException {
@@ -40,7 +42,7 @@ public class ProtoXMLParser {
 		writer = rootNode.makeCodeWriter();
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		decode(decodeProto(inputStream));
-		nsMap = null;
+		nsMap.clear();
 		return writer.finish();
 	}
 
