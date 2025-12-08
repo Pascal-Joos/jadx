@@ -12,8 +12,7 @@ public class ProtoValue {
 	@Nullable
 	private String value;
 	private int type;
-	@Nullable
-	private List<ProtoValue> namedValues;
+	private java.util.List<ProtoValue> namedValues = new java.util.ArrayList<>();
 
 	public ProtoValue(@Nullable String value) {
 		this.value = value;
