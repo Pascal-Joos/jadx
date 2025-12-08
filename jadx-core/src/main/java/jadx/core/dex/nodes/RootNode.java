@@ -494,7 +494,11 @@ public class RootNode {
 	}
 
 	public ClspGraph getClsp() {
-		return clsp;
+		ClspGraph clspGraph = this.clsp;
+		if (clspGraph == null) {
+			throw new JadxRuntimeException("Class path not initialized, call initClassPath() first");
+		}
+		return clspGraph;
 	}
 
 	public ErrorsCounter getErrorsCounter() {
