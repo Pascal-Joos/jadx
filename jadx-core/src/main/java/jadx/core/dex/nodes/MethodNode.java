@@ -70,6 +70,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private int blocksMaxCId;
 	@Nullable
 	private BlockNode enterBlock;
+
 	private BlockNode exitBlock;
 	private List<SSAVar> sVars;
 	private List<ExceptionHandler> exceptionHandlers;
@@ -116,7 +117,9 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		instructions = null;
 		blocks = java.util.Collections.emptyList();
 		enterBlock = null;
-		exitBlock = null;
+		// keep exitBlock non-null on unload to satisfy NullAway
+		// exitBlock is reinitialized on load
+
 		region = null;
 		exceptionHandlers = Collections.emptyList();
 		loops = Collections.emptyList();
