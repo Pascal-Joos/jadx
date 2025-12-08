@@ -117,8 +117,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		instructions = null;
 		blocks = java.util.Collections.emptyList();
 		enterBlock = null;
-		// keep exitBlock non-null on unload to satisfy NullAway
-		// exitBlock is reinitialized on load
+		// ensure exitBlock is non-null on unload to satisfy NullAway;
+		// it will be properly set during control flow graph construction
+		exitBlock = new BlockNode(0, 0, 0);
+
+		region = null;
 
 		region = null;
 		exceptionHandlers = Collections.emptyList();
