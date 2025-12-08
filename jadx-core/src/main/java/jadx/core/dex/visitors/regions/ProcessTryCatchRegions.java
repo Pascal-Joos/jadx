@@ -52,6 +52,9 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		// search top splitter block in this region (don't need to go deeper)
 		for (TryCatchBlockAttr tb : tryBlocks) {
 			BlockNode topSplitter = tb.getTopSplitter();
+			if (topSplitter == null) {
+				continue;
+			}
 			if (region.getSubBlocks().contains(topSplitter)) {
 				if (!wrapBlocks(region, tb, topSplitter)) {
 					mth.addWarn("Can't wrap try/catch for region: " + region);
