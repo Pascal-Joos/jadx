@@ -72,7 +72,7 @@ public class ClsSet {
 		PRIMITIVE
 	}
 
-	private ClspClass[] classes;
+	private ClspClass[] classes = new ClspClass[0];
 
 	public void loadFromClstFile() throws IOException, DecodeException {
 		long startTime = System.currentTimeMillis();
