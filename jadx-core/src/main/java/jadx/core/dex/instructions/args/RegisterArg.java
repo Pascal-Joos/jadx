@@ -77,6 +77,9 @@ public class RegisterArg extends InsnArg implements Named {
 	}
 
 	public SSAVar getSVar() {
+		if (sVar == null) {
+			throw new JadxRuntimeException("SSA variable not set for register: " + this);
+		}
 		return sVar;
 	}
 
