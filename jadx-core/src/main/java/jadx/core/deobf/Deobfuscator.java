@@ -303,7 +303,7 @@ public class Deobfuscator {
 				parentNode.addInnerPackage(result);
 			}
 		} while (!fullPkgName.isEmpty() && result != null);
-
+		return result;
 	}
 
 	private PackageNode getOrCreatePackageNode(String fullPkgName) {
