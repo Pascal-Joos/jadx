@@ -640,7 +640,12 @@ public abstract class ArgType {
 	}
 
 	public ArgType getArrayElement() {
-		return null;
+		if (isArray()) {
+			// For array types, subclasses should override this method to return the actual element type
+			return getArrayRootElement();
+		}
+		// Fallback for non-array types: return a generic unknown object type instead of null
+		return ArgType.OBJECT;
 	}
 
 	public ArgType getArrayRootElement() {
