@@ -28,6 +28,9 @@ public final class IfRegion extends ConditionRegion implements IBranchRegion {
 	}
 
 	public IContainer getThenRegion() {
+		if (thenRegion == null) {
+			thenRegion = new Region(this);
+		}
 		return thenRegion;
 	}
 
