@@ -38,30 +38,153 @@ import jadx.core.xmlgen.entry.ValuesParser;
 public class BinaryXMLParser extends CommonBinaryParser {
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
 
+	private static final ICodeWriter EMPTY_WRITER = new ICodeWriter() {
+		@Override
+		public boolean isMetadataSupported() {
+			return false;
+		}
+
+		@Override
+		public ICodeWriter startLine() {
+			return this;
+		}
+
+		@Override
+		public ICodeWriter startLine(char c) {
+			return this;
+		}
+
+		@Override
+		public ICodeWriter startLine(String str) {
+			return this;
+		}
+
+		@Override
+		public ICodeWriter startLineWithNum(int sourceLine) {
+			return this;
+		}
+
+		@Override
+		public ICodeWriter addMultiLine(String str) {
+			return this;
+		}
+
+		@Override
+		public ICodeWriter add(String str) {
+			return this;
+		}
+
+		@Override
+		public ICodeWriter add(char c) {
+			return this;
+		}
+
+		@Override
+		public ICodeWriter add(ICodeWriter code) {
+			return this;
+		}
+
+		@Override
+		public ICodeWriter newLine() {
+			return this;
+		}
+
+		@Override
+		public ICodeWriter addIndent() {
+			return this;
+		}
+
+		@Override
+		public void incIndent() {
+		}
+
+		@Override
+		public void decIndent() {
+		}
+
+		@Override
+		public int getIndent() {
+			return 0;
+		}
+
+		@Override
+		public void setIndent(int indent) {
+		}
+
+		@Override
+		public int getLine() {
+			return 0;
+		}
+
+		@Override
+		public int getLineStartPos() {
+			return 0;
+		}
+
+		@Override
+		public void attachDefinition(jadx.api.metadata.ICodeNodeRef obj) {
+		}
+
+		@Override
+		public void attachAnnotation(jadx.api.metadata.ICodeAnnotation obj) {
+		}
+
+		@Override
+		public void attachLineAnnotation(jadx.api.metadata.ICodeAnnotation obj) {
+		}
+
+		@Override
+		public void attachSourceLine(int sourceLine) {
+		}
+
+		@Override
+		public ICodeInfo finish() {
+			throw new JadxRuntimeException("EMPTY_WRITER.finish() called");
+		}
+
+		@Override
+		public String getCodeStr() {
+			return "";
+		}
+
+		@Override
+		public int getLength() {
+			return 0;
+		}
+
+		@Override
+		public StringBuilder getRawBuf() {
+			return new StringBuilder();
+		}
+
+		@Override
+		public java.util.Map<Integer, jadx.api.metadata.ICodeAnnotation> getRawAnnotations() {
+			return java.util.Collections.emptyMap();
+		}
+	};
 	private static final boolean ATTR_NEW_LINE = false;
 
 	private final Map<Integer, String> resNames;
-	private Map<String, String> nsMap;
-	private Set<String> nsMapGenerated;
+	private Map<String, String> nsMap = new HashMap<>();
+	private Set<String> nsMapGenerated = new HashSet<>();
 	private final Map<String, String> tagAttrDeobfNames = new HashMap<>();
-
-	private ICodeWriter writer;
-	private String[] strings;
+	private ICodeWriter writer = EMPTY_WRITER;
+	private String[] strings = new String[0];
 	private String currentTag = "ERROR";
 	private boolean firstElement;
-	private ValuesParser valuesParser;
+	private ValuesParser valuesParser = new ValuesParser(strings, new HashMap<>());
 	private boolean isLastEnd = true;
 	private boolean isOneLine = true;
 	private int namespaceDepth = 0;
-	private int[] resourceIds;
+	private int[] resourceIds = new int[0];
 
 	private final RootNode rootNode;
 	@Nullable
 	private String appPackageName;
-
 	@Nullable
 	private Map<String, ClassNode> classNameCache;
 
+	@Nullable
 	public BinaryXMLParser(RootNode rootNode) {
 		this.rootNode = rootNode;
 		try {
