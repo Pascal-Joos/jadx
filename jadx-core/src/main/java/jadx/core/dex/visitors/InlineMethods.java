@@ -78,11 +78,14 @@ public class InlineMethods extends AbstractVisitor {
 	}
 
 	private void inlineMethod(MethodNode mth, MethodNode callMth, MethodInlineAttr mia, BlockNode block, InvokeNode insn) {
-		InsnNode inlCopy = mia.getInsn().copyWithoutResult();
+		InsnNode inlInsn = java.util.Objects.requireNonNull(
+				mia.getInsn(),
+				"MethodInlineAttr insn must be non-null when notNeeded() is false");
+		InsnNode inlCopy = inlInsn.copyWithoutResult();
 		RegisterArg resultArg = insn.getResult();
 		if (resultArg != null) {
 			inlCopy.setResult(resultArg.duplicate());
-		} else if (isAssignNeeded(mia.getInsn(), insn, callMth)) {
+		} else if (isAssignNeeded(inlInsn, insn, callMth)) {
 			// add fake result to make correct java expression (see test TestGetterInlineNegative)
 			inlCopy.setResult(makeFakeArg(mth, callMth.getReturnType(), "unused"));
 		}
