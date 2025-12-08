@@ -46,6 +46,9 @@ public class TypeUpdateInfo {
 	}
 
 	public ArgType getType(@Nullable InsnArg arg) {
+		if (arg == null) {
+			throw new IllegalArgumentException("arg is null");
+		}
 		for (TypeUpdateEntry update : updates) {
 			if (update.getArg() == arg) {
 				return update.getType();
