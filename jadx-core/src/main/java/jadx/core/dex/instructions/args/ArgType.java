@@ -628,7 +628,7 @@ public abstract class ArgType {
 	}
 
 	public ArgType getInnerType() {
-		return null;
+		return this;
 	}
 
 	public boolean isArray() {
