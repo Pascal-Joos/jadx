@@ -264,7 +264,7 @@ public class Deobfuscator {
 	}
 
 	public void addPackagePreset(String origPkgName, String pkgAlias) {
-		PackageNode pkg = getPackageNode(origPkgName, true);
+		PackageNode pkg = getOrCreatePackageNode(origPkgName);
 		pkg.setAlias(pkgAlias);
 	}
 
@@ -278,6 +278,7 @@ public class Deobfuscator {
 	 * @return package node object or {@code null} if no package found and <b>create</b> set to
 	 *         {@code false}
 	 */
+	@javax.annotation.Nullable
 	private PackageNode getPackageNode(String fullPkgName, boolean create) {
 		if (fullPkgName.isEmpty() || fullPkgName.equals(CLASS_NAME_SEPARATOR)) {
 			return rootPackage;
@@ -303,7 +304,10 @@ public class Deobfuscator {
 			}
 		} while (!fullPkgName.isEmpty() && result != null);
 
-		return result;
+	}
+
+	private PackageNode getOrCreatePackageNode(String fullPkgName) {
+		return java.util.Objects.requireNonNull(getPackageNode(fullPkgName, true));
 	}
 
 	String getNameWithoutPackage(ClassInfo clsInfo) {
@@ -326,7 +330,7 @@ public class Deobfuscator {
 	private void preProcessClass(ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
 		String pkgFullName = classInfo.getPackage();
-		PackageNode pkg = getPackageNode(pkgFullName, true);
+		PackageNode pkg = getOrCreatePackageNode(pkgFullName);
 		processPackageFull(pkg, pkgFullName);
 
 		String alias = deobfPresets.getForCls(classInfo);
@@ -357,7 +361,7 @@ public class Deobfuscator {
 		ClassInfo classInfo = cls.getClassInfo();
 		if (classInfo.hasAliasPkg()) {
 			// already renamed
-			PackageNode pkg = getPackageNode(classInfo.getPackage(), true);
+			PackageNode pkg = getOrCreatePackageNode(classInfo.getPackage());
 			// update all parts of package
 			String[] aliasParts = classInfo.getAliasPkg().split("\\.");
 			PackageNode subPkg = pkg;
@@ -376,7 +380,7 @@ public class Deobfuscator {
 			pkg = deobfClsInfo.getPkg();
 		} else {
 			String fullPkgName = classInfo.getPackage();
-			pkg = getPackageNode(fullPkgName, true);
+			pkg = getOrCreatePackageNode(fullPkgName);
 			processPackageFull(pkg, fullPkgName);
 		}
 		if (pkg.hasAnyAlias()) {
@@ -414,7 +418,7 @@ public class Deobfuscator {
 		if (pkgName == null) {
 			pkgName = classInfo.getPackage();
 		}
-		PackageNode pkg = getPackageNode(pkgName, true);
+		PackageNode pkg = getOrCreatePackageNode(pkgName);
 		clsMap.put(classInfo, new DeobfClsInfo(this, cls, pkg, alias));
 		return alias;
 	}
