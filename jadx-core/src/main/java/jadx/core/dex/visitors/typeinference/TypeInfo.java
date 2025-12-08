@@ -17,7 +17,7 @@ public class TypeInfo {
 
 	@NotNull
 	public ArgType getType() {
-		return type;
+		return type != null ? type : ArgType.UNKNOWN;
 	}
 
 	public void setType(@Nullable ArgType type) {
