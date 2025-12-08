@@ -497,7 +497,14 @@ public class ClassGen {
 	}
 
 	private InsnGen makeInsnGen(@Nullable MethodNode mth) {
-		MethodGen mthGen = new MethodGen(this, mth);
+		MethodNode notNullMth = mth;
+		if (notNullMth == null) {
+			if (cls.getMethods().isEmpty()) {
+				throw new IllegalStateException("No methods available in class " + cls.getFullName());
+			}
+			notNullMth = cls.getMethods().get(0);
+		}
+		MethodGen mthGen = new MethodGen(this, notNullMth);
 		return new InsnGen(mthGen, false);
 	}
 
