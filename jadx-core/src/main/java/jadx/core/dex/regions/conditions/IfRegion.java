@@ -14,6 +14,7 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
+import jadx.core.dex.regions.Region;
 import jadx.core.utils.exceptions.CodegenException;
 
 public final class IfRegion extends ConditionRegion implements IBranchRegion {
@@ -35,6 +36,9 @@ public final class IfRegion extends ConditionRegion implements IBranchRegion {
 	}
 
 	public IContainer getElseRegion() {
+		if (elseRegion == null) {
+			elseRegion = new Region(this);
+		}
 		return elseRegion;
 	}
 
