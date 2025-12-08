@@ -247,7 +247,7 @@ public class DebugUtils {
 		return t -> seen.add(keyExtractor.apply(t));
 	}
 
-	private static Map<String, Long> execTimes;
+	private static Map<String, Long> execTimes = new java.util.concurrent.ConcurrentHashMap<>();
 
 	public static void initExecTimes() {
 		execTimes = new ConcurrentHashMap<>();
