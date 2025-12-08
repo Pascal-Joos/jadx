@@ -537,7 +537,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		} else {
 			String str = valuesParser.decodeValue(attrValDataType, attrValData);
 			memorizePackageName(attrName, str);
-			if (isDeobfCandidateAttr(shortNsName, attrName)) {
+			if (isDeobfCandidateAttr(shortNsName, attrName) && str != null) {
 				str = deobfClassName(str);
 			}
 			attachClassNode(writer, attrName, str);
