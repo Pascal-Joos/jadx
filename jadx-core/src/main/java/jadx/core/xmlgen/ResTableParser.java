@@ -36,7 +36,6 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 	private static final class PackageChunk {
 		private final int id;
 		private final String name;
-		@Nullable
 		private final String[] typeStrings;
 		@Nullable
 		private final String[] keyStrings;
@@ -44,7 +43,7 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		private PackageChunk(int id, String name, @Nullable String[] typeStrings, @Nullable String[] keyStrings) {
 			this.id = id;
 			this.name = name;
-			this.typeStrings = typeStrings;
+			this.typeStrings = typeStrings != null ? typeStrings : new String[0];
 			this.keyStrings = keyStrings;
 		}
 
