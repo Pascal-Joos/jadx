@@ -36,6 +36,10 @@ public class ClspGraph {
 
 	public ClspGraph(RootNode rootNode) {
 		this.root = rootNode;
+		// Initialize caches to empty maps so they are non-null on all paths
+		this.nameMap = new HashMap<>();
+		this.superTypesCache = new HashMap<>();
+		this.implementsCache = new HashMap<>();
 	}
 
 	public void load() throws IOException, DecodeException {
@@ -45,7 +49,7 @@ public class ClspGraph {
 	}
 
 	public void addClasspath(ClsSet set) {
-		if (nameMap == null) {
+		if (nameMap.isEmpty()) {
 			nameMap = new HashMap<>(set.getClassesCount());
 			set.addToMap(nameMap);
 		} else {
@@ -54,7 +58,7 @@ public class ClspGraph {
 	}
 
 	public void addApp(List<ClassNode> classes) {
-		if (nameMap == null) {
+		if (nameMap.isEmpty()) {
 			throw new JadxRuntimeException("Classpath must be loaded first");
 		}
 		for (ClassNode cls : classes) {
@@ -198,18 +202,12 @@ public class ClspGraph {
 
 	private void addSuperTypes(ClspClass cls, Set<String> result) {
 		for (ArgType parentType : cls.getParents()) {
-			if (parentType == null) {
-				continue;
-			}
-			ClspClass parentCls = getClspClass(parentType);
-			if (parentCls != null) {
-				boolean isNew = result.add(parentCls.getName());
-				if (isNew) {
+			String parent = parentType.getObject();
+			if (result.add(parent)) {
+				ClspClass parentCls = getClspClass(parentType);
+				if (parentCls != null) {
 					addSuperTypes(parentCls, result);
 				}
-			} else {
-				// parent type is unknown
-				result.add(parentType.getObject());
 			}
 		}
 	}
@@ -218,7 +216,7 @@ public class ClspGraph {
 	private ClspClass getClspClass(ArgType clsType) {
 		ClspClass clspClass = nameMap.get(clsType.getObject());
 		if (clspClass == null) {
-			missingClasses.add(clsType.getObject());
+			missingClasses.add(clsType.toString());
 		}
 		return clspClass;
 	}
@@ -228,13 +226,14 @@ public class ClspGraph {
 		if (count == 0) {
 			return;
 		}
-		LOG.warn("Found {} references to unknown classes", count);
 		if (LOG.isDebugEnabled()) {
 			List<String> clsNames = new ArrayList<>(missingClasses);
 			Collections.sort(clsNames);
 			for (String cls : clsNames) {
-				LOG.debug("  {}", cls);
+				LOG.debug("Missing class: {}", cls);
 			}
+		} else {
+			LOG.warn("Missing classes count: {}", count);
 		}
 	}
 }
