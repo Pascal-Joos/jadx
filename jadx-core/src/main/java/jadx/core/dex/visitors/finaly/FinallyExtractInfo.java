@@ -25,8 +25,7 @@ public class FinallyExtractInfo {
 
 	@Nullable
 	private InsnsSlice curDupSlice;
-	@Nullable
-	private List<InsnNode> curDupInsns;
+	private List<InsnNode> curDupInsns = new ArrayList<>();
 	private int curDupInsnsOffset;
 
 	public FinallyExtractInfo(MethodNode mth, ExceptionHandler finallyHandler, @Nullable BlockNode startBlock,
