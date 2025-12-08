@@ -65,7 +65,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private List<RegisterArg> argsList;
 	@Nullable
 	private InsnNode[] instructions;
-	private List<BlockNode> blocks;
+
+	private List<BlockNode> blocks = java.util.Collections.emptyList();
 	private int blocksMaxCId;
 	@Nullable
 	private BlockNode enterBlock;
@@ -113,7 +114,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		argsList = null;
 		sVars = Collections.emptyList();
 		instructions = null;
-		blocks = null;
+		blocks = java.util.Collections.emptyList();
 		enterBlock = null;
 		exitBlock = null;
 		region = null;
