@@ -2,6 +2,7 @@ package jadx.core.xmlgen.entry;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ import jadx.core.xmlgen.XmlGenUtils;
 public class ValuesParser extends ParserConstants {
 	private static final Logger LOG = LoggerFactory.getLogger(ValuesParser.class);
 
-	private static Map<Integer, String> androidResMap;
+	private static Map<Integer, String> androidResMap = Collections.emptyMap();
 
 	@Nullable
 	private final String[] strings;
