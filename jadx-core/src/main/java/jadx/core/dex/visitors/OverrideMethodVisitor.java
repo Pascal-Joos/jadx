@@ -301,16 +301,20 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		}
 		ClspClass clsDetails = root.getClsp().getClsDetails(superType);
 		if (clsDetails != null) {
-			int k = 0;
-			for (ArgType parentType : clsDetails.getParents()) {
-				k += addSuperType(root, superTypesMap, endTypes, parentType);
-			}
-			if (k == 0) {
+			ArgType[] parents = clsDetails.getParents();
+			if (parents != null) {
+				int k = 0;
+				for (ArgType parentType : parents) {
+					k += addSuperType(root, superTypesMap, endTypes, parentType);
+				}
+				if (k == 0) {
+					endTypes.add(superType.getObject());
+				}
+			} else {
 				endTypes.add(superType.getObject());
 			}
 			return 1;
 		}
-		// no info found => treat as hierarchy end
 		endTypes.add(superType.getObject());
 		return 1;
 	}

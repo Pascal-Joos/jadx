@@ -40,6 +40,7 @@ public class ClspClass {
 		return id;
 	}
 
+	@Nullable
 	public ArgType[] getParents() {
 		return parents;
 	}

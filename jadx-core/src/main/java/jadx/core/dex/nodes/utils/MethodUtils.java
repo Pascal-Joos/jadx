@@ -113,7 +113,6 @@ public class MethodUtils {
 		} else {
 			ClspClass clsDetails = root.getClsp().getClsDetails(startCls);
 			if (clsDetails == null) {
-				// class info not available
 				return false;
 			}
 			for (ClspMethod clspMth : clsDetails.getMethodsMap().values()) {
@@ -125,10 +124,13 @@ public class MethodUtils {
 				}
 			}
 			if (!isMthConstructor) {
-				for (ArgType parent : clsDetails.getParents()) {
-					if (processMethodArgsOverloaded(parent, mthInfo, collectedMths)) {
-						if (collectedMths == null) {
-							return true;
+				ArgType[] parents = clsDetails.getParents();
+				if (parents != null) {
+					for (ArgType parent : parents) {
+						if (processMethodArgsOverloaded(parent, mthInfo, collectedMths)) {
+							if (collectedMths == null) {
+								return true;
+							}
 						}
 					}
 				}
