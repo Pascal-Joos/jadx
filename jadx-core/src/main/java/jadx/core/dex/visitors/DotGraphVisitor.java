@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.ICodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.codegen.MethodGen;
@@ -210,7 +208,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				dot.add('|');
 				dot.startLine("doms: ").add(escape(block.getDoms()));
 				dot.startLine("\\lidom: ").add(escape(block.getIDom()));
-				dot.startLine("\\ldom-f: ").add(escape(Nullability.castToNonnull(block.getDomFrontier())));
+				dot.startLine("\\ldom-f: ").add(escape(block.getDomFrontier()));
 				dot.startLine("\\ldoms-on: ").add(escape(Utils.listToString(block.getDominatesOn())));
 				dot.startLine("\\l");
 			}

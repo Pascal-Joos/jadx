@@ -774,9 +774,6 @@ public class BlockUtils {
 			// collect dom frontier blocks from current set until only one block left
 			forEachBlockFromBitSet(mth, domFrontBS, block -> {
 				BitSet domFrontier = block.getDomFrontier();
-				if (domFrontier == null) {
-					return null;
-				}
 				if (!domFrontier.isEmpty()) {
 					combinedDF.or(domFrontier);
 					combinedDF.clear(block.getId());
