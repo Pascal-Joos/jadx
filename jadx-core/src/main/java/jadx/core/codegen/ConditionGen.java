@@ -6,8 +6,6 @@ import java.util.Queue;
 
 import javax.annotation.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.ArithNode;
@@ -56,7 +54,7 @@ public class ConditionGen extends InsnGen {
 
 	private void add(ICodeWriter code, CondStack stack, @Nullable IfCondition condition) throws CodegenException {
 		stack.push(condition);
-		switch (Nullability.castToNonnull(condition).getMode()) {
+		switch (condition.getMode()) {
 			case COMPARE:
 				addCompare(code, stack, condition.getCompare());
 				break;
