@@ -17,8 +17,6 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.core.dex.info.ClassInfo;
@@ -57,7 +55,7 @@ public class DeobfPresets {
 		}
 		Path inputFilePath = jadxArgs.getInputFiles().get(0).toPath().toAbsolutePath();
 		String baseName = FileUtils.getPathBaseName(inputFilePath);
-		return Nullability.castToNonnull(inputFilePath.getParent()).resolve(baseName + ".jobf");
+		return inputFilePath.getParent().resolve(baseName + ".jobf");
 	}
 
 	private DeobfPresets(Path deobfMapFile) {
