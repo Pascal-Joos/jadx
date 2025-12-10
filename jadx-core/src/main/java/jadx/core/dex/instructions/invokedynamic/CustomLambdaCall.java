@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.IMethodHandle;
 import jadx.api.plugins.input.data.IMethodProto;
 import jadx.api.plugins.input.data.IMethodRef;
@@ -92,7 +90,7 @@ public class CustomLambdaCall {
 
 		MethodNode callMth = root.resolveMethod(callMthInfo);
 		if (callMth != null) {
-			Nullability.castToNonnull(invokeCustomNode.getCallInsn()).addAttr(callMth);
+			invokeCustomNode.getCallInsn().addAttr(callMth);
 			if (callMth.getAccessFlags().isSynthetic()
 					&& callMth.getParentClass().equals(mth.getParentClass())) {
 				// inline only synthetic methods from same class
