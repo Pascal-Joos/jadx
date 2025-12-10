@@ -9,8 +9,6 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.ArgType.WildcardBound;
@@ -108,16 +106,12 @@ public class TypeCompare {
 		if (firstPrimitive && secondPrimitive) {
 			PrimitiveType firstPrimitiveType = first.getPrimitiveType();
 			PrimitiveType secondPrimitiveType = second.getPrimitiveType();
-			if (firstPrimitiveType == null || secondPrimitiveType == null) {
-				return CONFLICT;
-			}
 			if (firstPrimitiveType == PrimitiveType.BOOLEAN
 					|| secondPrimitiveType == PrimitiveType.BOOLEAN) {
 				return CONFLICT;
 			}
-			if (swapEquals(Nullability.castToNonnull(firstPrimitiveType), secondPrimitiveType, PrimitiveType.CHAR, PrimitiveType.BYTE)
-					|| swapEquals(Nullability.castToNonnull(firstPrimitiveType), secondPrimitiveType, PrimitiveType.CHAR,
-							PrimitiveType.SHORT)) {
+			if (swapEquals(firstPrimitiveType, secondPrimitiveType, PrimitiveType.CHAR, PrimitiveType.BYTE)
+					|| swapEquals(firstPrimitiveType, secondPrimitiveType, PrimitiveType.CHAR, PrimitiveType.SHORT)) {
 				return CONFLICT;
 			}
 			return firstPrimitiveType.compareTo(secondPrimitiveType) > 0 ? WIDER : NARROW;
