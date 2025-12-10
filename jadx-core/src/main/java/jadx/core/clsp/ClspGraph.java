@@ -87,9 +87,6 @@ public class ClspGraph {
 			return clspMethod;
 		}
 		// deep search
-		if (cls.getParents() == null) {
-			return null;
-		}
 		for (ArgType parent : cls.getParents()) {
 			ClspClass clspParent = getClspClass(parent);
 			if (clspParent != null) {
@@ -160,9 +157,6 @@ public class ClspGraph {
 
 	@Nullable
 	private String searchCommonParent(Set<String> anc, ClspClass cls) {
-		if (cls.getParents() == null) {
-			return null;
-		}
 		for (ArgType p : cls.getParents()) {
 			String name = p.getObject();
 			if (anc.contains(name)) {
@@ -203,11 +197,7 @@ public class ClspGraph {
 	}
 
 	private void addSuperTypes(ClspClass cls, Set<String> result) {
-		ArgType[] parents = cls.getParents();
-		if (parents == null) {
-			return;
-		}
-		for (ArgType parentType : parents) {
+		for (ArgType parentType : cls.getParents()) {
 			if (parentType == null) {
 				continue;
 			}

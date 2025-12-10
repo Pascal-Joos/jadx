@@ -302,11 +302,8 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		ClspClass clsDetails = root.getClsp().getClsDetails(superType);
 		if (clsDetails != null) {
 			int k = 0;
-			ArgType[] parents = clsDetails.getParents();
-			if (parents != null) {
-				for (ArgType parentType : parents) {
-					k += addSuperType(root, superTypesMap, endTypes, parentType);
-				}
+			for (ArgType parentType : clsDetails.getParents()) {
+				k += addSuperType(root, superTypesMap, endTypes, parentType);
 			}
 			if (k == 0) {
 				endTypes.add(superType.getObject());

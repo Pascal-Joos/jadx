@@ -125,13 +125,10 @@ public class MethodUtils {
 				}
 			}
 			if (!isMthConstructor) {
-				ArgType[] parents = clsDetails.getParents();
-				if (parents != null) {
-					for (ArgType parent : parents) {
-						if (processMethodArgsOverloaded(parent, mthInfo, collectedMths)) {
-							if (collectedMths == null) {
-								return true;
-							}
+				for (ArgType parent : clsDetails.getParents()) {
+					if (processMethodArgsOverloaded(parent, mthInfo, collectedMths)) {
+						if (collectedMths == null) {
+							return true;
 						}
 					}
 				}
