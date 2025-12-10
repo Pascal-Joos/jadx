@@ -3,6 +3,8 @@ package jadx.core.dex.visitors.usage;
 import java.util.Collections;
 import java.util.List;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.input.data.ICallSite;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IMethodHandle;
@@ -96,7 +98,7 @@ public class UsageInfoVisitor extends AbstractVisitor {
 			case TYPE_REF:
 				insnData.decode();
 				ArgType usedType = ArgType.parse(insnData.getIndexAsType());
-				usageInfo.clsUse(mth, usedType);
+				usageInfo.clsUse(mth, Nullability.castToNonnull(usedType));
 				break;
 
 			case FIELD_REF:
