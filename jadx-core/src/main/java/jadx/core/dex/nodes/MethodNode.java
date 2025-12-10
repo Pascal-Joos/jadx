@@ -469,7 +469,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			if (parentClass.getClassInfo().isInner()
 					&& !parentClass.getAccessFlags().isStatic()) {
 				ClassNode outerCls = parentClass.getParentClass();
-				if (argsList != null && !argsList.isEmpty()
+				if (outerCls != null
+						&& argsList != null && !argsList.isEmpty()
 						&& argsList.get(0).getInitType().equals(outerCls.getClassInfo().getType())) {
 					defaultArgCount = 1;
 				}

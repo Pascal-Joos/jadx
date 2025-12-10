@@ -15,6 +15,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
@@ -672,7 +674,7 @@ public class Deobfuscator {
 	}
 
 	private static boolean isR(ClassNode cls) {
-		if (!cls.getClassInfo().getShortName().equals("R")) {
+		if (!Nullability.castToNonnull(cls).getClassInfo().getShortName().equals("R")) {
 			return false;
 		}
 		if (!cls.getMethods().isEmpty() || !cls.getFields().isEmpty()) {

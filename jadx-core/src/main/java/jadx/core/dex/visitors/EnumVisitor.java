@@ -611,7 +611,8 @@ public class EnumVisitor extends AbstractVisitor {
 			}
 		}
 		field.setCls(innerCls);
-		if (!innerCls.getParentClass().equals(cls)) {
+		ClassNode parentClass = innerCls.getParentClass();
+		if (parentClass == null || !parentClass.equals(cls)) {
 			// not inner
 			cls.addInlinedClass(innerCls);
 			innerCls.add(AFlag.DONT_GENERATE);
