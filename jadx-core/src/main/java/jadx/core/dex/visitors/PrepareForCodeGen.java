@@ -252,9 +252,6 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			ConstructorInsn constrInsn = searchConstructorCall(mth);
 			if (constrInsn != null && !constrInsn.contains(AFlag.DONT_GENERATE)) {
 				Region oldRootRegion = mth.getRegion();
-				if (oldRootRegion == null) {
-					return;
-				}
 				boolean firstInsn = BlockUtils.isFirstInsn(mth, constrInsn);
 				DeclareVariablesAttr declVarsAttr = oldRootRegion.get(AType.DECLARE_VARIABLES);
 				if (firstInsn && declVarsAttr == null) {
