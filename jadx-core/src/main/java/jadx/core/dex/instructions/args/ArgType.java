@@ -649,7 +649,6 @@ public abstract class ArgType {
 
 	public abstract boolean contains(PrimitiveType type);
 
-	@Nullable
 	public abstract ArgType selectFirst();
 
 	public abstract PrimitiveType[] getPossibleTypes();
