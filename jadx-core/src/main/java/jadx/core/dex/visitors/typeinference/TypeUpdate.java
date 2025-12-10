@@ -13,6 +13,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.Consts;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.BaseInvokeNode;
@@ -282,8 +284,8 @@ public final class TypeUpdate {
 			return true;
 		}
 		boolean candidateArray = candidateType.isArray();
-		if (boundType.isArray() && candidateArray) {
-			return checkAssignForUnknown(boundType.getArrayElement(), candidateType.getArrayElement());
+		if (Nullability.castToNonnull(boundType).isArray() && candidateArray) {
+			return checkAssignForUnknown(boundType.getArrayElement(), Nullability.castToNonnull(candidateType.getArrayElement()));
 		}
 		if (candidateArray && boundType.contains(PrimitiveType.ARRAY)) {
 			return true;
@@ -516,11 +518,14 @@ public final class TypeUpdate {
 			TypeUpdateResult result = updateTypeChecked(updateInfo, insn.getArg(0), ArgType.array(candidateType));
 			if (result == REJECT) {
 				ArgType arrType = insn.getArg(0).getType();
-				if (arrType.isTypeKnown() && arrType.isArray() && arrType.getArrayElement().isPrimitive()) {
-					TypeCompareEnum compResult = comparator.compareTypes(candidateType, arrType.getArrayElement());
-					if (compResult == TypeCompareEnum.WIDER) {
-						// allow implicit upcast for primitive types (int a = byteArr[n])
-						return CHANGED;
+				if (arrType.isTypeKnown() && arrType.isArray()) {
+					ArgType arrayElement = arrType.getArrayElement();
+					if (arrayElement != null && arrayElement.isPrimitive()) {
+						TypeCompareEnum compResult = comparator.compareTypes(candidateType, arrayElement);
+						if (compResult == TypeCompareEnum.WIDER) {
+							// allow implicit upcast for primitive types (int a = byteArr[n])
+							return CHANGED;
+						}
 					}
 				}
 			}

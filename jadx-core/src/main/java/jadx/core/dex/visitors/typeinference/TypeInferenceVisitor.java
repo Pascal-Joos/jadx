@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import com.uber.nullaway.annotations.Initializer;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.Consts;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.attributes.AFlag;
@@ -424,7 +426,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	}
 
 	private List<ArgType> makePossibleTypesList(ArgType type, @Nullable SSAVar var) {
-		if (type.isArray()) {
+		if (Nullability.castToNonnull(type).isArray()) {
 			List<ArgType> list = new ArrayList<>();
 			for (ArgType arrElemType : makePossibleTypesList(type.getArrayElement(), null)) {
 				list.add(ArgType.array(arrElemType));

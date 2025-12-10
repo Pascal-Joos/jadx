@@ -283,6 +283,9 @@ public class TypeUtils {
 		if (replaceMap.isEmpty()) {
 			return null;
 		}
+		if (replaceType == null) {
+			return null;
+		}
 		if (replaceType.isGenericType()) {
 			return replaceMap.get(replaceType);
 		}
