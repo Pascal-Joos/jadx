@@ -9,8 +9,6 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.ArgType.WildcardBound;
@@ -211,7 +209,7 @@ public class TypeCompare {
 			}
 			List<ArgType> firstGenericTypes = first.getGenericTypes();
 			List<ArgType> secondGenericTypes = second.getGenericTypes();
-			if (firstGenericTypes == null || secondGenericTypes == null || isEmpty(firstGenericTypes) || isEmpty(secondGenericTypes)) {
+			if (isEmpty(firstGenericTypes) || isEmpty(secondGenericTypes)) {
 				// check outer types
 				ArgType firstOuterType = first.getOuterType();
 				ArgType secondOuterType = second.getOuterType();
@@ -220,8 +218,8 @@ public class TypeCompare {
 				}
 			} else {
 				// compare generics arrays
-				int len = Nullability.castToNonnull(firstGenericTypes).size();
-				if (len == Nullability.castToNonnull(secondGenericTypes).size()) {
+				int len = firstGenericTypes.size();
+				if (len == secondGenericTypes.size()) {
 					for (int i = 0; i < len; i++) {
 						TypeCompareEnum res = compareTypes(firstGenericTypes.get(i), secondGenericTypes.get(i));
 						if (res != EQUAL) {
