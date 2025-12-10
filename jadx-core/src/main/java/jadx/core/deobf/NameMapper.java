@@ -7,6 +7,8 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.utils.StringUtils;
 
 import static jadx.core.utils.StringUtils.notEmpty;
@@ -131,7 +133,7 @@ public class NameMapper {
 	}
 
 	public static boolean isAllCharsPrintable(@Nullable String str) {
-		int len = str.length();
+		int len = Nullability.castToNonnull(str).length();
 		int offset = 0;
 		while (offset < len) {
 			int codePoint = str.codePointAt(offset);
