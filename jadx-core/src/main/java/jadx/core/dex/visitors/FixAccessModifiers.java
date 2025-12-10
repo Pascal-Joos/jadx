@@ -78,7 +78,7 @@ public class FixAccessModifiers extends AbstractVisitor {
 		if (accessFlags.isPackagePrivate()) {
 			String pkg = cls.getPackage();
 			for (ClassNode useCls : cls.getUseIn()) {
-				if (!useCls.getPackage().equals(pkg)) {
+				if (!Objects.equals(useCls.getPackage(), pkg)) {
 					return AccessFlags.PUBLIC;
 				}
 			}
