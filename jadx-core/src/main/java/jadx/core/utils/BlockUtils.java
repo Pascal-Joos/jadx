@@ -342,9 +342,6 @@ public class BlockUtils {
 
 	@Nullable
 	private static InsnArg foundWrappedInsnInCondition(IfCondition cond, InsnNode insn) {
-		if (cond == null) {
-			return null;
-		}
 		if (cond.isCompare()) {
 			IfNode cmpInsn = cond.getCompare().getInsn();
 			return foundWrappedInsn(cmpInsn, insn);
