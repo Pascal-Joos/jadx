@@ -8,8 +8,6 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
@@ -145,7 +143,7 @@ public class ShadowFieldVisitor extends AbstractVisitor {
 		if (!type.isTypeKnown() || !type.isObject()) {
 			return;
 		}
-		FieldFixInfo fieldFixInfo = Nullability.castToNonnull(fixInfoMap).get(type.getObject());
+		FieldFixInfo fieldFixInfo = fixInfoMap.get(type.getObject());
 		if (fieldFixInfo == null) {
 			return;
 		}
