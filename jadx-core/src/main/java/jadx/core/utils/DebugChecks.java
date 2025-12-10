@@ -69,8 +69,11 @@ public class DebugChecks {
 		}
 		if (insn instanceof TernaryInsn) {
 			TernaryInsn ternaryInsn = (TernaryInsn) insn;
-			for (RegisterArg arg : ternaryInsn.getCondition().getRegisterArgs()) {
-				checkVar(mth, insn, arg);
+			IfCondition condition = ternaryInsn.getCondition();
+			if (condition != null) {
+				for (RegisterArg arg : condition.getRegisterArgs()) {
+					checkVar(mth, insn, arg);
+				}
 			}
 		}
 	}

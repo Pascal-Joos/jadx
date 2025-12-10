@@ -11,6 +11,8 @@ import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.input.data.IFieldRef;
 import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
@@ -208,7 +210,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 	}
 
 	private static void removeParenthesis(IfCondition cond) {
-		Mode mode = cond.getMode();
+		Mode mode = Nullability.castToNonnull(cond).getMode();
 		for (IfCondition c : cond.getArgs()) {
 			if (c.getMode() == mode) {
 				c.add(AFlag.DONT_WRAP);
