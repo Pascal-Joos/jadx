@@ -17,7 +17,7 @@ class DeobfClsInfo {
 
 	public String makeNameWithoutPkg() {
 		String prefix;
-		ClassNode parentClass = Nullability.castToNonnull(cls.getParentClass());
+		ClassNode parentClass = cls.getParentClass();
 		if (parentClass != cls) {
 			DeobfClsInfo parentDeobfClsInfo = deobfuscator.getClsMap().get(parentClass.getClassInfo());
 			if (parentDeobfClsInfo != null) {

@@ -16,8 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.DecompilationMode;
 import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
@@ -80,7 +78,6 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	@Nullable
 	private String smali;
 	// store parent for inner classes or 'this' otherwise
-	@Nullable
 	private ClassNode parentClass;
 
 	private volatile ProcessState state = ProcessState.NOT_LOADED;
@@ -567,7 +564,6 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return null;
 	}
 
-	@Nullable
 	public ClassNode getParentClass() {
 		return parentClass;
 	}
@@ -585,19 +581,16 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	public ClassNode getTopParentClass() {
 		ClassNode parent = getParentClass();
-		if (parent == null || parent == this) {
-			return this;
-		}
-		return parent.getTopParentClass();
+		return parent == this ? this : parent.getTopParentClass();
 	}
 
 	public void visitParentClasses(Consumer<ClassNode> consumer) {
 		ClassNode currentCls = this;
-		ClassNode parentCls = Nullability.castToNonnull(currentCls.getParentClass());
+		ClassNode parentCls = currentCls.getParentClass();
 		while (parentCls != currentCls) {
 			consumer.accept(parentCls);
 			currentCls = parentCls;
-			parentCls = Nullability.castToNonnull(currentCls.getParentClass());
+			parentCls = currentCls.getParentClass();
 		}
 	}
 
@@ -619,7 +612,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 			return true;
 		}
 		ClassNode parent = getParentClass();
-		if (parent == null || parent == this) {
+		if (parent == this) {
 			return false;
 		}
 		return parent.hasNotGeneratedParent();
