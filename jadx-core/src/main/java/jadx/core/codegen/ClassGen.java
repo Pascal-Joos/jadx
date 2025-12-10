@@ -15,6 +15,8 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
@@ -497,7 +499,7 @@ public class ClassGen {
 	}
 
 	private InsnGen makeInsnGen(@Nullable MethodNode mth) {
-		MethodGen mthGen = new MethodGen(this, mth);
+		MethodGen mthGen = new MethodGen(this, Nullability.castToNonnull(mth));
 		return new InsnGen(mthGen, false);
 	}
 
