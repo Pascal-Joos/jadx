@@ -63,6 +63,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	private final ClassInfo clsInfo;
 	private AccessInfo accessFlags;
+
 	@Nullable
 	private ArgType superClass;
 	private List<ArgType> interfaces;
@@ -597,7 +598,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	public void visitSuperTypes(BiConsumer<ArgType, ArgType> consumer) {
 		TypeUtils typeUtils = root.getTypeUtils();
 		ArgType thisType = this.getType();
-		if (!superClass.equals(ArgType.OBJECT)) {
+		if (superClass != null && !superClass.equals(ArgType.OBJECT)) {
 			consumer.accept(thisType, superClass);
 			typeUtils.visitSuperTypes(superClass, consumer);
 		}
