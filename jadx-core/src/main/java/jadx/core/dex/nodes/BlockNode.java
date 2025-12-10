@@ -180,7 +180,6 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	/**
 	 * Immediate dominator
 	 */
-	@Nullable
 	public BlockNode getIDom() {
 		return idom;
 	}
