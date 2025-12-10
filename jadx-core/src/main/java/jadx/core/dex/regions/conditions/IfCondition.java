@@ -149,7 +149,7 @@ public final class IfCondition extends AttrNode {
 		return new IfCondition(Mode.NOT, Collections.singletonList(cond));
 	}
 
-	public static IfCondition simplify(@Nullable IfCondition cond) {
+	public static IfCondition simplify(IfCondition cond) {
 		if (cond.isCompare()) {
 			Compare c = cond.getCompare();
 			IfCondition i = simplifyCmpOp(c);
@@ -326,7 +326,7 @@ public final class IfCondition extends AttrNode {
 	}
 
 	@Override
-	public boolean equals(@Nullable Object obj) {
+	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
 		}
