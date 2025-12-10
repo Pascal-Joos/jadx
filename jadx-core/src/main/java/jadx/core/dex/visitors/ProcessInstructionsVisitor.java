@@ -2,6 +2,8 @@ package jadx.core.dex.visitors;
 
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.instructions.BaseInvokeNode;
@@ -41,7 +43,7 @@ public class ProcessInstructionsVisitor extends AbstractVisitor {
 	}
 
 	private static void initJumps(MethodNode mth, InsnNode[] insnByOffset) {
-		for (int offset = 0; offset < insnByOffset.length; offset++) {
+		for (int offset = 0; offset < Nullability.castToNonnull(insnByOffset).length; offset++) {
 			InsnNode insn = insnByOffset[offset];
 			if (insn == null) {
 				continue;

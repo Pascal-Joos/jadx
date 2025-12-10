@@ -90,6 +90,9 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 
 	@Nullable
 	private static InsnNode getInsnByOffset(MethodNode mth, int offset) {
+		if (mth.getInstructions() == null) {
+			return null;
+		}
 		try {
 			return mth.getInstructions()[offset];
 		} catch (Exception e) {

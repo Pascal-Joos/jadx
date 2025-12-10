@@ -303,6 +303,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return noCode;
 	}
 
+	@Nullable
 	public InsnNode[] getInstructions() {
 		return instructions;
 	}

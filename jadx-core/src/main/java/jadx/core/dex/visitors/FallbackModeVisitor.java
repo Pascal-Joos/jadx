@@ -1,5 +1,7 @@
 package jadx.core.dex.visitors;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.codegen.json.JsonMappingGen;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.InsnNode;
@@ -22,7 +24,7 @@ public class FallbackModeVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		for (InsnNode insn : mth.getInstructions()) {
+		for (InsnNode insn : Nullability.castToNonnull(mth.getInstructions())) {
 			if (insn == null) {
 				continue;
 			}

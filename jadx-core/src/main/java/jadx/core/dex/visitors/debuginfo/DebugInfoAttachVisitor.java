@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.ILocalVar;
 import jadx.core.dex.attributes.AFlag;
@@ -48,8 +50,8 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 	private void processDebugInfo(MethodNode mth, IDebugInfo debugInfo) {
 		InsnNode[] insnArr = mth.getInstructions();
 		attachSourceLines(mth, debugInfo.getSourceLineMapping(), insnArr);
-		attachDebugInfo(mth, debugInfo.getLocalVars(), insnArr);
-		setMethodSourceLine(mth, insnArr);
+		attachDebugInfo(mth, debugInfo.getLocalVars(), Nullability.castToNonnull(insnArr));
+		setMethodSourceLine(mth, Nullability.castToNonnull(insnArr));
 	}
 
 	private void attachSourceLines(MethodNode mth, Map<Integer, Integer> lineMapping, InsnNode[] insnArr) {
@@ -60,7 +62,7 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 		for (Map.Entry<Integer, Integer> entry : lineMapping.entrySet()) {
 			try {
 				Integer offset = entry.getKey();
-				InsnNode insn = insnArr[offset];
+				InsnNode insn = Nullability.castToNonnull(insnArr)[offset];
 				if (insn != null) {
 					int line = entry.getValue();
 					insn.setSourceLine(line);
@@ -105,7 +107,7 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 				start = 0;
 			}
 			for (int i = start; i <= end; i++) {
-				InsnNode insn = insnArr[i];
+				InsnNode insn = Nullability.castToNonnull(insnArr)[i];
 				if (insn == null) {
 					continue;
 				}
