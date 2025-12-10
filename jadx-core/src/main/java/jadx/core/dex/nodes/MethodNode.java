@@ -65,6 +65,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private List<RegisterArg> argsList;
 	@Nullable
 	private InsnNode[] instructions;
+	@Nullable
 	private List<BlockNode> blocks;
 	private int blocksMaxCId;
 	@Nullable
@@ -321,6 +322,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		blocks.forEach(BlockNode::lock);
 	}
 
+	@Nullable
 	public List<BlockNode> getBasicBlocks() {
 		return blocks;
 	}
