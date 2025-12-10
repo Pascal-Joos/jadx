@@ -7,8 +7,6 @@ import java.util.Map.Entry;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.IFieldRef;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
@@ -182,7 +180,7 @@ public class AnnotationGen {
 				code.add(getStringUtils().unescapeString((String) value));
 				break;
 			case ENCODED_TYPE:
-				classGen.useType(code, Nullability.castToNonnull(ArgType.parse((String) value)));
+				classGen.useType(code, ArgType.parse((String) value));
 				code.add(".class");
 				break;
 			case ENCODED_ENUM:

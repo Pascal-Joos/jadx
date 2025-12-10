@@ -2,8 +2,6 @@ package jadx.core.dex.attributes.nodes;
 
 import java.util.Objects;
 
-import javax.annotation.Nullable;
-
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.args.ArgType;
@@ -22,7 +20,6 @@ public class RegDebugInfoAttr implements IJadxAttribute {
 		return name;
 	}
 
-	@Nullable
 	public ArgType getRegType() {
 		return type;
 	}

@@ -11,8 +11,6 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.ILocalVar;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
@@ -138,7 +136,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 	}
 
 	public static boolean applyDebugInfo(MethodNode mth, SSAVar ssaVar, ArgType type, @Nullable String varName) {
-		TypeUpdateResult result = mth.root().getTypeUpdate().applyWithWiderIgnoreUnknown(mth, ssaVar, Nullability.castToNonnull(type));
+		TypeUpdateResult result = mth.root().getTypeUpdate().applyWithWiderIgnoreUnknown(mth, ssaVar, type);
 		if (result == TypeUpdateResult.REJECT) {
 			if (Consts.DEBUG_TYPE_INFERENCE) {
 				LOG.debug("Reject debug info of type: {} and name: '{}' for {}, mth: {}", type, varName, ssaVar, mth);

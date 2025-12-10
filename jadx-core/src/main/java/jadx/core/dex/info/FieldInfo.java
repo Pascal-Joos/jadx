@@ -2,8 +2,6 @@ package jadx.core.dex.info;
 
 import java.util.Objects;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.IFieldRef;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.instructions.args.ArgType;
@@ -30,7 +28,7 @@ public final class FieldInfo {
 
 	public static FieldInfo fromRef(RootNode root, IFieldRef fieldRef) {
 		ClassInfo declClass = ClassInfo.fromName(root, fieldRef.getParentClassType());
-		FieldInfo field = new FieldInfo(declClass, fieldRef.getName(), Nullability.castToNonnull(ArgType.parse(fieldRef.getType())));
+		FieldInfo field = new FieldInfo(declClass, fieldRef.getName(), ArgType.parse(fieldRef.getType()));
 		return root.getInfoStorage().getField(field);
 	}
 

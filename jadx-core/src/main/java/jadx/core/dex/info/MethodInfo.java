@@ -5,8 +5,6 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.IMethodProto;
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.core.codegen.TypeGen;
@@ -48,10 +46,10 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 		}
 		methodRef.load();
 		ArgType parentClsType = ArgType.parse(methodRef.getParentClassType());
-		ClassInfo parentClass = ClassInfo.fromType(root, Nullability.castToNonnull(parentClsType));
+		ClassInfo parentClass = ClassInfo.fromType(root, parentClsType);
 		ArgType returnType = ArgType.parse(methodRef.getReturnType());
 		List<ArgType> args = Utils.collectionMap(methodRef.getArgTypes(), ArgType::parse);
-		MethodInfo newMth = new MethodInfo(parentClass, methodRef.getName(), args, Nullability.castToNonnull(returnType));
+		MethodInfo newMth = new MethodInfo(parentClass, methodRef.getName(), args, returnType);
 		MethodInfo uniqMth = infoStorage.putMethod(newMth);
 		if (uniqId != 0) {
 			infoStorage.putByUniqId(uniqId, uniqMth);
@@ -67,7 +65,7 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 	public static MethodInfo fromMethodProto(RootNode root, ClassInfo declClass, String name, IMethodProto proto) {
 		List<ArgType> args = Utils.collectionMap(proto.getArgTypes(), ArgType::parse);
 		ArgType returnType = ArgType.parse(proto.getReturnType());
-		return fromDetails(root, declClass, name, args, Nullability.castToNonnull(returnType));
+		return fromDetails(root, declClass, name, args, returnType);
 	}
 
 	public String makeSignature(boolean includeRetType) {

@@ -4,10 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Nullable;
-
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.ILocalVar;
 import jadx.core.dex.attributes.AFlag;
@@ -139,7 +135,6 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 		return 0;
 	}
 
-	@Nullable
 	public static ArgType getVarType(MethodNode mth, ILocalVar var) {
 		ArgType type = ArgType.parse(var.getType());
 		String sign = var.getSignature();
@@ -149,7 +144,7 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 		try {
 			ArgType gType = new SignatureParser(sign).consumeType();
 			ArgType expandedType = mth.root().getTypeUtils().expandTypeVariables(mth, gType);
-			if (checkSignature(mth, Nullability.castToNonnull(type), expandedType)) {
+			if (checkSignature(mth, type, expandedType)) {
 				return expandedType;
 			}
 		} catch (Exception e) {

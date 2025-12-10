@@ -8,8 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.insns.InsnData;
@@ -88,8 +86,8 @@ public class InsnDecoder {
 
 			case CONST_CLASS: {
 				ArgType clsType = ArgType.parse(insn.getIndexAsType());
-				InsnNode constClsInsn = new ConstClassNode(Nullability.castToNonnull(clsType));
-				constClsInsn.setResult(InsnArg.reg(insn, 0, ArgType.generic(Consts.CLASS_CLASS, Nullability.castToNonnull(clsType))));
+				InsnNode constClsInsn = new ConstClassNode(clsType);
+				constClsInsn.setResult(InsnArg.reg(insn, 0, ArgType.generic(Consts.CLASS_CLASS, clsType)));
 				return constClsInsn;
 			}
 
@@ -348,16 +346,15 @@ public class InsnDecoder {
 						InsnArg.reg(insn, 0, method.getReturnType()));
 
 			case INSTANCE_OF:
-				InsnNode instInsn =
-						new IndexInsnNode(InsnType.INSTANCE_OF, Nullability.castToNonnull(ArgType.parse(insn.getIndexAsType())), 1);
+				InsnNode instInsn = new IndexInsnNode(InsnType.INSTANCE_OF, ArgType.parse(insn.getIndexAsType()), 1);
 				instInsn.setResult(InsnArg.reg(insn, 0, ArgType.BOOLEAN));
 				instInsn.addArg(InsnArg.reg(insn, 1, ArgType.UNKNOWN_OBJECT));
 				return instInsn;
 
 			case CHECK_CAST:
 				ArgType castType = ArgType.parse(insn.getIndexAsType());
-				InsnNode checkCastInsn = new IndexInsnNode(InsnType.CHECK_CAST, Nullability.castToNonnull(castType), 1);
-				checkCastInsn.setResult(InsnArg.reg(insn, 0, Nullability.castToNonnull(castType)));
+				InsnNode checkCastInsn = new IndexInsnNode(InsnType.CHECK_CAST, castType, 1);
+				checkCastInsn.setResult(InsnArg.reg(insn, 0, castType));
 				checkCastInsn.addArg(InsnArg.reg(insn, insn.getRegsCount() == 2 ? 1 : 0, ArgType.UNKNOWN_OBJECT));
 				return checkCastInsn;
 
@@ -459,8 +456,8 @@ public class InsnDecoder {
 
 			case NEW_INSTANCE:
 				ArgType clsType = ArgType.parse(insn.getIndexAsType());
-				IndexInsnNode newInstInsn = new IndexInsnNode(InsnType.NEW_INSTANCE, Nullability.castToNonnull(clsType), 0);
-				newInstInsn.setResult(InsnArg.reg(insn, 0, Nullability.castToNonnull(clsType)));
+				IndexInsnNode newInstInsn = new IndexInsnNode(InsnType.NEW_INSTANCE, clsType, 0);
+				newInstInsn.setResult(InsnArg.reg(insn, 0, clsType));
 				return newInstInsn;
 
 			case NEW_ARRAY:
@@ -511,13 +508,13 @@ public class InsnDecoder {
 	}
 
 	private InsnNode makeNewArray(InsnData insn) {
-		ArgType indexType = Nullability.castToNonnull(ArgType.parse(insn.getIndexAsType()));
+		ArgType indexType = ArgType.parse(insn.getIndexAsType());
 		int dim = (int) insn.getLiteral();
 		ArgType arrType;
 		if (dim == 0) {
 			arrType = indexType;
 		} else {
-			if (Nullability.castToNonnull(indexType).isArray()) {
+			if (indexType.isArray()) {
 				// java bytecode can pass array as a base type
 				arrType = indexType;
 			} else {
@@ -525,8 +522,8 @@ public class InsnDecoder {
 			}
 		}
 		int regsCount = insn.getRegsCount();
-		NewArrayNode newArr = new NewArrayNode(Nullability.castToNonnull(arrType), regsCount - 1);
-		newArr.setResult(InsnArg.reg(insn, 0, Nullability.castToNonnull(arrType)));
+		NewArrayNode newArr = new NewArrayNode(arrType, regsCount - 1);
+		newArr.setResult(InsnArg.reg(insn, 0, arrType));
 		for (int i = 1; i < regsCount; i++) {
 			newArr.addArg(InsnArg.typeImmutableReg(insn, i, ArgType.INT));
 		}
@@ -543,7 +540,7 @@ public class InsnDecoder {
 
 	private InsnNode filledNewArray(InsnData insn, boolean isRange) {
 		ArgType arrType = ArgType.parse(insn.getIndexAsType());
-		ArgType elType = Nullability.castToNonnull(arrType.getArrayElement());
+		ArgType elType = arrType.getArrayElement();
 		boolean typeImmutable = elType.isPrimitive();
 		int regsCount = insn.getRegsCount();
 		InsnArg[] regs = new InsnArg[regsCount];

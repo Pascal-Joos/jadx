@@ -10,8 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.Consts;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.RootNode;
@@ -744,13 +742,12 @@ public abstract class ArgType {
 			case 'T':
 				return genericType(type.substring(1, type.length() - 1));
 			case '[':
-				return array(Nullability.castToNonnull(parse(type.substring(1))));
+				return array(parse(type.substring(1)));
 			default:
 				return parse(f);
 		}
 	}
 
-	@Nullable
 	public static ArgType parse(char f) {
 		switch (f) {
 			case 'Z':
