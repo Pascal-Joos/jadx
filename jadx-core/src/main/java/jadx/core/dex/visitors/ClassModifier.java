@@ -9,6 +9,8 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
@@ -182,7 +184,7 @@ public class ClassModifier extends AbstractVisitor {
 				// check if missing class from current top class
 				ClassInfo argClsInfo = ClassInfo.fromType(cls.root(), argType);
 				if (argClsInfo.isInner()
-						&& cls.getFullName().startsWith(argClsInfo.getParentClass().getFullName())) {
+						&& cls.getFullName().startsWith(Nullability.castToNonnull(argClsInfo.getParentClass()).getFullName())) {
 					return true;
 				}
 			} else {
