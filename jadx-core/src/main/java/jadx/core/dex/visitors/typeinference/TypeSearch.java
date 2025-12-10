@@ -299,7 +299,11 @@ public class TypeSearch {
 	private List<ArgType> getWiderTypes(ArgType type) {
 		if (type.isTypeKnown()) {
 			if (type.isObject()) {
-				Set<String> ancestors = mth.root().getClsp().getSuperTypes(type.getObject());
+				RootNode root = mth.root();
+				if (root == null) {
+					return Collections.emptyList();
+				}
+				Set<String> ancestors = root.getClsp().getSuperTypes(type.getObject());
 				return ancestors.stream().map(ArgType::object).collect(Collectors.toList());
 			}
 		} else {
@@ -314,6 +318,9 @@ public class TypeSearch {
 				if (type.equals(ArgType.OBJECT)) {
 					// a lot of objects to return
 					return Collections.singletonList(ArgType.OBJECT);
+				}
+				if (mth.root() == null) {
+					return Collections.emptyList();
 				}
 				List<String> impList = mth.root().getClsp().getImplementations(type.getObject());
 				return impList.stream().map(ArgType::object).collect(Collectors.toList());

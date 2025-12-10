@@ -668,10 +668,16 @@ public abstract class ArgType {
 		if (!type.isObject() || !of.isObject()) {
 			return false;
 		}
+		if (root == null) {
+			return false;
+		}
 		return root.getClsp().isImplements(type.getObject(), of.getObject());
 	}
 
 	public static boolean isClsKnown(RootNode root, ArgType cls) {
+		if (root == null) {
+			return false;
+		}
 		if (cls.isObject()) {
 			return root.getClsp().isClsKnown(cls.getObject());
 		}

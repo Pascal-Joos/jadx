@@ -103,7 +103,11 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 					}
 				}
 			} else {
-				ClspClass clsDetails = mth.root().getClsp().getClsDetails(superType);
+				RootNode root = mth.root();
+				if (root == null || root.getClsp() == null) {
+					return null;
+				}
+				ClspClass clsDetails = root.getClsp().getClsDetails(superType);
 				if (clsDetails != null) {
 					Map<String, ClspMethod> methodsMap = clsDetails.getMethodsMap();
 					for (Map.Entry<String, ClspMethod> entry : methodsMap.entrySet()) {
@@ -299,16 +303,19 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 			collectSuperTypes(classNode, superTypesMap, endTypes);
 			return 1;
 		}
-		ClspClass clsDetails = root.getClsp().getClsDetails(superType);
-		if (clsDetails != null) {
-			int k = 0;
-			for (ArgType parentType : clsDetails.getParents()) {
-				k += addSuperType(root, superTypesMap, endTypes, parentType);
+		ClspGraph clsp = root.getClsp();
+		if (clsp != null) {
+			ClspClass clsDetails = clsp.getClsDetails(superType);
+			if (clsDetails != null) {
+				int k = 0;
+				for (ArgType parentType : clsDetails.getParents()) {
+					k += addSuperType(root, superTypesMap, endTypes, parentType);
+				}
+				if (k == 0) {
+					endTypes.add(superType.getObject());
+				}
+				return 1;
 			}
-			if (k == 0) {
-				endTypes.add(superType.getObject());
-			}
-			return 1;
 		}
 		// no info found => treat as hierarchy end
 		endTypes.add(superType.getObject());
