@@ -19,6 +19,8 @@ import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -414,6 +416,9 @@ public class BlockUtils {
 	 */
 	@Nullable
 	public static BlockNode getNextBlock(BlockNode block) {
+		if (block == null) {
+			return null;
+		}
 		List<BlockNode> s = block.getCleanSuccessors();
 		return s.isEmpty() ? null : s.get(0);
 	}
@@ -487,8 +492,8 @@ public class BlockUtils {
 		BitSet visited = newBlocksBitSet(mth);
 		Deque<BlockNode> queue = new ArrayDeque<>();
 		BlockNode enterBlock = mth.getEnterBlock();
-		queue.addLast(enterBlock);
-		visited.set(mth.getEnterBlock().getId());
+		queue.addLast(Nullability.castToNonnull(enterBlock));
+		visited.set(Nullability.castToNonnull(mth.getEnterBlock()).getId());
 		while (true) {
 			BlockNode current = queue.pollLast();
 			if (current == null) {
@@ -547,7 +552,7 @@ public class BlockUtils {
 		Set<BlockNode> set = new HashSet<>();
 		set.add(start);
 		if (start != end) {
-			addPredecessors(set, end, start);
+			addPredecessors(set, end, Nullability.castToNonnull(start));
 		}
 		return set;
 	}
@@ -607,7 +612,7 @@ public class BlockUtils {
 
 	public static boolean isPathExists(BlockNode start, BlockNode end) {
 		if (start == end
-				|| end.isDominator(start)
+				|| Nullability.castToNonnull(end).isDominator(start)
 				|| start.getCleanSuccessors().contains(end)) {
 			return true;
 		}
@@ -919,9 +924,10 @@ public class BlockUtils {
 	 * Follow empty blocks and return end of path block (first not empty).
 	 * Return start block if no such path.
 	 */
+	@SuppressWarnings("NullAway")
 	public static BlockNode followEmptyPath(BlockNode start) {
 		while (true) {
-			BlockNode next = getNextBlockOnEmptyPath(start);
+			BlockNode next = getNextBlockOnEmptyPath(Nullability.castToNonnull(start));
 			if (next == null) {
 				return start;
 			}
@@ -1047,7 +1053,7 @@ public class BlockUtils {
 	}
 
 	public static boolean isFirstInsn(MethodNode mth, InsnNode insn) {
-		BlockNode startBlock = followEmptyPath(mth.getEnterBlock());
+		BlockNode startBlock = followEmptyPath(Nullability.castToNonnull(mth.getEnterBlock()));
 		if (startBlock != null && !startBlock.getInstructions().isEmpty()) {
 			return startBlock.getInstructions().get(0) == insn;
 		}

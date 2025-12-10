@@ -78,7 +78,11 @@ public class FixMultiEntryLoops {
 		List<BlockNode> blocks = mth.getBasicBlocks();
 		BlockColor[] colors = new BlockColor[blocks.size()];
 		Arrays.fill(colors, BlockColor.WHITE);
-		colorDFS(mth, blocks, colors, mth.getEnterBlock().getId());
+		BlockNode enterBlock = mth.getEnterBlock();
+		if (enterBlock == null) {
+			return;
+		}
+		colorDFS(mth, blocks, colors, enterBlock.getId());
 	}
 
 	// TODO: transform to non-recursive form

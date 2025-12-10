@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.JumpInfo;
@@ -153,7 +155,7 @@ public class BlockSplitter extends AbstractVisitor {
 	}
 
 	public static void removeConnection(BlockNode from, BlockNode to) {
-		from.getSuccessors().remove(to);
+		Nullability.castToNonnull(from).getSuccessors().remove(to);
 		to.getPredecessors().remove(from);
 	}
 

@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.ICodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.codegen.MethodGen;
@@ -277,7 +279,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			} else if (c instanceof IBlock) {
 				name = "Node_" + c.getClass().getSimpleName() + '_' + c.hashCode();
 			} else {
-				name = "cluster_" + c.getClass().getSimpleName() + '_' + c.hashCode();
+				name = "cluster_" + Nullability.castToNonnull(c).getClass().getSimpleName() + '_' + Nullability.castToNonnull(c).hashCode();
 			}
 			return name;
 		}
