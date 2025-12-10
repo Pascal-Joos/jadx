@@ -209,10 +209,14 @@ public class IfMakerHelper {
 	}
 
 	@Nullable
+	@javax.annotation.Nullable
 	private static IfInfo checkForTernaryInCondition(IfInfo currentIf) {
 		IfInfo nextThen = getNextIf(currentIf, currentIf.getThenBlock());
 		IfInfo nextElse = getNextIf(currentIf, currentIf.getElseBlock());
 		if (nextThen == null || nextElse == null) {
+			return null;
+		}
+		if (nextThen.getFirstIfBlock().getDomFrontier() == null || nextElse.getFirstIfBlock().getDomFrontier() == null) {
 			return null;
 		}
 		if (!nextThen.getFirstIfBlock().getDomFrontier().equals(nextElse.getFirstIfBlock().getDomFrontier())) {

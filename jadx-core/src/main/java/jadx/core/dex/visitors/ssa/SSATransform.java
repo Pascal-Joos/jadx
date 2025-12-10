@@ -93,6 +93,9 @@ public class SSATransform extends AbstractVisitor {
 		while (!workList.isEmpty()) {
 			BlockNode block = workList.pop();
 			BitSet domFrontier = block.getDomFrontier();
+			if (domFrontier == null) {
+				continue;
+			}
 			for (int id = domFrontier.nextSetBit(0); id >= 0; id = domFrontier.nextSetBit(id + 1)) {
 				if (!hasPhi.get(id) && la.isLive(id, regNum)) {
 					BlockNode df = blocks.get(id);
