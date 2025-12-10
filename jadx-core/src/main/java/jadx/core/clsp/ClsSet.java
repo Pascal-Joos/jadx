@@ -158,10 +158,12 @@ public class ClsSet {
 		return getCls(cls.getRawName(), names);
 	}
 
+	@Nullable
 	private static ClspClass getCls(ArgType clsType, Map<String, ClspClass> names) {
 		return getCls(clsType.getObject(), names);
 	}
 
+	@Nullable
 	private static ClspClass getCls(String fullName, Map<String, ClspClass> names) {
 		ClspClass cls = names.get(fullName);
 		if (cls == null) {
@@ -292,7 +294,8 @@ public class ClsSet {
 			}
 		} else if (argType.isGeneric()) {
 			out.writeByte(TypeEnum.GENERIC.ordinal());
-			out.writeInt(getCls(argType, names).getId());
+			ClspClass cls = getCls(argType, names);
+			out.writeInt(cls == null ? -1 : cls.getId());
 			writeArgTypesList(out, argType.getGenericTypes(), names);
 		} else if (argType.isGenericType()) {
 			out.writeByte(TypeEnum.GENERIC_TYPE_VARIABLE.ordinal());
@@ -300,7 +303,8 @@ public class ClsSet {
 			writeArgTypesList(out, argType.getExtendTypes(), names);
 		} else if (argType.isObject()) {
 			out.writeByte(TypeEnum.OBJECT.ordinal());
-			out.writeInt(getCls(argType, names).getId());
+			ClspClass cls = getCls(argType, names);
+			out.writeInt(cls == null ? -1 : cls.getId());
 		} else if (argType.isArray()) {
 			out.writeByte(TypeEnum.ARRAY.ordinal());
 			writeArgType(out, argType.getArrayElement(), names);
