@@ -44,7 +44,6 @@ public class CodeVar {
 		this.name = name;
 	}
 
-	@Nullable
 	public ArgType getType() {
 		return type;
 	}
