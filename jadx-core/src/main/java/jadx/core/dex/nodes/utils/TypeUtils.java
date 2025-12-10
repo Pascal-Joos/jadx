@@ -11,6 +11,8 @@ import java.util.function.BiConsumer;
 
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.clsp.ClspClass;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
@@ -215,7 +217,7 @@ public class TypeUtils {
 			return Collections.emptyMap();
 		}
 		List<ArgType> actualTypes = clsType.getGenericTypes();
-		if (isEmpty(actualTypes)) {
+		if (actualTypes == null || isEmpty(actualTypes)) {
 			return Collections.emptyMap();
 		}
 		int genericParamsCount = actualTypes.size();
@@ -316,7 +318,7 @@ public class TypeUtils {
 			}
 			List<ArgType> genericTypes = replaceType.getGenericTypes();
 			if (notEmpty(genericTypes)) {
-				List<ArgType> newTypes = Utils.collectionMap(genericTypes, t -> {
+				List<ArgType> newTypes = Utils.collectionMap(Nullability.castToNonnull(genericTypes), t -> {
 					ArgType type = replaceTypeVariablesUsingMap(t, replaceMap);
 					return type == null ? t : type;
 				});
@@ -333,7 +335,7 @@ public class TypeUtils {
 
 		cls.visitSuperTypes((parent, type) -> {
 			List<ArgType> currentVars = type.getGenericTypes();
-			if (Utils.isEmpty(currentVars)) {
+			if (currentVars == null || Utils.isEmpty(currentVars)) {
 				return;
 			}
 			int varsCount = currentVars.size();
