@@ -15,8 +15,6 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
@@ -618,7 +616,7 @@ public class ClassGen {
 	}
 
 	private String useClassInternal(ClassInfo useCls, @Nullable ClassInfo extClsInfo) {
-		String fullName = Nullability.castToNonnull(extClsInfo.getAliasFullName());
+		String fullName = extClsInfo.getAliasFullName();
 		if (fallback || !useImports) {
 			return fullName;
 		}
