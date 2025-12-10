@@ -7,8 +7,6 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -23,7 +21,6 @@ import jadx.core.utils.exceptions.JadxException;
 
 public class SignatureProcessor extends AbstractVisitor {
 
-	@Nullable
 	private RootNode root;
 
 	@Override
@@ -84,9 +81,6 @@ public class SignatureProcessor extends AbstractVisitor {
 		if (sp == null) {
 			return;
 		}
-		if (root == null) {
-			return;
-		}
 		ClassNode cls = field.getParentClass();
 		try {
 			ArgType signatureType = sp.consumeType();
@@ -113,9 +107,6 @@ public class SignatureProcessor extends AbstractVisitor {
 		if (sp == null) {
 			return;
 		}
-		if (root == null) {
-			return;
-		}
 		try {
 			List<ArgType> typeParameters = sp.consumeGenericTypeParameters();
 			List<ArgType> parsedArgTypes = sp.consumeMethodArgs(mth.getMethodInfo().getArgsCount());
@@ -127,7 +118,7 @@ public class SignatureProcessor extends AbstractVisitor {
 			}
 
 			mth.updateTypeParameters(typeParameters); // apply before expand args
-			TypeUtils typeUtils = Nullability.castToNonnull(root.getTypeUtils());
+			TypeUtils typeUtils = root.getTypeUtils();
 			ArgType retType = typeUtils.expandTypeVariables(mth, parsedRetType);
 			List<ArgType> argTypes = Utils.collectionMap(parsedArgTypes, t -> typeUtils.expandTypeVariables(mth, t));
 
@@ -191,9 +182,6 @@ public class SignatureProcessor extends AbstractVisitor {
 	}
 
 	private boolean validateParsedType(ArgType parsedType, ArgType currentType) {
-		if (root == null) {
-			return false;
-		}
 		TypeCompareEnum result = root.getTypeCompare().compareTypes(parsedType, currentType);
 		return result != TypeCompareEnum.CONFLICT;
 	}
@@ -214,10 +202,7 @@ public class SignatureProcessor extends AbstractVisitor {
 		}
 		// check in outer type has inner type as inner class
 		ArgType outerType = type.getOuterType();
-		if (this.root == null) {
-			return true;
-		}
-		ClassNode outerCls = Nullability.castToNonnull(root).resolveClass(outerType);
+		ClassNode outerCls = root.resolveClass(outerType);
 		if (outerCls == null) {
 			// can't check class not found
 			return true;
@@ -239,7 +224,7 @@ public class SignatureProcessor extends AbstractVisitor {
 			return false;
 		}
 		// full name
-		ClassNode innerCls = this.root.resolveClass(innerObj);
+		ClassNode innerCls = root.resolveClass(innerObj);
 		if (innerCls == null) {
 			return false;
 		}
