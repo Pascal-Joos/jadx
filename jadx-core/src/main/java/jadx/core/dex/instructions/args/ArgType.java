@@ -610,6 +610,7 @@ public abstract class ArgType {
 	public void setExtendTypes(List<ArgType> extendTypes) {
 	}
 
+	@Nullable
 	public ArgType getWildcardType() {
 		return null;
 	}
