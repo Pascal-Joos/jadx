@@ -9,8 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -274,12 +272,11 @@ public class IfMakerHelper {
 		}
 		Mode mergeOperation = followThenBranch ? Mode.AND : Mode.OR;
 		IfCondition condition = IfCondition.merge(mergeOperation, first.getCondition(), second.getCondition());
-		IfInfo result = new IfInfo(mth, condition, Nullability.castToNonnull(thenBlock), Nullability.castToNonnull(elseBlock));
+		IfInfo result = new IfInfo(mth, condition, thenBlock, elseBlock);
 		result.merge(first, second);
 		return result;
 	}
 
-	@Nullable
 	private static BlockNode getBranchBlock(BlockNode first, BlockNode second, Set<BlockNode> skipBlocks, MethodNode mth) {
 		if (first == second) {
 			return second;
@@ -297,7 +294,7 @@ public class IfMakerHelper {
 		}
 		BlockNode firstSkip = BlockUtils.followEmptyPath(first);
 		BlockNode secondSkip = BlockUtils.followEmptyPath(second);
-		if (Nullability.castToNonnull(firstSkip).equals(secondSkip) || isEqualReturnBlocks(firstSkip, secondSkip)) {
+		if (firstSkip.equals(secondSkip) || isEqualReturnBlocks(firstSkip, secondSkip)) {
 			skipBlocks.add(first);
 			skipBlocks.add(second);
 			BlockUtils.visitBlocksOnEmptyPath(first, skipBlocks::add);

@@ -9,8 +9,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
@@ -50,7 +48,7 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		RegionStack state = new RegionStack(mth);
 
 		// fill region structure
-		BlockNode startBlock = Utils.first(Nullability.castToNonnull(mth.getEnterBlock()).getCleanSuccessors());
+		BlockNode startBlock = Utils.first(mth.getEnterBlock().getCleanSuccessors());
 		mth.setRegion(rm.makeRegion(startBlock, state));
 
 		if (!mth.isNoExceptionHandlers()) {

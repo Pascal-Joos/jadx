@@ -2,8 +2,6 @@ package jadx.core.dex.visitors.ssa;
 
 import java.util.Arrays;
 
-import javax.annotation.Nullable;
-
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
@@ -47,7 +45,6 @@ final class RenameState {
 		this.versions = versions;
 	}
 
-	@Nullable
 	public BlockNode getBlock() {
 		return block;
 	}

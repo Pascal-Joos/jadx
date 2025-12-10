@@ -17,8 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
@@ -1142,7 +1140,7 @@ public class RegionMaker {
 	}
 
 	public static boolean isEqualReturnBlocks(BlockNode b1, BlockNode b2) {
-		if (!Nullability.castToNonnull(b1).isReturnBlock() || !Nullability.castToNonnull(b2).isReturnBlock()) {
+		if (!b1.isReturnBlock() || !b2.isReturnBlock()) {
 			return false;
 		}
 		List<InsnNode> b1Insns = b1.getInstructions();

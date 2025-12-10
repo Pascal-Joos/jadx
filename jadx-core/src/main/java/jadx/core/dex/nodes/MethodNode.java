@@ -338,7 +338,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return blocksMaxCId++;
 	}
 
-	@Nullable
 	public BlockNode getEnterBlock() {
 		return enterBlock;
 	}
