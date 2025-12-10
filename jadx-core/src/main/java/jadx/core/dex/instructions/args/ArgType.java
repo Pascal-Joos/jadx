@@ -10,8 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.Consts;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.RootNode;
@@ -117,7 +115,7 @@ public abstract class ArgType {
 	}
 
 	public static ArgType wildcard(ArgType obj, WildcardBound bound) {
-		return new WildcardType(Nullability.castToNonnull(obj), bound);
+		return new WildcardType(obj, bound);
 	}
 
 	public static ArgType generic(ArgType obj, List<ArgType> generics) {
@@ -145,7 +143,7 @@ public abstract class ArgType {
 	}
 
 	public static ArgType outerGeneric(ArgType genericOuterType, ArgType innerType) {
-		return new OuterGenericObject((ObjectType) genericOuterType, Nullability.castToNonnull((ObjectType) innerType));
+		return new OuterGenericObject((ObjectType) genericOuterType, (ObjectType) innerType);
 	}
 
 	public static ArgType array(@NotNull ArgType vtype) {
@@ -629,7 +627,6 @@ public abstract class ArgType {
 		return null;
 	}
 
-	@Nullable
 	public ArgType getInnerType() {
 		return null;
 	}

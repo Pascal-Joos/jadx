@@ -11,8 +11,6 @@ import java.util.function.BiConsumer;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.clsp.ClspClass;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
@@ -285,9 +283,6 @@ public class TypeUtils {
 		if (replaceMap.isEmpty()) {
 			return null;
 		}
-		if (replaceType == null) {
-			return null;
-		}
 		if (replaceType.isGenericType()) {
 			return replaceMap.get(replaceType);
 		}
@@ -316,8 +311,8 @@ public class TypeUtils {
 					return null;
 				}
 				ArgType innerType = replaceType.getInnerType();
-				ArgType replacedInner = replaceTypeVariablesUsingMap(Nullability.castToNonnull(innerType), replaceMap);
-				return ArgType.outerGeneric(replacedOuter, Nullability.castToNonnull(replacedInner == null ? innerType : replacedInner));
+				ArgType replacedInner = replaceTypeVariablesUsingMap(innerType, replaceMap);
+				return ArgType.outerGeneric(replacedOuter, replacedInner == null ? innerType : replacedInner);
 			}
 			List<ArgType> genericTypes = replaceType.getGenericTypes();
 			if (notEmpty(genericTypes)) {
