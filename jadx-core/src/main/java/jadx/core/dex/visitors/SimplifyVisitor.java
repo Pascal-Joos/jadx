@@ -8,8 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.Consts;
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
@@ -51,7 +49,6 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SimplifyVisitor.class);
 
-	@Nullable
 	private MethodInfo stringGetBytesMth;
 
 	@Override
@@ -205,10 +202,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 							InsnRemover.unbindArgUsage(mth, insn.getArg(0));
 							return constStr;
 						} else {
-							if (stringGetBytesMth == null) {
-								return null;
-							}
-							InvokeNode in = new InvokeNode(Nullability.castToNonnull(stringGetBytesMth), InvokeType.VIRTUAL, 1);
+							InvokeNode in = new InvokeNode(stringGetBytesMth, InvokeType.VIRTUAL, 1);
 							in.addArg(InsnArg.wrapArg(constStr));
 							InsnArg bytesArg = InsnArg.wrapArg(in);
 							bytesArg.setType(stringGetBytesMth.getReturnType());
