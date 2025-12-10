@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -72,6 +74,7 @@ public class ClsSet {
 		PRIMITIVE
 	}
 
+	@Nullable
 	private ClspClass[] classes;
 
 	public void loadFromClstFile() throws IOException, DecodeException {
@@ -82,10 +85,10 @@ public class ClsSet {
 			}
 			load(input);
 		}
-		if (LOG.isDebugEnabled()) {
+		if (classes != null && LOG.isDebugEnabled()) {
 			long time = System.currentTimeMillis() - startTime;
 			int methodsCount = Stream.of(classes).mapToInt(clspClass -> clspClass.getMethodsMap().size()).sum();
-			LOG.debug("Clst file loaded in {}ms, classes: {}, methods: {}", time, classes.length, methodsCount);
+			LOG.debug("Clst file loaded in {}ms, classes: {}, methods: {}", time, Nullability.castToNonnull(classes).length, methodsCount);
 		}
 	}
 
@@ -210,11 +213,14 @@ public class ClsSet {
 	}
 
 	private void save(OutputStream output) throws IOException {
+		if (classes == null) {
+			throw new JadxRuntimeException("Missing classes");
+		}
 		DataOutputStream out = new DataOutputStream(output);
 		out.writeBytes(JADX_CLS_SET_HEADER);
 		out.writeByte(VERSION);
 
-		Map<String, ClspClass> names = new HashMap<>(classes.length);
+		Map<String, ClspClass> names = new HashMap<>(Nullability.castToNonnull(classes).length);
 		out.writeInt(classes.length);
 		for (ClspClass cls : classes) {
 			String clsName = cls.getName();
@@ -422,6 +428,9 @@ public class ClsSet {
 		if (ordinal >= TypeEnum.values().length) {
 			throw new JadxRuntimeException("Incorrect ordinal for type enum: " + ordinal);
 		}
+		if (classes == null) {
+			throw new JadxRuntimeException("Missing classes array");
+		}
 		switch (TypeEnum.values()[ordinal]) {
 			case WILDCARD:
 				ArgType.WildcardBound bound = ArgType.WildcardBound.getByNum(in.readByte());
@@ -437,7 +446,8 @@ public class ClsSet {
 				return ArgType.outerGeneric(outerType, innerType);
 
 			case GENERIC:
-				ArgType clsType = classes[in.readInt()].getClsType();
+				ClspClass[] localClasses = classes;
+				ArgType clsType = Nullability.castToNonnull(classes)[in.readInt()].getClsType();
 				return ArgType.generic(clsType, readArgTypesList(in));
 
 			case GENERIC_TYPE_VARIABLE:
@@ -446,7 +456,8 @@ public class ClsSet {
 				return ArgType.genericType(typeVar, extendTypes);
 
 			case OBJECT:
-				return classes[in.readInt()].getClsType();
+				ClspClass[] localClassesObj = classes;
+				return localClassesObj[in.readInt()].getClsType();
 
 			case ARRAY:
 				return ArgType.array(readArgType(in));
@@ -501,10 +512,13 @@ public class ClsSet {
 	}
 
 	public int getClassesCount() {
-		return classes.length;
+		return classes != null ? Nullability.castToNonnull(classes).length : 0;
 	}
 
 	public void addToMap(Map<String, ClspClass> nameMap) {
+		if (classes == null) {
+			return;
+		}
 		for (ClspClass cls : classes) {
 			nameMap.put(cls.getName(), cls);
 		}
