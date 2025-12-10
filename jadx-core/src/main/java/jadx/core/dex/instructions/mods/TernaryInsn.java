@@ -5,6 +5,8 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -14,6 +16,7 @@ import jadx.core.utils.InsnUtils;
 
 public final class TernaryInsn extends InsnNode {
 
+	@Nullable
 	private IfCondition condition;
 
 	public TernaryInsn(@Nullable IfCondition condition, @Nullable RegisterArg result, InsnArg th, InsnArg els) {
@@ -37,13 +40,14 @@ public final class TernaryInsn extends InsnNode {
 		super(InsnType.TERNARY, 2);
 	}
 
+	@Nullable
 	public IfCondition getCondition() {
 		return condition;
 	}
 
 	public void simplifyCondition() {
 		condition = IfCondition.simplify(condition);
-		if (condition.getMode() == IfCondition.Mode.NOT) {
+		if (condition != null && condition.getMode() == IfCondition.Mode.NOT) {
 			invert();
 		}
 	}
@@ -58,12 +62,17 @@ public final class TernaryInsn extends InsnNode {
 	@Override
 	public void getRegisterArgs(Collection<RegisterArg> list) {
 		super.getRegisterArgs(list);
-		list.addAll(condition.getRegisterArgs());
+		IfCondition cond = condition;
+		if (cond != null) {
+			list.addAll(Nullability.castToNonnull(condition.getRegisterArgs()));
+		}
 	}
 
 	public void visitInsns(Consumer<InsnNode> visitor) {
 		super.visitInsns(visitor);
-		condition.visitInsns(visitor);
+		if (condition != null) {
+			Nullability.castToNonnull(condition).visitInsns(visitor);
+		}
 	}
 
 	@Override
@@ -75,7 +84,13 @@ public final class TernaryInsn extends InsnNode {
 			return false;
 		}
 		TernaryInsn that = (TernaryInsn) obj;
-		return condition.equals(that.condition);
+		if (condition == null) {
+			return that.condition == null;
+		}
+		if (that.condition == null) {
+			return false;
+		}
+		return Nullability.castToNonnull(condition).equals(that.condition);
 	}
 
 	@Override
@@ -88,10 +103,13 @@ public final class TernaryInsn extends InsnNode {
 	@Override
 	public void rebindArgs() {
 		super.rebindArgs();
-		for (RegisterArg reg : condition.getRegisterArgs()) {
-			InsnNode parentInsn = reg.getParentInsn();
-			if (parentInsn != null) {
-				parentInsn.rebindArgs();
+		IfCondition cond = condition;
+		if (cond != null) {
+			for (RegisterArg reg : cond.getRegisterArgs()) {
+				InsnNode parentInsn = reg.getParentInsn();
+				if (parentInsn != null) {
+					parentInsn.rebindArgs();
+				}
 			}
 		}
 	}
