@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.metadata.annotations.InsnCodeOffset;
@@ -255,7 +257,7 @@ public class InsnGen {
 	private static final Set<Flags> BODY_ONLY_NOWRAP_FLAGS = EnumSet.of(Flags.BODY_ONLY_NOWRAP);
 
 	protected void makeInsn(InsnNode insn, ICodeWriter code, @Nullable Flags flag) throws CodegenException {
-		if (insn.getType() == InsnType.REGION_ARG) {
+		if (Nullability.castToNonnull(insn).getType() == InsnType.REGION_ARG) {
 			return;
 		}
 		try {
@@ -860,7 +862,7 @@ public class InsnGen {
 			makeSimpleLambda(code, customNode);
 			return;
 		}
-		MethodNode callMth = (MethodNode) customNode.getCallInsn().get(AType.METHOD_DETAILS);
+		MethodNode callMth = (MethodNode) Nullability.castToNonnull(customNode.getCallInsn()).get(AType.METHOD_DETAILS);
 		makeInlinedLambdaMethod(code, customNode, callMth);
 	}
 
@@ -886,8 +888,11 @@ public class InsnGen {
 
 	private void makeSimpleLambda(ICodeWriter code, InvokeCustomNode customNode) {
 		try {
-			InsnNode callInsn = customNode.getCallInsn();
+			InsnNode callInsn = Nullability.castToNonnull(customNode.getCallInsn());
 			MethodInfo implMthInfo = customNode.getImplMthInfo();
+			if (implMthInfo == null) {
+				throw new JadxRuntimeException("Failed to generate simple lambda: implMthInfo is null");
+			}
 			int implArgsCount = implMthInfo.getArgsCount();
 			if (implArgsCount == 0) {
 				code.add("()");
@@ -936,7 +941,11 @@ public class InsnGen {
 		NameGen nameGen = callMthGen.getNameGen();
 		nameGen.inheritUsedNames(this.mgen.getNameGen());
 
-		List<ArgType> implArgs = customNode.getImplMthInfo().getArgumentsTypes();
+		MethodInfo implMthInfo = customNode.getImplMthInfo();
+		if (implMthInfo == null) {
+			throw new JadxRuntimeException("Failed to generate inlined lambda method: implMthInfo is null");
+		}
+		List<ArgType> implArgs = implMthInfo.getArgumentsTypes();
 		List<RegisterArg> callArgs = callMth.getArgRegs();
 		if (implArgs.isEmpty()) {
 			code.add("()");
