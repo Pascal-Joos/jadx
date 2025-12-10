@@ -58,9 +58,6 @@ public class IfMakerHelper {
 
 	@Nullable
 	static IfInfo restructureIf(MethodNode mth, BlockNode block, @Nullable IfInfo info) {
-		if (info == null) {
-			return null;
-		}
 		BlockNode thenBlock = info.getThenBlock();
 		BlockNode elseBlock = info.getElseBlock();
 
