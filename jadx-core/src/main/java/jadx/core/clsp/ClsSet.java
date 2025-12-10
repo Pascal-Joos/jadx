@@ -283,7 +283,7 @@ public class ClsSet {
 			out.writeByte(TypeEnum.OUTER_GENERIC.ordinal());
 			writeArgType(out, argType.getOuterType(), names);
 			writeArgType(out, argType.getInnerType(), names);
-		} else if (argType.getWildcardType() != null && argType.getWildcardBound() != null) {
+		} else if (argType.getWildcardType() != null) {
 			out.writeByte(TypeEnum.WILDCARD.ordinal());
 			ArgType.WildcardBound bound = argType.getWildcardBound();
 			out.writeByte(bound.getNum());
