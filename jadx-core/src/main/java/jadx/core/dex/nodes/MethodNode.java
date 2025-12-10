@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.uber.nullaway.annotations.Initializer;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.IMethodData;
@@ -46,7 +44,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private final ClassNode parentClass;
 	private AccessInfo accFlags;
 
-	@Nullable
 	private final ICodeReader codeReader;
 	private final int insnsCount;
 
@@ -149,12 +146,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 				return;
 			}
 
-			if (codeReader == null) {
-				noCode = true;
-				regsCount = 0;
-				initArguments(this.argTypes);
-				return;
-			}
 			this.regsCount = codeReader.getRegistersCount();
 			this.argsStartReg = codeReader.getArgsStartReg();
 			initArguments(this.argTypes);
@@ -573,21 +564,12 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	public long getMethodCodeOffset() {
-		if (noCode || codeReader == null) {
-			return 0;
-		}
-		return Nullability.castToNonnull(codeReader).getCodeOffset();
+		return noCode ? 0 : codeReader.getCodeOffset();
 	}
 
 	@Nullable
 	public IDebugInfo getDebugInfo() {
-		if (noCode) {
-			return null;
-		}
-		if (codeReader == null) {
-			return null;
-		}
-		return codeReader.getDebugInfo();
+		return noCode ? null : codeReader.getDebugInfo();
 	}
 
 	public void ignoreMethod() {
@@ -624,7 +606,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return loaded;
 	}
 
-	@Nullable
 	public ICodeReader getCodeReader() {
 		return codeReader;
 	}
