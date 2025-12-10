@@ -147,6 +147,9 @@ public class EnumVisitor extends AbstractVisitor {
 		if (!searchValuesField(data)) {
 			return false;
 		}
+		if (data.valuesInitInsn == null) {
+			return false;
+		}
 		List<EnumField> enumFields = null;
 		InsnArg arrArg = data.valuesInitInsn.getArg(0);
 		if (arrArg.isInsnWrap()) {
@@ -179,7 +182,9 @@ public class EnumVisitor extends AbstractVisitor {
 			fieldNode.add(AFlag.DONT_GENERATE);
 			processConstructorInsn(data, enumField, classInitMth);
 		}
-		data.valuesField.add(AFlag.DONT_GENERATE);
+		if (data.valuesField != null) {
+			data.valuesField.add(AFlag.DONT_GENERATE);
+		}
 		InsnRemover.removeAllAndUnbind(classInitMth, data.toRemove);
 		if (classInitMth.countInsns() == 0) {
 			classInitMth.add(AFlag.DONT_GENERATE);
@@ -299,7 +304,10 @@ public class EnumVisitor extends AbstractVisitor {
 
 	@Nullable
 	private BlockInsnPair getValuesInitInsn(EnumData data) {
-		FieldInfo searchField = data.valuesField.getFieldInfo();
+		if (data.valuesField == null) {
+			return null;
+		}
+		FieldInfo searchField = data.valuesField == null ? null : data.valuesField.getFieldInfo();
 		for (BlockNode blockNode : data.staticBlocks) {
 			for (InsnNode insn : blockNode.getInstructions()) {
 				if (insn.getType() == InsnType.SPUT) {
@@ -658,7 +666,9 @@ public class EnumVisitor extends AbstractVisitor {
 		final MethodNode classInitMth;
 		final List<BlockNode> staticBlocks;
 		final List<InsnNode> toRemove = new ArrayList<>();
+		@Nullable
 		FieldNode valuesField;
+		@Nullable
 		InsnNode valuesInitInsn;
 
 		public EnumData(ClassNode cls, MethodNode classInitMth, List<BlockNode> staticBlocks) {
