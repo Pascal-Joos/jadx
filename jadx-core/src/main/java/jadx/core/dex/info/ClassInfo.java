@@ -6,8 +6,6 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
@@ -87,7 +85,6 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 		}
 	}
 
-	@Nullable
 	public String getAliasPkg() {
 		if (isInner()) {
 			return parentClass.getAliasPkg();
@@ -193,7 +190,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	}
 
 	public String getAliasFullPath() {
-		return Nullability.castToNonnull(getAliasPkg()).replace('.', File.separatorChar)
+		return getAliasPkg().replace('.', File.separatorChar)
 				+ File.separatorChar
 				+ getAliasNameWithoutPackage().replace('.', '_');
 	}

@@ -15,8 +15,6 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
@@ -651,7 +649,7 @@ public class ClassGen {
 		if (extClsInfo.isDefaultPackage()) {
 			return shortName;
 		}
-		if (Nullability.castToNonnull(extClsInfo.getAliasPkg()).equals(useCls.getAliasPkg())) {
+		if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) {
 			fullName = extClsInfo.getAliasNameWithoutPackage();
 		}
 		for (ClassInfo importCls : getImports()) {
@@ -748,7 +746,7 @@ public class ClassGen {
 	 */
 	private static boolean checkInPackageCollision(RootNode root, ClassInfo useCls, ClassInfo searchCls) {
 		String currentPkg = useCls.getAliasPkg();
-		if (Nullability.castToNonnull(currentPkg).equals(searchCls.getAliasPkg())) {
+		if (currentPkg.equals(searchCls.getAliasPkg())) {
 			// search class already from current package
 			return false;
 		}

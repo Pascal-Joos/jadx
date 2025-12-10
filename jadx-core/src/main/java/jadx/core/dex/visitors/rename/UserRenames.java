@@ -7,8 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.data.ICodeData;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.IJavaCodeRef;
@@ -110,8 +108,7 @@ public class UserRenames {
 						if (pkg.equals(pkgFullName)) {
 							clsInfo.changePkg(cutLastPkgPart(clsInfo.getAliasPkg()) + '.' + pkgRename.getNewName());
 						} else if (pkg.startsWith(pkgFullNameDot)) {
-							clsInfo.changePkg(rebuildPkgMiddle(Nullability.castToNonnull(clsInfo.getAliasPkg()), pkgFullName,
-									pkgRename.getNewName()));
+							clsInfo.changePkg(rebuildPkgMiddle(clsInfo.getAliasPkg(), pkgFullName, pkgRename.getNewName()));
 						}
 					}
 				});
@@ -119,7 +116,7 @@ public class UserRenames {
 
 	@NotNull
 	private static String cutLastPkgPart(String pkgFullName) {
-		int lastDotIndex = Nullability.castToNonnull(pkgFullName).lastIndexOf('.');
+		int lastDotIndex = pkgFullName.lastIndexOf('.');
 		if (lastDotIndex == -1) {
 			return pkgFullName;
 		}
@@ -127,7 +124,7 @@ public class UserRenames {
 	}
 
 	private static String rebuildPkgMiddle(String aliasPkg, String renameOriginPkg, String newName) {
-		String[] aliasParts = Nullability.castToNonnull(aliasPkg).split("\\.");
+		String[] aliasParts = aliasPkg.split("\\.");
 		String[] renameParts = renameOriginPkg.split("\\.");
 		aliasParts[renameParts.length - 1] = newName;
 		return String.join(".", aliasParts);

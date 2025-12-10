@@ -15,8 +15,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
@@ -165,10 +163,7 @@ public class Deobfuscator {
 
 	private void preProcess() {
 		for (ClassNode cls : root.getClasses()) {
-			String pkg = cls.getPackage();
-			if (pkg != null) {
-				Collections.addAll(reservedClsNames, pkg.split("\\."));
-			}
+			Collections.addAll(reservedClsNames, cls.getPackage().split("\\."));
 		}
 		for (ClassNode cls : root.getClasses()) {
 			preProcessClass(cls);
@@ -364,7 +359,7 @@ public class Deobfuscator {
 			// already renamed
 			PackageNode pkg = getPackageNode(classInfo.getPackage(), true);
 			// update all parts of package
-			String[] aliasParts = Nullability.castToNonnull(classInfo.getAliasPkg()).split("\\.");
+			String[] aliasParts = classInfo.getAliasPkg().split("\\.");
 			PackageNode subPkg = pkg;
 			for (int i = aliasParts.length - 1; i >= 0; i--) {
 				String aliasPart = aliasParts[i];
@@ -618,7 +613,7 @@ public class Deobfuscator {
 	}
 
 	private void dumpClassAlias(ClassNode cls) {
-		PackageNode pkg = getPackageNode(Nullability.castToNonnull(cls.getPackage()), false);
+		PackageNode pkg = getPackageNode(cls.getPackage(), false);
 
 		if (pkg != null) {
 			if (!cls.getFullName().equals(getClassFullName(cls))) {

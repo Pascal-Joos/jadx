@@ -737,7 +737,6 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return clsInfo.getAliasFullName();
 	}
 
-	@Nullable
 	public String getPackage() {
 		return clsInfo.getAliasPkg();
 	}
