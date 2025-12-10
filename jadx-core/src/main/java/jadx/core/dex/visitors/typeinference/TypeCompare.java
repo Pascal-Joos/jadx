@@ -9,8 +9,6 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.ArgType.WildcardBound;
@@ -63,8 +61,8 @@ public class TypeCompare {
 		if (first == second || Objects.equals(first, second)) {
 			return TypeCompareEnum.EQUAL;
 		}
-		boolean firstKnown = Nullability.castToNonnull(first).isTypeKnown();
-		boolean secondKnown = Nullability.castToNonnull(second).isTypeKnown();
+		boolean firstKnown = first.isTypeKnown();
+		boolean secondKnown = second.isTypeKnown();
 		if (firstKnown != secondKnown) {
 			if (firstKnown) {
 				return compareWithUnknown(first, second);
@@ -83,7 +81,7 @@ public class TypeCompare {
 		}
 		if (firstArray /* && secondArray */) {
 			// both arrays
-			return compareTypes(Nullability.castToNonnull(first.getArrayElement()), second.getArrayElement());
+			return compareTypes(first.getArrayElement(), second.getArrayElement());
 		}
 		if (!firstKnown /* && !secondKnown */) {
 			int variantLen = Integer.compare(first.getPossibleTypes().length, second.getPossibleTypes().length);

@@ -8,8 +8,6 @@ import java.util.TreeMap;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EnumMapAttr;
@@ -112,9 +110,6 @@ public class ReSugarCode extends AbstractVisitor {
 		}
 		ArgType arrType = newArrayInsn.getArrayType();
 		ArgType elemType = arrType.getArrayElement();
-		if (elemType == null) {
-			return false;
-		}
 		boolean allowMissingKeys = arrType.getArrayDimension() == 1 && elemType.isPrimitive();
 		int minLen = allowMissingKeys ? len / 2 : len;
 
@@ -168,7 +163,7 @@ public class ReSugarCode extends AbstractVisitor {
 		}
 
 		// checks complete, apply
-		InsnNode filledArr = new FilledNewArrayNode(Nullability.castToNonnull(elemType), len);
+		InsnNode filledArr = new FilledNewArrayNode(elemType, len);
 		filledArr.setResult(arrArg.duplicate());
 
 		long prevIndex = -1;

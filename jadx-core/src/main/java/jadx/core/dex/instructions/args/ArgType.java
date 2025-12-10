@@ -639,7 +639,6 @@ public abstract class ArgType {
 		return 0;
 	}
 
-	@Nullable
 	public ArgType getArrayElement() {
 		return null;
 	}

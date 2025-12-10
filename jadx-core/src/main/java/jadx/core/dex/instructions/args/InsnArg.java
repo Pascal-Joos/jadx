@@ -7,8 +7,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
@@ -60,7 +58,7 @@ public abstract class InsnArg extends Typed {
 	}
 
 	public static LiteralArg lit(long literal, ArgType type) {
-		return LiteralArg.makeWithFixedType(literal, Nullability.castToNonnull(type));
+		return LiteralArg.makeWithFixedType(literal, type);
 	}
 
 	public static LiteralArg lit(InsnData insn, ArgType type) {

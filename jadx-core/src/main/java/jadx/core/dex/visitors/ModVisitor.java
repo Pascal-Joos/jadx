@@ -8,8 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
 import jadx.api.plugins.input.data.annotations.EncodedType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
@@ -515,22 +513,17 @@ public class ModVisitor extends AbstractVisitor {
 		ArgType insnElementType = insnArrayType.getArrayElement();
 		ArgType elType = insn.getElementType();
 		if (!elType.isTypeKnown()
-				&& insnElementType != null
-				&& Nullability.castToNonnull(insnElementType).isPrimitive()
+				&& insnElementType.isPrimitive()
 				&& elType.contains(insnElementType.getPrimitiveType())) {
 			elType = insnElementType;
 		}
-		if (insnElementType != null && !elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
+		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
 			mth.addWarn("Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
 					+ ", element type: " + elType + ", insn element type: " + insnElementType);
 		}
 		if (!elType.isTypeKnown()) {
 			LOG.warn("Unknown array element type: {} in mth: {}", elType, mth);
-			if (insnElementType != null && insnElementType.isTypeKnown()) {
-				elType = insnElementType;
-			} else {
-				elType = elType.selectFirst();
-			}
+			elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
 			if (elType == null) {
 				throw new JadxRuntimeException("Null array element type");
 			}

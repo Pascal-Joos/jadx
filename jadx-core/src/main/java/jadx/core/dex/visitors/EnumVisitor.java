@@ -536,11 +536,7 @@ public class EnumVisitor extends AbstractVisitor {
 	// TODO: support other method patterns ???
 	private boolean isValuesMethod(MethodNode mth, ArgType clsType) {
 		ArgType retType = mth.getReturnType();
-		if (!retType.isArray()) {
-			return false;
-		}
-		ArgType arrayElement = retType.getArrayElement();
-		if (arrayElement == null || !arrayElement.equals(clsType)) {
+		if (!retType.isArray() || !retType.getArrayElement().equals(clsType)) {
 			return false;
 		}
 		InsnNode returnInsn = BlockUtils.getOnlyOneInsnFromMth(mth);
