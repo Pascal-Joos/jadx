@@ -8,6 +8,8 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
@@ -273,7 +275,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		List<InsnNode> toSkip = new ArrayList<>();
 		RegisterArg iterVar;
-		if (nextCall.contains(AFlag.WRAPPED)) {
+		if (Nullability.castToNonnull(nextCall).contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, nextCall);
 			if (wrapArg != null && wrapArg.getParentInsn() != null) {
 				InsnNode parentInsn = wrapArg.getParentInsn();
