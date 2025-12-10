@@ -7,8 +7,6 @@ import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.ICodeWriter;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
@@ -47,7 +45,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 		}
 )
 public class MethodInvokeVisitor extends AbstractVisitor {
-	@Nullable
 	private RootNode root;
 
 	@Override
@@ -78,14 +75,11 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 	}
 
 	private void processInvoke(MethodNode parentMth, BaseInvokeNode invokeInsn) {
-		if (root == null) {
-			return;
-		}
 		MethodInfo callMth = invokeInsn.getCallMth();
 		if (callMth.getArgsCount() == 0) {
 			return;
 		}
-		IMethodDetails mthDetails = Nullability.castToNonnull(root.getMethodUtils()).getMethodDetails(invokeInsn);
+		IMethodDetails mthDetails = root.getMethodUtils().getMethodDetails(invokeInsn);
 		if (mthDetails == null) {
 			if (Consts.DEBUG) {
 				parentMth.addDebugComment("Method info not found: " + callMth);
@@ -103,9 +97,6 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 	}
 
 	private void processOverloaded(MethodNode parentMth, BaseInvokeNode invokeInsn, IMethodDetails mthDetails) {
-		if (root == null) {
-			return;
-		}
 		MethodInfo callMth = invokeInsn.getCallMth();
 		ArgType callCls = getCallClassFromInvoke(parentMth, invokeInsn, callMth);
 		List<IMethodDetails> overloadMethods = root.getMethodUtils().collectOverloadedMethods(callCls, callMth);
@@ -159,9 +150,6 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 	}
 
 	private Map<ArgType, ArgType> getTypeVarsMapping(BaseInvokeNode invokeInsn) {
-		if (root == null) {
-			return Collections.emptyMap();
-		}
 		MethodInfo callMthInfo = invokeInsn.getCallMth();
 		ArgType declClsType = callMthInfo.getDeclClass().getType();
 		ArgType callClsType = getClsCallType(invokeInsn, declClsType);
@@ -217,9 +205,6 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 	}
 
 	private IMethodDetails resolveTypeVars(IMethodDetails mthDetails, Map<ArgType, ArgType> typeVarsMapping) {
-		if (root == null) {
-			throw new JadxRuntimeException("Null root node");
-		}
 		List<ArgType> argTypes = mthDetails.getArgTypes();
 		int argsCount = argTypes.size();
 		boolean fixed = false;
@@ -230,8 +215,7 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 				throw new JadxRuntimeException("Null arg type in " + mthDetails + " at: " + argNum + " in: " + argTypes);
 			}
 			if (argType.containsTypeVariable()) {
-				ArgType resolvedType =
-						Nullability.castToNonnull(root.getTypeUtils()).replaceTypeVariablesUsingMap(argType, typeVarsMapping);
+				ArgType resolvedType = root.getTypeUtils().replaceTypeVariablesUsingMap(argType, typeVarsMapping);
 				if (resolvedType == null || resolvedType.equals(argType)) {
 					// type variables erased from method info by compiler
 					resolvedType = mthDetails.getMethodInfo().getArgumentsTypes().get(argNum);
@@ -244,7 +228,7 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		}
 		ArgType returnType = mthDetails.getReturnType();
 		if (returnType.containsTypeVariable()) {
-			ArgType resolvedType = Nullability.castToNonnull(root).getTypeUtils().replaceTypeVariablesUsingMap(returnType, typeVarsMapping);
+			ArgType resolvedType = root.getTypeUtils().replaceTypeVariablesUsingMap(returnType, typeVarsMapping);
 			if (resolvedType == null || resolvedType.containsTypeVariable()) {
 				returnType = mthDetails.getMethodInfo().getReturnType();
 				fixed = true;
@@ -356,15 +340,12 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 
 	private boolean isMethodAcceptable(IMethodDetails methodDetails, List<ArgType> types,
 			Function<TypeCompareEnum, Boolean> acceptFunction) {
-		if (root == null) {
-			return false;
-		}
 		List<ArgType> mthTypes = methodDetails.getArgTypes();
 		int argCount = mthTypes.size();
 		if (argCount != types.size()) {
 			return false;
 		}
-		TypeCompare typeCompare = Nullability.castToNonnull(root.getTypeUpdate().getTypeCompare());
+		TypeCompare typeCompare = root.getTypeUpdate().getTypeCompare();
 		for (int i = 0; i < argCount; i++) {
 			ArgType mthType = mthTypes.get(i);
 			ArgType argType = types.get(i);
