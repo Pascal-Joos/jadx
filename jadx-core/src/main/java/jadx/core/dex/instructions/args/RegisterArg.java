@@ -33,7 +33,6 @@ public class RegisterArg extends InsnArg implements Named {
 		return true;
 	}
 
-	@Nullable
 	public ArgType getInitType() {
 		return type;
 	}
@@ -166,7 +165,7 @@ public class RegisterArg extends InsnArg implements Named {
 	}
 
 	public boolean equalRegisterAndType(RegisterArg arg) {
-		return regNum == arg.regNum && Objects.equals(type, arg.type);
+		return regNum == arg.regNum && type.equals(arg.type);
 	}
 
 	public boolean sameRegAndSVar(InsnArg arg) {

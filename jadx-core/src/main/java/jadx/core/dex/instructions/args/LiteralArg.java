@@ -2,8 +2,6 @@ package jadx.core.dex.instructions.args;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.codegen.TypeGen;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -61,8 +59,7 @@ public final class LiteralArg extends InsnArg {
 	}
 
 	public boolean isInteger() {
-		ArgTypePrimitive primitiveType = type != null ? type.getPrimitiveType() : null;
-		switch (primitiveType) {
+		switch (type.getPrimitiveType()) {
 			case INT:
 			case BYTE:
 			case CHAR:
@@ -103,12 +100,12 @@ public final class LiteralArg extends InsnArg {
 		} else {
 			return null;
 		}
-		return new LiteralArg(neg, Nullability.castToNonnull(type));
+		return new LiteralArg(neg, type);
 	}
 
 	@Override
 	public InsnArg duplicate() {
-		return copyCommonParams(new LiteralArg(literal, Nullability.castToNonnull(getType())));
+		return copyCommonParams(new LiteralArg(literal, type));
 	}
 
 	@Override
