@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.ICodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.codegen.MethodGen;
@@ -146,7 +148,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 		}
 
 		private void processMethodRegion(MethodNode mth) {
-			processRegion(mth, mth.getRegion());
+			processRegion(mth, Nullability.castToNonnull(mth.getRegion()));
 			for (ExceptionHandler h : mth.getExceptionHandlers()) {
 				if (h.getHandlerRegion() != null) {
 					processRegion(mth, h.getHandlerRegion());

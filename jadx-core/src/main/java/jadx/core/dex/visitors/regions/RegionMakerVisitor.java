@@ -54,7 +54,10 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		if (!mth.isNoExceptionHandlers()) {
 			IRegion expOutBlock = rm.processTryCatchBlocks(mth);
 			if (expOutBlock != null) {
-				mth.getRegion().add(expOutBlock);
+				Region mthRegion = mth.getRegion();
+				if (mthRegion != null) {
+					mthRegion.add(expOutBlock);
+				}
 			}
 		}
 		postProcessRegions(mth);
@@ -179,6 +182,9 @@ public class RegionMakerVisitor extends AbstractVisitor {
 
 	private static void removeSynchronized(MethodNode mth) {
 		Region startRegion = mth.getRegion();
+		if (startRegion == null) {
+			return;
+		}
 		List<IContainer> subBlocks = startRegion.getSubBlocks();
 		if (!subBlocks.isEmpty() && subBlocks.get(0) instanceof SynchronizedRegion) {
 			SynchronizedRegion synchRegion = (SynchronizedRegion) subBlocks.get(0);
