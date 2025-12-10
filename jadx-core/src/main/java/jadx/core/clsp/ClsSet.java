@@ -27,8 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -382,7 +380,7 @@ public class ClsSet {
 		List<ArgType> typeParameters = readArgTypesList(in);
 		int accFlags = in.readInt();
 		List<ArgType> throwList = readArgTypesList(in);
-		MethodInfo methodInfo = MethodInfo.fromDetails(root, clsInfo, name, argTypes, Nullability.castToNonnull(retType));
+		MethodInfo methodInfo = MethodInfo.fromDetails(root, clsInfo, name, argTypes, retType);
 		return new ClspMethod(methodInfo,
 				genericArgTypes, genericRetType,
 				typeParameters, throwList, accFlags);
@@ -416,7 +414,6 @@ public class ClsSet {
 		return arr;
 	}
 
-	@Nullable
 	private ArgType readArgType(DataInputStream in) throws IOException {
 		int ordinal = in.readByte();
 		if (ordinal == -1) {
@@ -432,12 +429,12 @@ public class ClsSet {
 					return ArgType.WILDCARD;
 				}
 				ArgType objType = readArgType(in);
-				return ArgType.wildcard(Nullability.castToNonnull(objType), bound);
+				return ArgType.wildcard(objType, bound);
 
 			case OUTER_GENERIC:
 				ArgType outerType = readArgType(in);
 				ArgType innerType = readArgType(in);
-				return ArgType.outerGeneric(outerType, Nullability.castToNonnull(innerType));
+				return ArgType.outerGeneric(outerType, innerType);
 
 			case GENERIC:
 				ArgType clsType = classes[in.readInt()].getClsType();
@@ -452,7 +449,7 @@ public class ClsSet {
 				return classes[in.readInt()].getClsType();
 
 			case ARRAY:
-				return ArgType.array(Nullability.castToNonnull(readArgType(in)));
+				return ArgType.array(readArgType(in));
 
 			case PRIMITIVE:
 				char shortName = (char) in.readByte();
