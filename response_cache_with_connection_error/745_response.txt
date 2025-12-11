@@ -1,0 +1,67 @@
+<response>
+  <reason><![CDATA[
+MethodNode.getInstructions() simply returns the field `instructions`:
+
+```java
+public InsnNode[] getInstructions() {
+    return instructions;
+}
+```
+
+There is no guarantee in this method that `instructions` is non‑null. In the provided call sites we see multiple explicit null checks against `mth.getInstructions()`:
+
+- In `AttachCommentsVisitor.getInsnByOffset`:
+  ```java
+  if (mth.getInstructions() == null) {
+      return null;
+  }
+  ```
+- In `AttachTryCatchVisitor.visit`:
+  ```java
+  initTryCatches(mth, mth.getInstructions(), mth.getCodeReader().getTries());
+  ```
+  (no check here, so it assumes non‑null, but that is only a usage assumption, not a proof)
+- In `BlockSplitter.splitBasicBlocks`:
+  ```java
+  InsnNode[] insnArr = mth.getInstructions();
+  if (insnArr == null) {
+      return blocksMap;
+  }
+  ```
+- In `AttachMethodDetails.visit`:
+  ```java
+  InsnNode[] insnArr = mth.getInstructions();
+  if (insnArr == null) {
+      return;
+  }
+  ```
+- In `MethodGen.addFallbackMethodCode`:
+  ```java
+  InsnNode[] insnArr = mth.getInstructions();
+  if (insnArr == null) {
+      code.startLine("// Can't load method instructions.");
+      return;
+  }
+  ```
+- In `DotGraphVisitor$DumpDotGraph.process`:
+  ```java
+  InsnNode[] insnArr = mth.getInstructions();
+  if (insnArr == null) {
+      return;
+  }
+  ```
+
+These defensive null checks show that the authors expect `getInstructions()` may legally return null for some methods.
+
+From the given code, there is no invariant or prior check at the specific assignment:
+
+```java
+InsnNode[] insns = mth.getInstructions();
+```
+
+that would ensure `instructions` is non‑null at this point. No constructor, initializer, or setter code is shown that would guarantee `instructions` is always initialized to a non‑null array before this call. Other parts of the system even explicitly handle the case where it is null (e.g., returning early, emitting comments).
+
+Therefore, at this call site, `mth.getInstructions()` can evaluate to null, and consequently `insns` can be null.
+  ]]></reason>
+  <value>YES</value>
+</response>

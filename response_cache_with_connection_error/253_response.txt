@@ -1,0 +1,37 @@
+<response>
+  <reason><![CDATA[
+At the provided call site:
+
+```java
+ArgType insnElementType = insnArrayType.getArrayElement();
+```
+
+`insnArrayType` is an `ArgType` instance, and the implementation of `getArrayElement()` shown is:
+
+```java
+public ArgType getArrayElement() {
+    return null;
+}
+```
+
+There is no conditional logic, no dependence on parameters, and no delegation to other methods in this implementation. Every invocation of `getArrayElement()` on any `ArgType` instance will return `null`.
+
+The surrounding code in `ModVisitor.makeFilledArrayInsn`:
+
+```java
+ArgType insnArrayType = newArrayNode.getArrayType();
+ArgType insnElementType = insnArrayType.getArrayElement();
+ArgType elType = insn.getElementType();
+if (!elType.isTypeKnown()
+        && insnElementType.isPrimitive()
+        && elType.contains(insnElementType.getPrimitiveType())) {
+    ...
+}
+```
+
+does not change this fact: `insnArrayType` is whatever `newArrayNode.getArrayType()` returns, but `getArrayElement()` itself is still the trivial implementation above. Therefore, at this specific call site, `insnArrayType.getArrayElement()` evaluates to `null`.
+
+Consequently, `insnElementType` can be `null` here (in fact, it will always be `null` with the given implementation), and any subsequent dereference such as `insnElementType.isPrimitive()` would throw a `NullPointerException`.
+  ]]></reason>
+  <value>YES</value>
+</response>

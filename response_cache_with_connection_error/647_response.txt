@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Nullable
+  private static InsnNode getParentInsnSkipMove(RegisterArg arg) {
+      if (arg == null) {
+          return null;
+      }
+      SSAVar sVar = arg.getSVar();
+      if (sVar.getUseCount() != 1) {
+          return null;
+      }
+      RegisterArg useArg = sVar.getUseList().get(0);
+      InsnNode parentInsn = useArg.getParentInsn();
+      if (parentInsn == null) {
+          return null;
+      }
+      if (parentInsn.getType() == InsnType.MOVE) {
+          return getParentInsnSkipMove(parentInsn.getResult());
+      }
+      return parentInsn;
+  }
+  ```
+    ]]>
+  </code>
+</response>

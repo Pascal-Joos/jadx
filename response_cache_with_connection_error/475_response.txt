@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Nullable
+  private static InsnArg foundWrappedInsnInCondition(IfCondition cond, InsnNode insn) {
+    if (cond == null) {
+      return null;
+    }
+    if (cond.isCompare()) {
+      IfNode cmpInsn = cond.getCompare().getInsn();
+      return foundWrappedInsn(cmpInsn, insn);
+    }
+    for (IfCondition nestedCond : cond.getArgs()) {
+      InsnArg res = foundWrappedInsnInCondition(nestedCond, insn);
+      if (res != null) {
+        return res;
+      }
+    }
+    return null;
+  }
+  ```
+    ]]>
+  </code>
+</response>

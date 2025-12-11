@@ -1,0 +1,12 @@
+```xml
+<response>
+    <reason><![CDATA[
+The method is named and structured like a typical setter (`setType`), whose purpose is to update an existing field and which can reasonably be called multiple times during the object's lifetime. 
+
+According to the provided definition, setter methods are explicitly NOT considered initializer methods, even if they assign values to fields. Initializer methods are special lifecycle or setup methods that are expected to be called once during object construction or framework-driven initialization (e.g., `onCreate`, `init`), not general-purpose setters.
+
+Therefore, `public void setType(ArgType type) { this.type = type; }` is a setter, not an initializer method per NullAway's definition.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

@@ -1,0 +1,67 @@
+<response>
+    <reason><![CDATA[
+We are analyzing the parameter `block` of:
+
+```java
+private static void addToDF(BlockNode block, BlockNode dfBlock, int blocksCount)
+```
+
+based strictly on usage in the provided call chain, ignoring annotations.
+
+`addToDF` is only called from `computeDominanceFrontier(MethodNode mth)`:
+
+```java
+for (BlockNode block : blocks) {
+    List<BlockNode> preds = block.getPredecessors();
+    if (preds.size() >= 2) {
+        BlockNode idom = block.getIDom();
+        for (BlockNode pred : preds) {
+            BlockNode runner = pred;
+            while (runner != idom) {
+                addToDF(runner, block, blocksCount);
+                runner = runner.getIDom();
+            }
+        }
+    }
+}
+```
+
+Here:
+
+- The first argument to `addToDF` (`block` parameter in its signature) is `runner`.
+- `runner` is initialized from elements of `preds` (the list returned by `block.getPredecessors()`), and then repeatedly updated with `runner = runner.getIDom()`.
+
+Thus, `block` in `addToDF` can be null only if:
+
+1. `getPredecessors()` returns a list that contains `null`, or
+2. `runner.getIDom()` can return `null` before `runner == idom` and the loop condition `while (runner != idom)` still holds (i.e., the code calls `addToDF(null, ...)` before exiting the loop).
+
+The provided snippets do not show implementations of `BlockNode.getPredecessors()` or `BlockNode.getIDom()`, nor any higher-level guarantees that:
+
+- predecessor lists never contain null, and
+- `getIDom()` never returns null along this path, or that the CFG/dominator computation ensures `runner` is always non-null until `runner == idom`.
+
+Inside `addToDF`, `block` is dereferenced immediately:
+
+```java
+BitSet df = block.getDomFrontier();
+```
+
+If `block` were null, this would throw a `NullPointerException`. That suggests the code assumes `block` is non-null in practice, but this is an assumption derived from intended invariants of `BlockNode` and dominator computation — invariants that we cannot verify from the given code segments alone.
+
+Since we are required to base the conclusion only on actual usage patterns shown, and we lack the declarations/behavior of the critical methods that control nullability (`getPredecessors`, `getIDom`), we cannot soundly conclude whether `block` can or cannot be null.
+
+To make a determination, we need to inspect:
+
+- whether `getPredecessors()` can include null elements,
+- whether `getIDom()` can return null in the situations where `addToDF` is called, and
+- any invariants enforced by dominator computation that guarantee a non-null `runner` in that loop.
+
+Without these, we cannot definitively answer whether a null is ever passed as `block`.
+    ]]></reason>
+    <success>false</success>
+    <methods>
+      <method>jadx.core.dex.nodes.BlockNode.getPredecessors</method>
+      <method>jadx.core.dex.nodes.BlockNode.getIDom</method>
+    </methods>
+</response>

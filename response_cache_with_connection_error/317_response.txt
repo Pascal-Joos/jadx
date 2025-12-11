@@ -1,0 +1,8 @@
+```xml
+<response>
+    <reason><![CDATA[
+The method unconditionally executes `return null;` as its only statement. There are no other code paths, variables, or method calls involved. Therefore, the expression `return null;` always evaluates to the null reference, and the returned value is guaranteed to be null on every execution path.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

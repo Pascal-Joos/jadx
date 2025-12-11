@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void checkPackage(Deobfuscator deobfuscator, ClassNode cls, ClassInfo classInfo, JadxArgs args) {
+		if (classInfo.isInner()) {
+			return;
+		}
+		String aliasPkg = Nullability.castToNonnull(classInfo.getAliasPkg());
+		if (args.isRenameValid() && aliasPkg.isEmpty()) {
+			classInfo.changePkg(Consts.DEFAULT_PACKAGE_NAME);
+			cls.addAttr(new RenameReasonAttr(cls).append("default package"));
+			return;
+		}
+		String fullPkgAlias = deobfuscator.getPkgAlias(cls);
+		if (!fullPkgAlias.equals(aliasPkg)) {
+			classInfo.changePkg(fullPkgAlias);
+			cls.addAttr(new RenameReasonAttr(cls).append("invalid package"));
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

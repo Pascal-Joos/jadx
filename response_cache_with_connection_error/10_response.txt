@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public int getClassesCount() {
+    return classes != null ? Nullability.castToNonnull(classes).length : 0;
+}
+  ```
+    ]]>
+  </code>
+</response>

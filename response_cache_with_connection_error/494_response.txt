@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public void getRegisterArgs(Collection<RegisterArg> list) {
+      super.getRegisterArgs(list);
+      IfCondition cond = condition;
+      if (cond != null) {
+          list.addAll(Nullability.castToNonnull(condition.getRegisterArgs()));
+      }
+  }
+  ```
+    ]]>
+  </code>
+</response>

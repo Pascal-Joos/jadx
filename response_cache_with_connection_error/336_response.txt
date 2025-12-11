@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public static String signature(ArgType type) {
+		PrimitiveType stype = type.getPrimitiveType();
+		if (stype == null) {
+			return type.toString();
+		}
+		if (stype == PrimitiveType.OBJECT) {
+			return Utils.makeQualifiedObjectName(type.getObject());
+		}
+		if (stype == PrimitiveType.ARRAY) {
+			return '[' + signature(type.getArrayElement());
+		}
+		return stype.getShortName();
+}
+  ```
+    ]]>
+  </code>
+</response>

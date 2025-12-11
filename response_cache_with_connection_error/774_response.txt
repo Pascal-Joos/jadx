@@ -1,0 +1,6 @@
+```xml
+<response>
+    <reason><![CDATA[The method is named like and shaped exactly as a typical setter: it takes a single value and assigns it to a field (`this.exitBlock = exitBlock;`). By NullAway’s definition, such setter methods are *not* considered initializer methods, because they are expected to be callable multiple times to update state, rather than being a one-time lifecycle or framework-driven initialization hook.]]></reason>
+    <value>NO</value>
+</response>
+```

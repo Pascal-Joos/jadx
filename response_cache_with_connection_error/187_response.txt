@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static boolean checkInPackageCollision(RootNode root, ClassInfo useCls, ClassInfo searchCls) {
+      String currentPkg = useCls.getAliasPkg();
+      if (Nullability.castToNonnull(currentPkg).equals(searchCls.getAliasPkg())) {
+          // search class already from current package
+          return false;
+      }
+      String shortName = searchCls.getAliasShortName();
+      return root.getClsp().isClsKnown(currentPkg + '.' + shortName);
+  }
+  ```
+    ]]>
+  </code>
+</response>

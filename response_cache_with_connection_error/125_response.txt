@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public String getFullName() {
+		return (pkg != null ? pkg.getFullAlias() : "") + Deobfuscator.CLASS_NAME_SEPARATOR + makeNameWithoutPkg();
+}
+  ```
+    ]]>
+  </code>
+</response>

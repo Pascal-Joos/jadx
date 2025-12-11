@@ -1,0 +1,40 @@
+<response>
+  <reason><![CDATA[
+`ClassNode.getParentClass()` just returns the field `parentClass` without any checks:
+
+```java
+public ClassNode getParentClass() {
+    return parentClass;
+}
+```
+
+From the provided codebase, there is no global invariant that `parentClass` is non‑null for all `ClassNode` instances. In fact, there is at least one explicit null check on a parent class:
+
+```java
+public static boolean isResourceClass(ClassNode cls) {
+    ClassNode parentClass = cls.getParentClass();
+    return parentClass != null && parentClass.getShortName().equals("R");
+}
+```
+
+This shows that the authors expect `getParentClass()` may return `null` for some `ClassNode` objects.
+
+The specific call site in question inside `ClassModifier.modifySyntheticMethod` is:
+
+```java
+if (firstArg.getType().equals(cls.getParentClass().getClassInfo().getType())) {
+    SkipMethodArgsAttr.skipArg(mth, 0);
+}
+```
+
+Here, `cls` is just the method parameter of `modifySyntheticMethod`:
+
+```java
+private static void modifySyntheticMethod(ClassNode cls, MethodNode mth, InsnNode insn, List<RegisterArg> args)
+```
+
+There is no precondition in this method or in its shown callers that guarantees `cls` must have a non‑null `parentClass`. Nor is there any guard `cls.isInner()` or similar before dereferencing `cls.getParentClass()`. Since a `ClassNode` can, in general, have `parentClass == null`, this invocation can receive such an instance and cause `getParentClass()` to return `null`.
+
+Because `getParentClass()` is a direct field accessor and that field is not proven non‑null by the surrounding logic at this call site, the return value can be `null` here.]]></reason>
+  <value>YES</value>
+</response>

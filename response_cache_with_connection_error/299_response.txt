@@ -1,0 +1,26 @@
+<response>
+    <reason><![CDATA[
+Within the provided code, every call to `writeArgTypesList(out, list, names)` passes a `List<ArgType>` that is produced by other methods and never checked for null before use:
+
+- In `save(OutputStream output)`:
+  - `cls.getTypeParameters()`
+- In `writeMethod(...)`:
+  - `methodInfo.getArgumentsTypes()`
+  - `method.containsGenericArgs() ? method.getArgTypes() : Collections.emptyList()` (this branch guarantees a non-null list)
+  - `method.getTypeParameters()`
+  - `method.getThrows()`
+- In `writeArgType(...)`:
+  - `argType.getGenericTypes()`
+  - `argType.getExtendTypes()`
+
+Inside `writeArgTypesList`, the code immediately calls `list.size()` with no null check. If `list` could be null in practice, this would throw a `NullPointerException`. Unlike `writeArgTypesArray`, which explicitly handles a null array, this method has no defensive handling for null lists, suggesting the design assumes non-null lists.
+
+Because:
+- There is no null-check in `writeArgTypesList`,
+- Call sites do not guard against null, and
+- One call site explicitly substitutes `Collections.emptyList()` when the "real" list should be skipped,
+
+the usage pattern indicates `list` is always expected to be a non-null `List<ArgType>`. If any of the provider methods (`getTypeParameters`, `getArgumentsTypes`, `getGenericTypes`, `getExtendTypes`, `getThrows`) could return null, the current code would already be crashing. Thus, based on actual usage and the absence of defensive code, `list` is not intended to be null.
+    ]]></reason>
+    <value>NO</value>
+</response>

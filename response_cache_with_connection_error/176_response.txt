@@ -1,0 +1,31 @@
+<response>
+    <reason><![CDATA[
+`cutLastPkgPart` is only called from `applyPkgRenames`:
+
+```java
+String pkgFullName = pkgRename.getNodeRef().getDeclaringClass();
+String pkgFullNameDot = pkgFullName + ".";
+for (ClassNode cls : classes) {
+    ClassInfo clsInfo = cls.getClassInfo();
+    String pkg = clsInfo.getPackage();
+    if (pkg.equals(pkgFullName)) {
+        clsInfo.changePkg(cutLastPkgPart(clsInfo.getAliasPkg()) + '.' + pkgRename.getNewName());
+    } else if (pkg.startsWith(pkgFullNameDot)) {
+        clsInfo.changePkg(rebuildPkgMiddle(Nullability.castToNonnull(clsInfo.getAliasPkg()), pkgFullName, pkgRename.getNewName()));
+    }
+}
+```
+
+Here, the argument to `cutLastPkgPart` is `clsInfo.getAliasPkg()`.
+
+The calling code elsewhere uses `Nullability.castToNonnull(clsInfo.getAliasPkg())` when passing the same value into `rebuildPkgMiddle`, indicating that `getAliasPkg()` is considered potentially nullable in the codebase. There is no null check before calling `cutLastPkgPart(clsInfo.getAliasPkg())`, and `cutLastPkgPart` itself immediately dereferences `pkgFullName`:
+
+```java
+int lastDotIndex = pkgFullName.lastIndexOf('.');
+```
+
+If `pkgFullName` were null, this would throw a `NullPointerException`. Since there is explicit defensive handling for null in the sibling call (`castToNonnull`) but none here, the only safe conclusion from usage is that `clsInfo.getAliasPkg()` may in general be null, and thus `cutLastPkgPart` can be invoked with a null argument (leading to a crash). We are not given any stronger guarantees from the declaration of `getAliasPkg()` itself.
+
+Therefore, based solely on usage patterns, `pkgFullName` can receive null in practice.]]></reason>
+    <value>YES</value>
+</response>

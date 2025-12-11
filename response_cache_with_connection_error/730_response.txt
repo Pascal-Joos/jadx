@@ -1,0 +1,20 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private static InsnNode getInsnByOffset(MethodNode mth, int offset) {
+		if (mth.getInstructions() == null) {
+			return null;
+		}
+		try {
+			return mth.getInstructions()[offset];
+		} catch (Exception e) {
+			LOG.warn("Insn reference not found in: {} with offset: {}", mth, offset);
+			return null;
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

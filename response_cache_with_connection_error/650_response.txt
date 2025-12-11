@@ -1,0 +1,28 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void simplifyMoveInsns(MethodNode mth, BlockNode block) {
+		List<InsnNode> insns = block.getInstructions();
+		int size = insns.size();
+		for (int i = 0; i < size; i++) {
+			InsnNode insn = insns.get(i);
+			if (insn.getType() == InsnType.MOVE) {
+				// replace 'move' with wrapped insn
+				InsnArg arg = insn.getArg(0);
+				if (arg.isInsnWrap()) {
+					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+					InsnRemover.unbindResult(mth, wrapInsn);
+					wrapInsn.setResult(Nullability.castToNonnull(insn.getResult()).duplicate());
+					wrapInsn.inheritMetadata(insn);
+					wrapInsn.setOffset(insn.getOffset());
+					wrapInsn.remove(AFlag.WRAPPED);
+					block.getInstructions().set(i, wrapInsn);
+				}
+			}
+		}
+  }
+  ```
+    ]]>
+  </code>
+</response>

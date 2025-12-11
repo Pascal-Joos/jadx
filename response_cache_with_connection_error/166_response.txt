@@ -1,0 +1,107 @@
+<response>
+  <reason><![CDATA[
+At the call site in `ClassGen.useClassInternal`:
+
+```java
+if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) {
+    fullName = extClsInfo.getAliasNameWithoutPackage();
+}
+```
+
+the expression `extClsInfo.getAliasPkg()` is used as the receiver of `.equals(...)`. For this to be safe, `getAliasPkg()` must not return null here, otherwise a `NullPointerException` would be thrown.
+
+The implementation is:
+
+```java
+public String getAliasPkg() {
+    if (isInner()) {
+        return parentClass.getAliasPkg();
+    }
+    return alias == null ? getPackage() : alias.getPkg();
+}
+```
+
+Analyze both branches:
+
+1. `isInner() == true`  
+   Then it returns `parentClass.getAliasPkg()`.  
+   For an inner class in this codebase:
+   - `parentClass` is another `ClassInfo`.
+   - If that parent is itself inner, the call recurses up until it reaches a top-level class where `isInner()` is false.
+   - So ultimately this reduces to the non‑inner branch of some top-level `ClassInfo`.
+
+2. `isInner() == false` (top-level class)  
+   Then it returns `alias == null ? getPackage() : alias.getPkg()`.
+
+Now consider the two values in that ternary:
+
+- `getPackage()`: this is the *original* (raw) package of the class. Across the provided code it is treated as a non-null string (e.g. used directly in string concatenations, `split("\\.")`, logging, map lookups). There are many uses like:
+
+  ```java
+  String fullPkgName = classInfo.getPackage();
+  pkg = getPackageNode(fullPkgName, true);
+  ...
+  Collections.addAll(reservedClsNames, cls.getPackage().split("\\."));
+  ```
+
+  These call sites would crash immediately if `getPackage()` could return null. The surrounding logic clearly assumes it is at least the empty string, not null. So we infer `getPackage()` is non-null.
+
+- `alias.getPkg()`: `alias` is a `ClassAliasInfo`. Every construction of `ClassAliasInfo` shown passes a non-null string derived from non-null values:
+
+  ```java
+  new ClassAliasInfo(aliasPkg, getAliasShortName());
+  new ClassAliasInfo(getAliasPkg(), aliasName);
+  ```
+
+  Here `aliasPkg` and `getAliasPkg()` are passed as arguments, and `getAliasShortName()` / `aliasName` are also treated as non-null elsewhere. Additionally, when `getAliasFullName()` finds `alias.getFullName()` null, it recomputes it, but that says nothing about `alias.getPkg()` being nullable. Given how `ClassAliasInfo` is used (as a holder of alias names and packages for code generation and filesystem paths), and that multiple other call sites rely on `getAliasPkg()` for building file paths and package declarations, allowing `alias.getPkg()` to be null would propagate null into many such places and cause errors.
+
+Further, many other call sites also assume `getAliasPkg()` is non-null:
+
+- `RenameVisitor.checkPackage`:
+
+  ```java
+  String aliasPkg = classInfo.getAliasPkg();
+  if (args.isRenameValid() && aliasPkg.isEmpty()) { ... }
+  ```
+
+  `aliasPkg.isEmpty()` would NPE if `getAliasPkg()` could be null.
+
+- `RenameVisitor.collectRootPkgs`:
+
+  ```java
+  fullPkgs.add(cls.getClassInfo().getAliasPkg());
+  ...
+  String rootPkg = getRootPkg(pkg);
+  ```
+
+- `ClassInfo.getAliasFullPath`:
+
+  ```java
+  return Nullability.castToNonnull(getAliasPkg()).replace('.', File.separatorChar) ...
+  ```
+
+  This explicitly enforces non-nullness at runtime; if `getAliasPkg()` were ever null, this would already explode near the beginning of processing.
+
+- `SaveCode.save` and `JsonMappingGen` use `getAliasFullPath()` to form file system paths, again assuming `getAliasPkg()` is non-null.
+
+Also, in `Deobfuscator.getPkgAlias`, they do:
+
+```java
+String[] aliasParts = classInfo.getAliasPkg().split("\\.");
+```
+
+Again this assumes `getAliasPkg()` is non-null.
+
+Given this widespread assumption, the invariants in this codebase are:
+
+- `ClassInfo.getPackage()` returns a non-null string (possibly empty).
+- `ClassInfo.getAliasPkg()` is treated as a non-null string at many places (string operations, equality checks) without null checks.
+- Inner classes simply delegate to their parent’s `getAliasPkg()`, which for a top-level parent will be non-null as per the above.
+
+Therefore, at the specific call site in `ClassGen.useClassInternal` (`extClsInfo.getAliasPkg()`), under the shown code and its invariants, `getAliasPkg()` cannot be null; if it were, other parts of the program would already be throwing `NullPointerException`s in very common flows.
+
+Hence this invocation’s result is non-null.
+
+  ]]></reason>
+  <value>NO</value>
+</response>

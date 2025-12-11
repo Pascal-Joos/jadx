@@ -1,0 +1,58 @@
+<response>
+  <reason><![CDATA[
+At this call site:
+
+```java
+List<BlockNode> successors = includeExcHandlers
+    ? child.getSuccessors()
+    : child.getCleanSuccessors();
+```
+
+we care about the `false` branch of the ternary (`child.getCleanSuccessors()`), i.e. the case where `includeExcHandlers` is `false`.
+
+The implementation of `getCleanSuccessors()` is:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+So the method will return `null` exactly when the field `cleanSuccessors` is `null`.
+
+From the provided codebase:
+
+- Many call sites explicitly handle the possibility that `getCleanSuccessors()` returns `null`, e.g.:
+
+  ```java
+  List<BlockNode> successors = block.getCleanSuccessors();
+  if (successors == null || successors.size() >= 2) { ... }
+  ```
+
+  and
+
+  ```java
+  List<BlockNode> successors = block.getCleanSuccessors();
+  if (successors == null) {
+      return null;
+  }
+  ```
+
+- `BlockUtils.getNextBlockOnEmptyPath` also explicitly checks for `successors == null` after calling `getCleanSuccessors`.
+
+- If `cleanSuccessors` were guaranteed non-null globally, these null checks would be unnecessary and misleading; their presence indicates that `cleanSuccessors` can indeed be `null` at runtime.
+
+- The only place where `cleanSuccessors` is explicitly set/updated in your excerpts is via `updateCleanSuccessors()` (called e.g. on splitter blocks), but its implementation is not shown. There is no guarantee from the provided code that *every* `BlockNode` has `cleanSuccessors` initialized before being used at this call site.
+
+- No additional constraints are given for this specific `child` node in `collectWhileDominates`; it is simply any `BlockNode` reachable in the recursion. Therefore, it can be one of those blocks where `cleanSuccessors` is still `null`.
+
+Since:
+1. `getCleanSuccessors()` just returns the field,
+2. other parts of the code explicitly treat `getCleanSuccessors()` as possibly returning `null`,
+3. there is no evidence that, for this particular `child`, `cleanSuccessors` is guaranteed initialized,
+
+the result of `child.getCleanSuccessors()` at this call site can be `null`. Consequently, the ternary expression can evaluate to `null` when `includeExcHandlers` is `false`.
+
+]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,28 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private String searchCommonParent(Set<String> anc, ClspClass cls) {
+		if (cls.getParents() == null) {
+			return null;
+		}
+		for (ArgType p : cls.getParents()) {
+			String name = p.getObject();
+			if (anc.contains(name)) {
+				return name;
+			}
+			ClspClass nCls = getClspClass(p);
+			if (nCls != null) {
+				String r = searchCommonParent(anc, nCls);
+				if (r != null) {
+					return r;
+				}
+			}
+		}
+		return null;
+}
+  ```
+    ]]>
+  </code>
+</response>

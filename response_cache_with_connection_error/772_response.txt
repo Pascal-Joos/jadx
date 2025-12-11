@@ -1,0 +1,23 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static boolean isRegionContainsBlock(IContainer container,  BlockNode block) {
+		if (container instanceof IBlock) {
+			return container == block;
+		} else if (container instanceof IRegion) {
+			IRegion region = (IRegion) container;
+			for (IContainer b : region.getSubBlocks()) {
+				if (isRegionContainsBlock(b, block)) {
+					return true;
+				}
+			}
+			return false;
+		} else {
+			throw new JadxRuntimeException(unknownContainerType(Nullability.castToNonnull(container)));
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

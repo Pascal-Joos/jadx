@@ -1,0 +1,62 @@
+<response>
+  <reason><![CDATA[
+In the specific call site:
+
+```java
+ClspClass clsDetails = root.getClsp().getClsDetails(superType);
+if (clsDetails != null) {
+    int k = 0;
+    for (ArgType parentType : clsDetails.getParents()) {
+        k += addSuperType(root, superTypesMap, endTypes, parentType);
+    }
+    ...
+}
+```
+
+the only guard before invoking `clsDetails.getParents()` is `if (clsDetails != null)`. There is **no check** that `clsDetails.getParents()` itself is non‑null.
+
+From the provided code base:
+
+- `ClspClass.getParents()` is a trivial getter:
+  ```java
+  public ArgType[] getParents() {
+      return parents;
+  }
+  ```
+  It directly returns the field `parents` with no initialization, null‑check, or fallback.
+
+- Other usages in the same code explicitly treat `getParents()` as potentially null:
+  ```java
+  // ClspGraph.searchCommonParent
+  if (cls.getParents() == null) {
+      return null;
+  }
+
+  // ClspGraph.getMethodDetails
+  if (cls.getParents() == null) {
+      return null;
+  }
+
+  // MethodUtils.processMethodArgsOverloaded
+  ArgType[] parents = clsDetails.getParents();
+  if (parents != null) {
+      for (ArgType parent : parents) {
+          ...
+      }
+  }
+  ```
+  These call sites explicitly check for `null`, which demonstrates that `parents` is allowed to be `null` in normal operation and that the library’s own authors expect `getParents()` can return null.
+
+- No constructor or setter for `ClspClass` is shown that would guarantee `parents` is always non‑null (e.g., by always assigning an empty array instead of null). Without such a guarantee, `parents` may legally be `null` for some `ClspClass` instances.
+
+Because `parents` can be `null` for some `ClspClass` objects, and `clsDetails` in the relevant `OverrideMethodVisitor.addSuperType` call site is only checked for `null` (not its `parents` field), the expression:
+
+```java
+clsDetails.getParents()
+```
+
+at that call site can evaluate to `null`.
+
+Therefore, `getParents()` **can** return null at this specific invocation.]]></reason>
+  <value>YES</value>
+</response>

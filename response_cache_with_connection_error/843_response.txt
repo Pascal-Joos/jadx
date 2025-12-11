@@ -1,0 +1,58 @@
+<response>
+    <reason><![CDATA[
+Within the provided call chain, every invocation of `IfCondition.invert` passes a non-null argument:
+
+1. `ConditionRegion.invertCondition()`:
+   ```java
+   if (condition != null) {
+       condition = IfCondition.invert(condition);
+   }
+   ```
+   Here, the call is explicitly guarded by `condition != null`.
+
+2. `TernaryInsn`:
+   - In the constructor:
+     ```java
+     this.condition = IfCondition.invert(condition);
+     ```
+     The constructor is called from:
+     ```java
+     IfCondition condition = IfCondition.fromIfNode(ifNode);
+     return new TernaryInsn(condition, result, one, zero);
+     ```
+     There is no null check, so for this to be safe at runtime, `IfCondition.fromIfNode(ifNode)` must return a non-null `IfCondition`. The subsequent uses (e.g., `simplifyCondition`) rely on `condition` being non-null as well.
+   - In `invert()`:
+     ```java
+     condition = IfCondition.invert(condition);
+     ```
+     This uses the same instance field `condition` that is initialized in the constructor as above; there is no path shown that assigns it `null`.
+
+3. `IfInfo.invert(IfInfo info)`:
+   ```java
+   return new IfInfo(info.getMth(),
+           IfCondition.invert(info.getCondition()),
+           ...
+   );
+   ```
+   `IfInfo` objects are produced and manipulated throughout `RegionMaker` and `IfMakerHelper`. The snippets show `IfInfo` being created and transformed, but not with a nullable condition; all logic assumes a valid condition for control-flow reconstruction. There are no null checks around `info.getCondition()` before calling `invert`.
+
+4. Recursive/internal uses inside `IfCondition.simplify`:
+   ```java
+   cond = invert(cond.first());
+   ...
+   cond = invert(cond);
+   ...
+   return not(invert(cond));
+   ```
+   These all operate on `cond` or `cond.first()`, which are derived from an existing non-null `IfCondition`. There are no branches that introduce null into these flows.
+
+Also, the implementation of `invert` itself dereferences `cond` immediately:
+```java
+Mode mode = cond.getMode();
+```
+so a null argument would lead to an immediate `NullPointerException`. Given the absence of any defensive null checks here and the consistent usage patterns (including explicit non-null guards where a field might be null), the method is written and used under the assumption that `cond` is never null in practice.
+
+Therefore, based on the observed call sites and internal usage, `cond` is not passed null in this codebase.
+]]></reason>
+    <value>NO</value>
+</response>

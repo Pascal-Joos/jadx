@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public static IfCondition not(IfCondition cond) {
+ 		if (cond.getMode() == Mode.NOT) {
+ 			return cond.first();
+ 		}
+ 		if (cond.getCompare() != null) {
+ 			return new IfCondition(Nullability.castToNonnull(cond.getCompare()).invert());
+ 		}
+ 		return new IfCondition(Mode.NOT, Collections.singletonList(cond));
+  }
+  ```
+    ]]>
+  </code>
+</response>

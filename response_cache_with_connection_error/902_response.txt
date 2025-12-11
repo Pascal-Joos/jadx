@@ -1,0 +1,36 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void parseFieldSignature(FieldNode field) {
+		SignatureParser sp = SignatureParser.fromNode(field);
+		if (sp == null) {
+			return;
+		}
+		if (root == null) {
+			return;
+		}
+		ClassNode cls = field.getParentClass();
+		try {
+			ArgType signatureType = sp.consumeType();
+			if (signatureType == null) {
+				return;
+			}
+			if (!validateInnerType(signatureType)) {
+				field.addWarnComment("Incorrect inner types in field signature: " + sp.getSignature());
+				return;
+			}
+			ArgType type = root.getTypeUtils().expandTypeVariables(cls, signatureType);
+			if (!validateParsedType(type, field.getType())) {
+				cls.addWarnComment("Incorrect field signature: " + sp.getSignature());
+				return;
+			}
+			field.updateType(type);
+		} catch (Exception e) {
+			cls.addWarnComment("Field signature parse error: " + field.getName(), e);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

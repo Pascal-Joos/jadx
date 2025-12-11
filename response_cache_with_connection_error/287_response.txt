@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public List<LiteralArg> getLiteralArgs(ArgType elType) {
+		return arrayData.getLiteralArgs(Nullability.castToNonnull(elType));
+}
+  ```
+    ]]>
+  </code>
+</response>

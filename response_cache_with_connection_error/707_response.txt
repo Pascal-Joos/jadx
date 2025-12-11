@@ -1,0 +1,52 @@
+<response>
+  <reason><![CDATA[
+At this call site:
+
+```java
+BlockNode firstSkip = BlockUtils.followEmptyPath(first);
+```
+
+the return value is whatever `followEmptyPath` returns for the argument `first`.
+
+The implementation of `followEmptyPath` is:
+
+```java
+@SuppressWarnings("NullAway") 
+public static BlockNode followEmptyPath(BlockNode start) {
+	while (true) {
+		BlockNode next = getNextBlockOnEmptyPath(Nullability.castToNonnull(start));
+		if (next == null) {
+			return start;
+		}
+		start = next;
+	}
+}
+```
+
+Key properties:
+
+1. The only `return` statement is `return start;`. There is no `return null` anywhere in this method.
+2. `start` is initially the method parameter (`first` at this call site).
+3. Inside the loop, `start` is only ever updated to `next`, which by type is `BlockNode` (possibly `null`), but that update only happens in the `else` branch:
+   ```java
+   if (next == null) {
+       return start;
+   }
+   start = next;
+   ```
+   So the method returns the *previous* non-null `start` when `next` becomes `null`; it never returns `next` itself.
+4. `start` is passed as `Nullability.castToNonnull(start)` into `getNextBlockOnEmptyPath`, strongly indicating that callers intend `start` to be non-null, but even ignoring that, the control-flow ensures:
+   - If `first` is non-null: `start` is always non-null at every return, because it only ever takes on the value of `next` **after** a null-check, and the returned value is never `next`.
+   - If `first` were somehow null: `Nullability.castToNonnull(start)` would likely throw, but that is an exception path, not a `null` return. There is still no way for the method to return `null`; it either returns a non-null `start` or does not complete normally.
+
+From the provided call chain, there is no override or special-casing of `followEmptyPath`; all usages rely on this single implementation.
+
+Therefore, for this specific call:
+
+```java
+BlockNode firstSkip = BlockUtils.followEmptyPath(first);
+```
+
+`firstSkip` cannot be `null` as a result of `followEmptyPath` returning `null`. Any failure would be via an exception, not a null return value.]]></reason>
+  <value>NO</value>
+</response>

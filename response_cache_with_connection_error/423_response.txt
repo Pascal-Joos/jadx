@@ -1,0 +1,38 @@
+<response>
+  <reason><![CDATA[
+thisArg is a `RegisterArg` representing the method’s implicit `this` parameter.
+
+`SSATransform.process(MethodNode mth)` builds all SSA vars from scratch when `mth.getSVars()` is empty. In that method:
+
+- `markThisArgs(mth.getThisArg())` is called at the end.
+- `markThisArgs(RegisterArg thisArg)` calls `markOneArgAsThis(thisArg)`.
+- `markOneArgAsThis(RegisterArg arg)` does **not** create the SSA var, it only uses it:
+  - It marks flags on `arg`,
+  - Checks the parent instruction,
+  - And if there is a MOVE of `this`, it accesses `resArg.getSVar().isUsedInPhi()` and then recursively calls `markThisArgs(resArg)`, again assuming non‑null `getSVar()`.
+
+So by the time `markThisArgs` runs, `thisArg.getSVar()` must already be non‑null, or these calls would throw NPE. Where is it set?
+
+During SSA renaming in `SSATransform.renameVariables` / `renameVarsInBlock`:
+
+- `renameVarsInBlock` iterates over all instructions.
+- For each non‑phi instruction’s arguments that are registers, it gets `int regNum = reg.getRegNum();` and `SSAVar var = state.getVar(regNum);`. If `var == null`, it calls `var = state.startVar(reg);`.
+- `state.startVar(reg)` creates a new `SSAVar` and calls `var.use(reg)`.
+- `SSAVar.use(RegisterArg arg)` sets `arg.setSVar(this);`.
+
+The `thisArg` is a normal method argument register and participates in this renaming pass; thus it gets an `SSAVar` assigned before `markThisArgs` is invoked. Further, multiple other parts of the code assume non‑null `getSVar()` on the `this` arg (e.g. in `InitCodeVariables.initCodeVars`, `DebugChecks.checkVar`), and would crash otherwise. There is no code path that deliberately allows `thisArg` to remain without an SSA var once SSA is constructed.
+
+Also, `SSATransform.process` starts with:
+
+```java
+if (!mth.getSVars().isEmpty()) {
+    return;
+}
+```
+
+meaning SSA is built exactly once; after that, all register args that exist in the CFG (including `thisArg`) have been assigned SSA vars. If SSA was not built at all (e.g., `mth.getSVars()` non-empty from elsewhere), then `markThisArgs` still assumes `thisArg.getSVar()` non‑null, which again implies that any valid state of the pipeline must ensure `thisArg` has an `SSAVar` before.
+
+Given this, at the specific call site `thisArg.getSVar()` inside `SSATransform.markThisArgs`, `thisArg` always has an associated `SSAVar`, so `getSVar()` cannot return null.
+  ]]></reason>
+  <value>NO</value>
+</response>

@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private boolean singleCheck(TypeSearchVarInfo var) {
+		if (var.isTypeResolved()) {
+			return true;
+		}
+		for (ITypeConstraint constraint : Nullability.castToNonnull(var.getConstraints())) {
+			if (!constraint.check(state)) {
+				return false;
+			}
+		}
+		return true;
+	}
+  ```
+    ]]>
+  </code>
+</response>

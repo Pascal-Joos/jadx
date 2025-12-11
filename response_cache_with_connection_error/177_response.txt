@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@NotNull
+	private static String cutLastPkgPart(String pkgFullName) {
+		int lastDotIndex = Nullability.castToNonnull(pkgFullName).lastIndexOf('.');
+		if (lastDotIndex == -1) {
+			return pkgFullName;
+		}
+		return pkgFullName.substring(0, lastDotIndex);
+	}
+  ```
+    ]]>
+  </code>
+</response>

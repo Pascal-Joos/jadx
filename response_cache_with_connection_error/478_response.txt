@@ -1,0 +1,71 @@
+<response>
+  <reason><![CDATA[
+The method `TernaryInsn.getCondition()` simply returns the field `condition`:
+
+```java
+public IfCondition getCondition() {
+    return condition;
+}
+```
+
+There is no null check or initialization here, so whether it can return null depends entirely on whether `condition` can be null at the usage sites.
+
+At the specific call site:
+
+```java
+IfCondition condition = insn.getCondition();
+if (condition.isCompare()) {
+    simplifyIf(mth, condition.getCompare().getInsn());
+} else {
+    insn.simplifyCondition();
+}
+```
+
+there is **no prior guarantee** in the shown code that `insn.condition` is non‑null. In fact, other code paths in the same codebase explicitly treat `getCondition()` as potentially null.
+
+In `BlockUtils` you have:
+
+```java
+private static InsnArg foundWrappedInsnInCondition(IfCondition cond, InsnNode insn) {
+    if (cond == null) {
+        return null;
+    }
+    ...
+}
+...
+if (container instanceof TernaryInsn) {
+    return foundWrappedInsnInCondition(((TernaryInsn) container).getCondition(), insn);
+}
+```
+
+Here `foundWrappedInsnInCondition` explicitly checks `if (cond == null)`, and its callers pass `((TernaryInsn) container).getCondition()` without any null check beforehand. That only makes sense if `getCondition()` may return null.
+
+Similarly, other usages like:
+
+```java
+for (RegisterArg arg : ternaryInsn.getCondition().getRegisterArgs()) { ... }
+args.addAll(((TernaryInsn) insn).getCondition().getRegisterArgs());
+condGen.add(code, insn.getCondition());
+condGen.wrap(code, insn.getCondition());
+removeParenthesis(((TernaryInsn) insn).getCondition());
+```
+
+do not include local null checks either, which is consistent with `BlockUtils` handling the null case centrally.
+
+Because:
+
+- `getCondition()` is a direct field getter with no non‑null enforcement,
+- the codebase has a dedicated null check for `IfCondition` values coming from `getCondition()`,
+- and there is no shown invariant or constructor logic guaranteeing `condition` is always non‑null for all `TernaryInsn` instances,
+
+`insn.getCondition()` **can** be null at this call site. If it is null, the immediate dereference `condition.isCompare()` will result in a `NullPointerException`, but that is still a case where the method call itself returns null.
+
+Therefore, at the specific call site:
+
+```java
+IfCondition condition = insn.getCondition();
+```
+
+the result can be null.]]></reason>
+  <value>YES</value>
+</response>

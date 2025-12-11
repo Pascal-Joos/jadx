@@ -1,0 +1,28 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private ClspMethod readMethod(DataInputStream in, ClassInfo clsInfo) throws IOException {
+		String name = readString(in);
+		List<ArgType> argTypes = readArgTypesList(in);
+		ArgType retType = readArgType(in);
+		List<ArgType> genericArgTypes = readArgTypesList(in);
+		if (genericArgTypes.isEmpty() || Objects.equals(genericArgTypes, argTypes)) {
+			genericArgTypes = argTypes;
+		}
+		ArgType genericRetType = readArgType(in);
+		if (Objects.equals(genericRetType, retType)) {
+			genericRetType = retType;
+		}
+		List<ArgType> typeParameters = readArgTypesList(in);
+		int accFlags = in.readInt();
+		List<ArgType> throwList = readArgTypesList(in);
+		MethodInfo methodInfo = MethodInfo.fromDetails(root, clsInfo, name, argTypes, Nullability.castToNonnull(retType));
+		return new ClspMethod(methodInfo,
+				genericArgTypes, genericRetType,
+				typeParameters, throwList, accFlags);
+}
+  ```
+    ]]>
+  </code>
+</response>

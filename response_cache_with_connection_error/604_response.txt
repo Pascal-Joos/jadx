@@ -1,0 +1,30 @@
+<response>
+  <reason><![CDATA[
+The method `ClassNode.getParentClass()` simply returns the field `parentClass` without any checks:
+
+```java
+public ClassNode getParentClass() {
+    return parentClass;
+}
+```
+
+At the specific call site in `EnumVisitor.processEnumCls`:
+
+```java
+private static void processEnumCls(ClassNode cls, EnumField field, ClassNode innerCls) {
+    // ...
+    ClassNode parentClass = innerCls.getParentClass();
+    if (parentClass == null || !parentClass.equals(cls)) {
+        // not inner
+        cls.addInlinedClass(innerCls);
+        innerCls.add(AFlag.DONT_GENERATE);
+    }
+}
+```
+
+`innerCls` is a `ClassNode` parameter with no guarantees about its parent. The code explicitly checks `if (parentClass == null ...)`, meaning the implementation expects and handles the case where `innerCls.getParentClass()` returns `null`. There is no prior constraint in this method or in the call chain that would ensure `innerCls.parentClass` is non-null.
+
+Therefore, at this call site the value returned by `innerCls.getParentClass()` can indeed be `null` (e.g., if `innerCls` is a top-level class or otherwise has no parent assigned).
+  ]]></reason>
+  <value>YES</value>
+</response>

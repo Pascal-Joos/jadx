@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean badMethodUsage(ClassNode cls, MethodNode useMth, AccessInfo accessFlags) {
+    ClassNode useCls = useMth.getParentClass();
+    if (useCls.equals(cls)) {
+        return false;
+    }
+    if (accessFlags.isSynthetic()) {
+        // allow synthetic usage in inner class
+        return !Nullability.castToNonnull(useCls.getParentClass()).equals(cls);
+    }
+    return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

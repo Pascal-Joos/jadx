@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void loadFromClstFile() throws IOException, DecodeException {
+		long startTime = System.currentTimeMillis();
+		try (InputStream input = ClsSet.class.getResourceAsStream(CLST_PATH)) {
+			if (input == null) {
+				throw new JadxRuntimeException("Can't load classpath file: " + CLST_PATH);
+			}
+			load(input);
+		}
+		if (classes != null && LOG.isDebugEnabled()) {
+			long time = System.currentTimeMillis() - startTime;
+			int methodsCount = Stream.of(classes).mapToInt(clspClass -> clspClass.getMethodsMap().size()).sum();
+			LOG.debug("Clst file loaded in {}ms, classes: {}, methods: {}", time, classes.length, methodsCount);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

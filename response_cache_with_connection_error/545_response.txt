@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	public static BlockNode traverseWhileDominates(BlockNode dom, BlockNode start) {
+		if (start.getCleanSuccessors() == null) {
+			return null;
+		}
+		for (BlockNode node : start.getCleanSuccessors()) {
+			if (!node.isDominator(dom)) {
+				return node;
+			} else {
+				BlockNode out = traverseWhileDominates(dom, node);
+				if (out != null) {
+					return out;
+				}
+			}
+		}
+		return null;
+	}
+  ```
+    ]]>
+  </code>
+</response>

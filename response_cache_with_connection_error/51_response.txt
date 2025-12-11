@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public void visitSuperTypes(ArgType type, BiConsumer<ArgType, ArgType> consumer) {
+		ClassNode cls = root.resolveClass(type);
+		if (cls != null) {
+			cls.visitSuperTypes(consumer);
+		} else {
+			ClspClass clspClass = root.getClsp().getClsDetails(type);
+			if (clspClass != null) {
+				ArgType[] parents = clspClass.getParents();
+				if (parents != null) {
+					for (ArgType superType : parents) {
+						if (!superType.equals(ArgType.OBJECT)) {
+							consumer.accept(type, superType);
+							visitSuperTypes(superType, consumer);
+						}
+					}
+				}
+			}
+		}
+  }
+  ```
+    ]]>
+  </code>
+</response>

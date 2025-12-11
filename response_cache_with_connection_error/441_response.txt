@@ -1,0 +1,20 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private Set<ArgType> collectUseTypes(RegisterArg arg) {
+		Set<ArgType> types = new HashSet<>();
+		SSAVar sVar = arg.getSVar();
+		if (sVar == null) {
+			return types;
+		}
+		for (RegisterArg useArg : sVar.getUseList()) {
+			types.add(useArg.getType());
+			types.add(useArg.getInitType());
+		}
+		return types;
+	}
+  ```
+    ]]>
+  </code>
+</response>

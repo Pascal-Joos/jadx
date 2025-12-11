@@ -1,0 +1,20 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public static boolean isInstanceOf(RootNode root, ArgType type, ArgType of) {
+		if (type.equals(of)) {
+			return true;
+		}
+		if (!type.isObject() || !of.isObject()) {
+			return false;
+		}
+		if (root == null) {
+			return false;
+		}
+		return root.getClsp().isImplements(type.getObject(), of.getObject());
+  }
+  ```
+    ]]>
+  </code>
+</response>

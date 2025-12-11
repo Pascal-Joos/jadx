@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void addSuperTypes(ClspClass cls, Set<String> result) {
+		ArgType[] parents = cls.getParents();
+		if (parents == null) {
+			return;
+		}
+		for (ArgType parentType : parents) {
+			if (parentType == null) {
+				continue;
+			}
+			ClspClass parentCls = getClspClass(parentType);
+			if (parentCls != null) {
+				boolean isNew = result.add(parentCls.getName());
+				if (isNew) {
+					addSuperTypes(parentCls, result);
+				}
+			} else {
+				// parent type is unknown
+				result.add(parentType.getObject());
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

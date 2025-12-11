@@ -1,0 +1,56 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static String literalToString(long lit, ArgType type, StringUtils stringUtils, boolean fallback, boolean cast) {
+		if (type == null || !type.isTypeKnown()) {
+			String n = Long.toString(lit);
+			if (fallback && Math.abs(lit) > 100) {
+				StringBuilder sb = new StringBuilder();
+				sb.append(n).append("(0x").append(Long.toHexString(lit));
+				if (type == null || type.contains(PrimitiveType.FLOAT)) {
+					sb.append(", float:").append(Float.intBitsToFloat((int) lit));
+				}
+				if (type == null || type.contains(PrimitiveType.DOUBLE)) {
+					sb.append(", double:").append(Double.longBitsToDouble(lit));
+				}
+				sb.append(')');
+				return sb.toString();
+			}
+			return n;
+		}
+
+		switch (Nullability.castToNonnull(type.getPrimitiveType())) {
+			case BOOLEAN:
+				return lit == 0 ? "false" : "true";
+			case CHAR:
+				return stringUtils.unescapeChar((char) lit, cast);
+			case BYTE:
+				return formatByte(lit, cast);
+			case SHORT:
+				return formatShort(lit, cast);
+			case INT:
+				return formatInteger(lit, cast);
+			case LONG:
+				return formatLong(lit, cast);
+			case FLOAT:
+				return formatFloat(Float.intBitsToFloat((int) lit));
+			case DOUBLE:
+				return formatDouble(Double.longBitsToDouble(lit));
+
+			case OBJECT:
+			case ARRAY:
+				if (lit != 0) {
+					LOG.warn("Wrong object literal: {} for type: {}", lit, type);
+					return Long.toString(lit);
+				}
+				return "null";
+
+			default:
+				throw new JadxRuntimeException("Unknown type in literalToString: " + type);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

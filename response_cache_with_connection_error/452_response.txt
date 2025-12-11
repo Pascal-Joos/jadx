@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public boolean isInteger() {
+  		ArgTypePrimitive primitiveType = type != null ? type.getPrimitiveType() : null;
+  		switch (primitiveType) {
+  			case INT:
+  			case BYTE:
+  			case CHAR:
+  			case SHORT:
+  			case LONG:
+  				return true;
+  			default:
+  				return false;
+  		}
+  }
+  ```
+    ]]>
+  </code>
+</response>

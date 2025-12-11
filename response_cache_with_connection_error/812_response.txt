@@ -1,0 +1,62 @@
+<response>
+  <reason><![CDATA[
+The call in question is:
+
+```java
+ClspGraph clsp = mth.root().getClsp();
+```
+
+The `getClsp()` method is:
+
+```java
+public ClspGraph getClsp() {
+    return clsp;
+}
+```
+
+So the nullability of the result is exactly the nullability of the `clsp` field on `RootNode`.
+
+From the provided code, there are several places where callers explicitly treat `root.getClsp()` as potentially null and branch on it:
+
+- In `TypeUtils.visitSuperTypes`:
+  ```java
+  } else if (root.getClsp() != null) {
+      ClspClass clspClass = root.getClsp().getClsDetails(type);
+      ...
+  }
+  ```
+- In `OverrideMethodVisitor.processOverrideMethods`:
+  ```java
+  RootNode root = mth.root();
+  if (root == null || root.getClsp() == null) {
+      return null;
+  }
+  ```
+- In `TypeUtils.getClassGenerics`:
+  ```java
+  ClspClass clsDetails = root.getClsp().getClsDetails(type);
+  ```
+  (used after a root-null check but without a clsp-null check; safety here depends on context, not on `getClsp()` being guaranteed non-null).
+
+- In `ProcessAnonymous.getBaseType`:
+  ```java
+  ClspGraph clsp = cls.root().getClsp();
+  if (clsp == null) {
+      return null;
+  }
+  ```
+
+These usages show that the library's own code considers `root.getClsp()` *not* to be guaranteed non-null at all call sites. There is no invariant in the presented code that initializes `clsp` to a non-null value or prevents it from being null.
+
+Since `getClsp()` just returns the field `clsp` with no checks or defaulting, if `clsp` is null in a given `RootNode` instance, `getClsp()` will return null. Nothing in the supplied snippets establishes that, in the context of `mth.root()`, `clsp` must already be initialized to a non-null `ClspGraph`.
+
+Therefore, at this specific call site:
+
+```java
+ClspGraph clsp = mth.root().getClsp();
+```
+
+`getClsp()` can return null, yielding `clsp == null`.
+  ]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,33 @@
+<response>
+    <reason><![CDATA[
+`attachSourceLines` is called only from `processDebugInfo`:
+
+```java
+private void processDebugInfo(MethodNode mth, IDebugInfo debugInfo) {
+    InsnNode[] insnArr = mth.getInstructions();
+    attachSourceLines(mth, debugInfo.getSourceLineMapping(), insnArr);
+    attachDebugInfo(mth, debugInfo.getLocalVars(), Nullability.castToNonnull(insnArr));
+    setMethodSourceLine(mth, Nullability.castToNonnull(insnArr));
+}
+```
+
+So the actual argument passed as `insnArr` is the result of `mth.getInstructions()`.
+
+Within `attachSourceLines`, `insnArr` is:
+- Used directly as an array (`insnArr[offset]`) with no null check.
+- Assumed to have valid length for any offset from the mapping.
+- Never defensively checked against null.
+
+If `insnArr` were ever null, `attachSourceLines` would immediately throw a `NullPointerException` at `InsnNode insn = insnArr[offset];`. The surrounding `try/catch` only wraps that per-entry logic and logs a warning, but the `try` is inside the `for` loop; a null `insnArr` would fail on the very first use. Because this visitor is part of normal decompilation flow, such an unconditional crash strongly indicates that, in practice, `mth.getInstructions()` is not expected to return null.
+
+Also, `processDebugInfo` passes `insnArr` through `Nullability.castToNonnull` to other methods, which conceptually assumes non-null. While we are to ignore annotations, this still reflects that the codebase is written with the expectation that `insnArr` is non-null.
+
+Given:
+- `insnArr` is always obtained from `mth.getInstructions()`
+- There are no callers passing an arbitrary value or `null` directly
+- The method body does not guard against null and would crash immediately if it occurred
+
+the usage pattern indicates `insnArr` is treated as a non-null array, and it is not intended or expected to be null in actual execution paths.
+    ]]></reason>
+    <value>NO</value>
+</response>

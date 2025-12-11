@@ -1,0 +1,21 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the shown method, `mapping.setClasses(new ArrayList<>(classes.size()));` is invoked unconditionally before the `for` loop where `mapping.getClasses().add(jsonCls);` is called.
+
+Assuming:
+- `mapping` itself is non-null when `fillMapping` is called, and
+- `setClasses(...)` correctly stores the provided list and `getClasses()` simply returns what was set,
+
+then:
+1. `new ArrayList<>(classes.size())` is never null.
+2. `setClasses(...)` is always called before any use of `getClasses()` in this method.
+3. There is no intervening code that could reset the classes list to null between `setClasses(...)` and `getClasses()`.
+
+Under these normal Java semantics and in the absence of any unusual behavior (e.g., a `setClasses` implementation that ignores its argument or intentionally stores `null`), `mapping.getClasses()` cannot be null at the point of `mapping.getClasses().add(jsonCls);`.
+
+Therefore, based solely on this method and standard expectations for getters/setters, `mapping.getClasses()` cannot be null here.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

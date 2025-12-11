@@ -1,0 +1,32 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public Map<ArgType, ArgType> getTypeVariablesMapping(ArgType clsType) {
+		if (!clsType.isGeneric()) {
+			return Collections.emptyMap();
+		}
+		List<ArgType> typeParameters = root.getTypeUtils().getClassGenerics(clsType);
+		if (typeParameters.isEmpty()) {
+			return Collections.emptyMap();
+		}
+		List<ArgType> actualTypes = clsType.getGenericTypes();
+		if (actualTypes == null || isEmpty(actualTypes)) {
+			return Collections.emptyMap();
+		}
+		int genericParamsCount = actualTypes.size();
+		if (genericParamsCount != typeParameters.size()) {
+			return Collections.emptyMap();
+		}
+		Map<ArgType, ArgType> replaceMap = new HashMap<>(genericParamsCount);
+		for (int i = 0; i < genericParamsCount; i++) {
+			ArgType actualType = actualTypes.get(i);
+			ArgType typeVar = typeParameters.get(i);
+			replaceMap.put(typeVar, actualType);
+		}
+		return replaceMap;
+  }
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,32 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the provided method, there is no guarantee that getCls(argType, names) cannot return null.
+
+Evidence from the code:
+
+1. In the GENERIC branch:
+   - The method explicitly handles a possible null return:
+     ClspClass cls = getCls(argType, names);
+     out.writeInt(cls == null ? -1 : cls.getId());
+   - This clearly indicates that, according to the current design, getCls may return null, and the caller defensively encodes -1 when that happens.
+
+2. In the OBJECT branch:
+   - The same pattern appears:
+     ClspClass cls = getCls(argType, names);
+     out.writeInt(cls == null ? -1 : cls.getId());
+   - Again, the code is written under the assumption that getCls can be null.
+
+3. No earlier checks or invariants in writeArgType constrain getCls to be non-null:
+   - argType is checked for null, but that only prevents a null ArgType, not a null ClspClass.
+   - The conditions (isPrimitive, isGeneric, isObject, etc.) govern which code path is taken, but none of them logically guarantee that argType is resolvable to a non-null ClspClass in the names map or whatever backing store getCls uses.
+
+4. The implementation of getCls(argType, names) is not shown:
+   - Without seeing getCls, we cannot infer a contract of "never returns null".
+   - The fact that the code handling its result treats null as a valid, expected case strongly suggests that null is possible in normal execution.
+
+Given these points, the expression getCls(argType, names) at the call site can evaluate to null, and the method already accounts for that by using a ternary operator to avoid dereferencing it directly.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

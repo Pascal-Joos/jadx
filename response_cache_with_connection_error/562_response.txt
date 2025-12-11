@@ -1,0 +1,78 @@
+<response>
+  <reason><![CDATA[
+At this call site, `block` is an instance of `jadx.core.dex.nodes.BlockNode` and `getDomFrontier()` simply returns the field `domFrontier`.
+
+Looking at how `domFrontier` is managed:
+
+- In `DominatorTree.computeDominanceFrontier(MethodNode mth)`:
+  - First, for every block: `block.setDomFrontier(null);`
+  - Then the frontier is populated via `addToDF(...)`, which does:
+    ```java
+    BitSet df = block.getDomFrontier();
+    if (df == null) {
+        df = new BitSet(blocksCount);
+        block.setDomFrontier(df);
+    }
+    df.set(dfBlock.getId());
+    ```
+    So any block that gets something added to its frontier will get a non‑null `BitSet`.
+  - Finally, for every block:
+    ```java
+    BitSet df = block.getDomFrontier();
+    if (df == null || df.isEmpty()) {
+        block.setDomFrontier(EmptyBitSet.EMPTY);
+    }
+    ```
+    Thus, after `computeDominanceFrontier` finishes, *every* block has `domFrontier` set to a non‑null `BitSet` (either a real one or `EmptyBitSet.EMPTY`).
+
+All call sites in your snippets that *might* see a null `domFrontier` explicitly account for the period before `computeDominanceFrontier` has normalized the field:
+
+- `DominatorTree.addToDF` checks for `null` and allocates.
+- `DominatorTree.computeDominanceFrontier` itself sets `null` and later replaces `null` with `EmptyBitSet.EMPTY`.
+- Other code such as:
+  - `RegionMaker.searchFallThroughCase`:
+    ```java
+    BitSet df = successor.getDomFrontier();
+    if (df == null) {
+        return null;
+    }
+    ```
+  - `BlockUtils.getPathCross` (inner lambda):
+    ```java
+    BitSet domFrontier = block.getDomFrontier();
+    if (domFrontier == null) {
+        return null;
+    }
+    ```
+  - `BlockUtils.mergeExcHandlerDomFrontier`:
+    ```java
+    BitSet domFrontier = handlerBlock.getDomFrontier();
+    if (domFrontier == null) { ...; return; }
+    ```
+
+These checks are used exactly to guard against using `domFrontier` before `computeDominanceFrontier` has been run (or while it is being initialized). They show that `getDomFrontier()` *can* legitimately return `null` at some points in the lifecycle.
+
+Crucially, `BlockProcessor.processBlocksTree` (which is the normal CFG setup pipeline) runs:
+```java
+DominatorTree.computeDominanceFrontier(mth);
+registerLoops(mth);
+processNestedLoops(mth);
+```
+only after dominators and CFG structure are finalized. However, `computeDominanceFrontier` is also called directly in other places (e.g., `BlockExceptionHandler.process`), and there is no global guarantee that *every* use of `block.getDomFrontier()` is always after that normalization step.
+
+Since the question is strictly about the specific call site:
+
+```java
+BitSet domFrontier = block.getDomFrontier();
+```
+
+and we are not given any precondition at that particular point ensuring that `computeDominanceFrontier` has completed and normalized all `domFrontier` fields, we must consider the general semantics of `BlockNode`:
+
+- `domFrontier` is explicitly set to `null` in `computeDominanceFrontier` and is not initialized to a non‑null value in the `BlockNode` constructor shown.
+- Other code paths defensively handle the `null` case, which implies it is a valid observable state.
+
+Therefore, at this call site, `getDomFrontier()` can return `null` if it is invoked before the final loop in `computeDominanceFrontier` has run or if `computeDominanceFrontier` has not been called for the method at all.
+
+So, we cannot guarantee non‑null at this specific invocation.]]></reason>
+  <value>YES</value>
+</response>

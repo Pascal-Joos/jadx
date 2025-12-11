@@ -1,0 +1,54 @@
+<response>
+  <reason><![CDATA[
+The call site in question is `clsDetails.getParents()` inside:
+
+```java
+ClspClass clsDetails = root.getClsp().getClsDetails(superType);
+if (clsDetails != null) {
+    int k = 0;
+    for (ArgType parentType : clsDetails.getParents()) {
+        k += addSuperType(root, superTypesMap, endTypes, parentType);
+    }
+    ...
+}
+```
+
+from `OverrideMethodVisitor.addSuperType`.
+
+The method `ClspClass.getParents()` simply returns the field `parents`:
+
+```java
+public ArgType[] getParents() {
+    return parents;
+}
+```
+
+There is no null‑check on `parents` at this call site; the code immediately uses it in an enhanced for‑loop. For this to be safe, `parents` must be non‑null. However, elsewhere in the same codebase, `getParents()` is explicitly checked against null:
+
+```java
+if (cls.getParents() == null) {
+    return null;
+}
+for (ArgType p : cls.getParents()) {
+    ...
+}
+```
+
+in `ClspGraph.searchCommonParent`, and similarly in `ClspGraph.getMethodDetails`:
+
+```java
+if (cls.getParents() == null) {
+    return null;
+}
+for (ArgType parent : cls.getParents()) {
+    ...
+}
+```
+
+These null checks prove that, at least conceptually, `parents` is allowed to be null for some `ClspClass` instances. Since `OverrideMethodVisitor.addSuperType` only checks `clsDetails != null` and performs no additional constraints on `clsDetails` or its `parents` field, there is nothing at this specific call site that rules out `parents` being null.
+
+Therefore, for this invocation `clsDetails.getParents()` may return null, and if it does, the enhanced for-loop would throw a `NullPointerException`. Under the problem’s rules we only care whether a null value can be returned, not about the resulting exception; that condition is satisfied here.
+
+So, at this call site, `getParents()` can return null.]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,51 @@
+<response>
+  <reason><![CDATA[
+The method `MethodNode.getEnterBlock()` is a simple field accessor:
+
+```java
+public BlockNode getEnterBlock() {
+    return enterBlock;
+}
+```
+
+There is no null-check or lazy initialization in this accessor; whether it can return null depends entirely on how `enterBlock` is set and on the invariants maintained for `MethodNode` instances used at the shown call sites.
+
+From the provided call chain:
+
+- Many usages *assume* `getEnterBlock()` is non-null and immediately dereference it:
+  - `mth.getEnterBlock().getCleanSuccessors().get(0);`
+  - `mth.getEnterBlock().getId();`
+  - `Nullability.castToNonnull(mth.getEnterBlock()).getId();`
+  - As a start node in DFS / graph algorithms, phi placement, SSA, try/catch wrapping, etc.
+
+- In several utilities `mth.isNoCode()` / `mth.getBasicBlocks().isEmpty()` are checked before further processing. Where `getEnterBlock()` is used inside such processing, it is under the implicit invariant that a normal, analyzed method with basic blocks has a valid entry block.
+
+- In `DotGraphVisitor.DumpDotGraph.process`, when `blocks == null`, they explicitly synthesize a `BlockNode` and assign it to `enterBlock`:
+  ```java
+  enterBlock = block;
+  blocks = Collections.singletonList(block);
+  ```
+  This shows that for that path they ensure a non-null `enterBlock` before further usage.
+
+- In `BlockUtils.dfsVisit`, they do:
+  ```java
+  BlockNode enterBlock = mth.getEnterBlock();
+  queue.addLast(enterBlock);
+  visited.set(Nullability.castToNonnull(mth.getEnterBlock()).getId());
+  ```
+  The use of `Nullability.castToNonnull` indicates the library treats `enterBlock` as required to be non-null in all normal CFG-based processing. If it were allowed to be null here, many parts of the analysis would fail immediately.
+
+Crucially, you have not provided any code that ever sets `enterBlock` to `null` once a `MethodNode` is in a state where these visitors are applied. All the provided callers use `getEnterBlock()` as a fundamental CFG root. A `null` value would catastrophically break most of the given logic (SSA transform, region making, exception handler wiring, dominator tree sorting, etc.), and there are no guards for a `null` `enterBlock` in these paths.
+
+Given:
+
+- `enterBlock` is a core CFG invariant for `MethodNode` in all shown visitors.
+- The provided code shows only creation or replacement of an entry block with a *non-null* instance where special handling is needed.
+- No code path shown assigns `null` to `enterBlock` or uses it defensively.
+
+At the specific call site `mth.getEnterBlock()` within this analysis context (these visitors and codegen/util flows), `enterBlock` is treated as a mandatory, non-null root block. Under the invariants required for this code to function at all, `getEnterBlock()` cannot be null at these call sites.
+
+Therefore, for this specific invocation context, `mth.getEnterBlock()` is not expected to return null.
+  ]]></reason>
+  <value>NO</value>
+</response>

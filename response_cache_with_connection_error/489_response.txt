@@ -1,0 +1,79 @@
+<response>
+  <reason><![CDATA[
+The `getCondition()` method simply returns the field `condition`:
+
+```java
+public IfCondition getCondition() {
+    return condition;
+}
+```
+
+No invariants or checks are shown that would guarantee `condition` is non-null. The call site in question is:
+
+```java
+((TernaryInsn) insn).getCondition()
+```
+
+Within the provided codebase, `getCondition()` is used in two distinct ways:
+
+1. With a null check:
+   ```java
+   TernaryInsn ternaryInsn = (TernaryInsn) insn;
+   IfCondition condition = ternaryInsn.getCondition();
+   if (condition != null) {
+       for (RegisterArg arg : condition.getRegisterArgs()) {
+           checkVar(mth, insn, arg);
+       }
+   }
+   ```
+   and
+   ```java
+   IfCondition condition = insn.getCondition();
+   if (condition != null && condition.isCompare()) {
+       simplifyIf(mth, condition.getCompare().getInsn());
+   } else {
+       insn.simplifyCondition();
+   }
+   ```
+
+   This explicitly handles the possibility that `getCondition()` returns `null`.
+
+2. Without a null check:
+   ```java
+   if (insn.getType() == InsnType.TERNARY) {
+       args.addAll(((TernaryInsn) insn).getCondition().getRegisterArgs());
+   }
+   ```
+   and
+   ```java
+   if (container instanceof TernaryInsn) {
+       return foundWrappedInsnInCondition(((TernaryInsn) container).getCondition(), insn);
+   }
+   ```
+   and
+   ```java
+   if (insn.getType() == InsnType.TERNARY) {
+       removeParenthesis(((TernaryInsn) insn).getCondition());
+   }
+   ```
+   and
+   ```java
+   if (first.isTrue() && second.isFalse()) {
+       condGen.add(code, insn.getCondition());
+   } else {
+       condGen.wrap(code, insn.getCondition());
+   }
+   ```
+
+The presence of call sites with explicit `null` checks shows that the authors consider `condition` possibly null. Since:
+
+- The field `condition`’s initialization is not shown,
+- No constructor or setter logic is provided that would ensure `condition` is always non-null for all `TernaryInsn` objects that reach these call sites,
+- Other code paths handle `condition == null` as a normal, non-exceptional situation,
+
+we must conclude that `((TernaryInsn) insn).getCondition()` can be `null` at a call site where it is used without a preceding null check, including the specific call site pattern you provided.
+
+Without further guarantees (e.g., a constructor that always assigns a non-null `IfCondition` and no mutator that can clear it), `getCondition()` can return `null` at that call site.
+  ]]></reason>
+  <value>YES</value>
+</response>

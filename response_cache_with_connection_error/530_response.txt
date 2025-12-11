@@ -1,0 +1,56 @@
+<response>
+  <reason><![CDATA[
+The call site in question is:
+
+```java
+private static boolean checkConditionBranches(BlockNode from, BlockNode to) {
+    return from.getCleanSuccessors().size() == 1 && from.getCleanSuccessors().contains(to);
+}
+```
+
+So we must determine if `from.getCleanSuccessors()` can be `null` here.
+
+The `BlockNode#getCleanSuccessors` method is just:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+There is no local initialization logic here, so in general `cleanSuccessors` could be `null` unless the surrounding code guarantees otherwise.
+
+However, at this specific call site:
+
+- `from` is a `BlockNode` passed into `checkConditionBranches` from `IfMakerHelper.mergeNestedIfNodes`.
+- There is no additional null-guard or `Nullability.castToNonnull` around `from.getCleanSuccessors()` in `checkConditionBranches`, unlike many other uses elsewhere in the code base where they explicitly wrap `getCleanSuccessors()` with `Nullability.castToNonnull(...)` or perform `successors == null` checks.
+- In other parts of the code, `BlockNode` users *do* treat `getCleanSuccessors()` as potentially `null`:
+  - `BlockUtils.getNextBlockOnEmptyPath`:
+    ```java
+    List<BlockNode> successors = block.getCleanSuccessors();
+    if (successors == null || successors.size() != 1) {
+        return null;
+    }
+    ```
+  - `BlockUtils.buildSimplePath`:
+    ```java
+    List<BlockNode> successors = block.getCleanSuccessors();
+    if (successors == null || successors.size() >= 2) {
+        return Collections.emptyList();
+    }
+    ```
+  - `BlockUtils.getNextBlockToPath`:
+    ```java
+    List<BlockNode> successors = block.getCleanSuccessors();
+    if (successors == null) {
+        return null;
+    }
+    ```
+- That pattern shows the library designers consider `cleanSuccessors` nullable in at least some states; there is no global invariant visible in the provided code that `cleanSuccessors` is always non-null for all `BlockNode` instances.
+- We are not given the `BlockNode` constructor(s) or `updateCleanSuccessors()` implementation; those are the only places that could establish a non-null invariant. Without them, and given multiple explicit null-checks in callers, we cannot conclude that `cleanSuccessors` is always initialized to a non-null `List` for any arbitrary `BlockNode` (including the ones passed in as `from` here).
+
+Since `checkConditionBranches` accepts any `BlockNode from` and uses `from.getCleanSuccessors()` directly with no guarding, and other parts of the code clearly allow `getCleanSuccessors()` to be `null`, the method `getCleanSuccessors()` **can** return `null` at this specific call site in the absence of stronger guarantees from omitted code.
+
+Therefore, `from.getCleanSuccessors()` may evaluate to `null` here.]]></reason>
+  <value>YES</value>
+</response>

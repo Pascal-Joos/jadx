@@ -1,0 +1,14 @@
+```xml
+<response>
+  <reason><![CDATA[
+The implementation of getArrayElement has a single return statement:
+
+    public ArgType getArrayElement() {
+        return null;
+    }
+
+There are no conditions or alternative branches; the method always executes this single return statement. Therefore, it always returns null in all cases and under all conditions. There is no dependency on other methods or external state that could change this behavior.
+  ]]></reason>
+  <value>YES</value>
+</response>
+```

@@ -1,0 +1,34 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public String toString() {
+    switch (mode) {
+      case COMPARE:
+        return compare != null ? compare.toString() : "??";
+      case TERNARY:
+        return first() + " ? " + second() + " : " + third();
+      case NOT:
+        return "!(" + first() + ')';
+      case AND:
+      case OR:
+        String op = mode == Mode.OR ? " || " : " && ";
+        StringBuilder sb = new StringBuilder();
+        sb.append('(');
+        for (Iterator<IfCondition> it = args.iterator(); it.hasNext();) {
+          IfCondition arg = it.next();
+          sb.append(arg);
+          if (it.hasNext()) {
+            sb.append(op);
+          }
+        }
+        sb.append(')');
+        return sb.toString();
+    }
+    return "??";
+  }
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,36 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private ClassTypeVarsAttr buildClassTypeVarsAttr(ClassNode cls) {
+		Map<String, Map<ArgType, ArgType>> map = new HashMap<>();
+		ArgType currentClsType = cls.getClassInfo().getType();
+		map.put(currentClsType.getObject(), getTypeVariablesMapping(currentClsType));
+
+		cls.visitSuperTypes((parent, type) -> {
+			List<ArgType> currentVars = type.getGenericTypes();
+			if (currentVars == null || Utils.isEmpty(currentVars)) {
+				return;
+			}
+			int varsCount = currentVars.size();
+			List<ArgType> sourceTypeVars = getClassGenerics(type);
+			if (varsCount == sourceTypeVars.size()) {
+				Map<ArgType, ArgType> parentTypeMap = map.get(parent.getObject());
+				Map<ArgType, ArgType> varsMap = new HashMap<>(varsCount);
+				for (int i = 0; i < varsCount; i++) {
+					ArgType currentTypeVar = currentVars.get(i);
+					ArgType resultType = parentTypeMap != null ? parentTypeMap.get(currentTypeVar) : null;
+					varsMap.put(sourceTypeVars.get(i), resultType != null ? resultType : currentTypeVar);
+				}
+				map.put(type.getObject(), varsMap);
+			}
+		});
+		List<ArgType> currentTypeVars = cls.getGenericTypeParameters();
+		ClassTypeVarsAttr typeVarsAttr = new ClassTypeVarsAttr(currentTypeVars, map);
+		cls.addAttr(typeVarsAttr);
+		return typeVarsAttr;
+}
+  ```
+    ]]>
+  </code>
+</response>

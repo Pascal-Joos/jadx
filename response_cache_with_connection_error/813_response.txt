@@ -1,0 +1,35 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private boolean tryWiderObjects(MethodNode mth, SSAVar var) {
+		Set<ArgType> objTypes = new LinkedHashSet<>();
+		for (ITypeBound bound : var.getTypeInfo().getBounds()) {
+			ArgType boundType = bound.getType();
+			if (boundType.isTypeKnown() && boundType.isObject()) {
+				objTypes.add(boundType);
+			}
+		}
+		if (objTypes.isEmpty()) {
+			return false;
+		}
+		RootNode root = mth.root();
+		if (root == null) {
+			return false;
+		}
+		ClspGraph clsp = root.getClsp();
+		for (ArgType objType : objTypes) {
+			for (String ancestor : clsp.getSuperTypes(objType.getObject())) {
+				ArgType ancestorType = ArgType.object(ancestor);
+				TypeUpdateResult result = typeUpdate.applyWithWiderAllow(mth, var, ancestorType);
+				if (result == TypeUpdateResult.CHANGED) {
+					return true;
+				}
+			}
+		}
+		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

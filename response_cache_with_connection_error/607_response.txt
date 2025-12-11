@@ -1,0 +1,61 @@
+<response>
+  <reason><![CDATA[
+The implementation of `getParentClass()` is:
+
+```java
+public ClassNode getParentClass() {
+    return parentClass;
+}
+```
+
+So the nullability at the call site
+
+```java
+ClassNode parentClass = cls.getParentClass();
+```
+
+depends entirely on whether the field `parentClass` of this particular `ClassNode cls` can be null.
+
+From the provided code base:
+
+- In several places, callers explicitly *check* for null after calling `getParentClass()`:
+
+  ```java
+  ClassNode parentClass = innerCls.getParentClass();
+  if (parentClass == null || !parentClass.equals(cls)) { ... }     // EnumVisitor
+
+  ClassNode parentClass = innerCls.getParentClass();
+  if (parentClass == null || !parentClass.equals(outerCls)) { ... } // SignatureProcessor
+
+  if (isR(cls.getParentClass())) { ... }  // Deobfuscator.processClass (relies on isR handling null)
+  ```
+
+- In other places, they use `Nullability.castToNonnull(cls.getParentClass())`, indicating that without the cast the return type is considered possibly null:
+
+  ```java
+  ClassNode parentCls = Nullability.castToNonnull(currentCls.getParentClass());
+  ```
+
+- Methods like `getTopParentClass()` and `hasNotGeneratedParent()` also treat `getParentClass()` as potentially `null`:
+
+  ```java
+  ClassNode parent = getParentClass();
+  if (parent == null || parent == this) {
+      return this;
+  }
+  ```
+
+Nothing in the provided code guarantees that `parentClass` is always non-null for all `ClassNode` instances. In fact, top-level classes are often represented either by `parentClass == null` or by `parentClass == this`; the presence of explicit `parent == null` checks confirms that `null` is an expected and supported state.
+
+Since the call site in question:
+
+```java
+ClassNode parentClass = cls.getParentClass();
+```
+
+does not have any additional constraints (e.g., no prior assertion that `cls` is inner, no guarantee that `parentClass` was initialized), and the field `parentClass` is directly returned unguarded, it can legitimately be `null` at runtime.
+
+Therefore, at this specific call site, `getParentClass()` can return null.
+  ]]></reason>
+  <value>YES</value>
+</response>

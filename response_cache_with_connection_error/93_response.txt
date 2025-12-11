@@ -1,0 +1,57 @@
+<response>
+    <reason><![CDATA[
+Based on the provided call chain, `ConditionGen.add(ICodeWriter code, IfCondition condition)` is invoked from the following places:
+
+1. **RegionGen.makeLoop**
+   ```java
+   IfCondition condition = region.getCondition();
+   if (condition == null) {
+       // infinite loop
+       code.add("while (true) {");
+       ...
+       return;
+   }
+   ...
+   conditionGen.add(code, condition);
+   ```
+   Here, `condition` is explicitly checked for null. The method returns early if it is null, so the subsequent call `conditionGen.add(code, condition)` only happens when `condition != null`.
+
+2. **RegionGen.makeIf**
+   ```java
+   code.add("if (");
+   new ConditionGen(this).add(code, region.getCondition());
+   code.add(") {");
+   ```
+   There is no explicit null check here, but the structure of the decompiler’s IR strongly suggests that an `IfRegion` always has a non-null condition; otherwise, generating an `if (...)` statement would not be possible. Additionally, if `region.getCondition()` could be null here, then `ConditionGen.add` would immediately dereference it (`condition.getMode()`), causing a crash. The absence of any defensive null checks in `ConditionGen.add` and its internal uses implies the caller side guarantees non-null.
+
+3. **DebugUtils.printRegionSpecificInfo**
+   ```java
+   IfCondition condition = loop.getCondition();
+   if (printInsns && condition != null) {
+       ...
+       conditionGen.add(cw, condition);
+   }
+   ```
+   Here `conditionGen.add` is only called when `condition != null`, guarded by a null check.
+
+4. **InsnGen.makeTernary**
+   ```java
+   ConditionGen condGen = new ConditionGen(this);
+   ...
+   condGen.add(code, insn.getCondition());
+   // or
+   condGen.wrap(code, insn.getCondition());
+   ```
+   `insn.getCondition()` is used directly without a null check. If it were ever null, `ConditionGen.add`/`wrap` would dereference it and fail. The fact that this is not guarded, together with the typical contract of a ternary instruction in the IR (which must have a condition), indicates `insn.getCondition()` is assumed to be non-null.
+
+Inside `ConditionGen` itself, the private `add(ICodeWriter, CondStack, IfCondition)` method and helpers (`addTernary`, `addAndOr`, `addNot`, `wrap`) all immediately dereference `condition` (e.g., `condition.getMode()`, `condition.first()`, `condition.getArgs()`) without any null-checks or defensive handling. This strongly indicates that `condition` is treated as required, non-null input throughout.
+
+Across all observed call sites:
+- Whenever a condition is *possibly* absent (e.g., infinite loop), callers *avoid calling* `add` and handle that case separately.
+- All actual calls to `add` are either:
+  - Guarded by `condition != null`, or
+  - From contexts where the IR semantics imply a non-null condition (if/loop conditions or ternary expressions), and no null-safe handling is present.
+
+Therefore, based strictly on usage patterns in the provided call chain, `condition` is not expected to be null at any call site.]]></reason>
+    <value>NO</value>
+</response>

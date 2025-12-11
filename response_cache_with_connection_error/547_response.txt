@@ -1,0 +1,37 @@
+<response>
+  <reason><![CDATA[
+The call site is simply:
+
+```java
+block.getCleanSuccessors()
+```
+
+with `block` being a `BlockNode`. The method itself is:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+There is no local logic here; the result is exactly whatever is stored in the field `cleanSuccessors`.
+
+From the provided code, we see multiple usages that explicitly account for `getCleanSuccessors()` possibly being `null`:
+
+- Many callers defensively check for null:
+  - `if (block.getCleanSuccessors() == null) { return null; }`
+  - `List<BlockNode> successors = block.getCleanSuccessors();
+     if (successors == null) { return null; }`
+- Methods like `BlockUtils.getNextBlockOnEmptyPath` and `BlockUtils.buildSimplePath` branch on `successors == null`.
+- Other code uses `Nullability.castToNonnull(block.getCleanSuccessors())`, which only makes sense if the raw value may be null.
+
+These all demonstrate that, by design, `cleanSuccessors` can legally be null in some `BlockNode` instances.
+
+Nothing in the snippet of the specific call site `block.getCleanSuccessors()` imposes any additional guarantee that `block.cleanSuccessors` is non-null at that point. There is also no check around this particular invocation that would rule out a null value, nor a prior call such as `updateCleanSuccessors()` on this specific `block` that we can rely on here.
+
+Because `getCleanSuccessors()` is a trivial getter and the field is known (from widespread defensive checks) to be potentially null, this invocation can return null for some `block` values in this codebase. There is no information tying this call to a context that would prevent that.
+
+Therefore, at this specific call site, `block.getCleanSuccessors()` can evaluate to null.
+  ]]></reason>
+  <value>YES</value>
+</response>

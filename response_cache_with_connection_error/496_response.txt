@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void visitInsns(Consumer<InsnNode> visitor) {
+    super.visitInsns(visitor);
+    if (condition != null) {
+        Nullability.castToNonnull(condition).visitInsns(visitor);
+    }
+}
+  ```
+    ]]>
+  </code>
+</response>

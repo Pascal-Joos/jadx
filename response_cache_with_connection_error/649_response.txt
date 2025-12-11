@@ -1,0 +1,28 @@
+<response>
+  <reason><![CDATA[
+At this call site `insn.getResult()` is used inside:
+
+```java
+private static void checkInsn(MethodNode mth, InsnNode insn, List<InsnNode> toRemove) {
+    if (insn.contains(AFlag.DONT_INLINE)
+            || insn.contains(AFlag.DONT_GENERATE)
+            || insn.getResult() == null) {
+        return;
+    }
+    SSAVar sVar = insn.getResult().getSVar();
+    ...
+}
+```
+
+Within this method, every subsequent use of `insn.getResult()` occurs only after the `if` guard that explicitly checks `insn.getResult() == null` and returns early if it is null.
+
+Therefore, for any execution path that reaches:
+
+```java
+SSAVar sVar = insn.getResult().getSVar();
+```
+
+the condition `insn.getResult() == null` must have been false, so `insn.getResult()` is guaranteed to be non-null at this specific call site. Even though `getResult()` can generally return null (since `result` can be cleared elsewhere), the control-flow guard here prevents that case from reaching this use.
+  ]]></reason>
+  <value>NO</value>
+</response>

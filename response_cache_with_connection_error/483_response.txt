@@ -1,0 +1,39 @@
+<response>
+    <reason><![CDATA[
+The `cond` parameter of `removeParenthesis(IfCondition cond)` is only called from:
+
+```java
+if (insn.getType() == InsnType.TERNARY) {
+    removeParenthesis(((TernaryInsn) insn).getCondition());
+}
+```
+
+So the actual argument is always the result of `((TernaryInsn) insn).getCondition()`.
+
+We are given the getter:
+
+```java
+class jadx.core.dex.instructions.mods.TernaryInsn {
+    public IfCondition getCondition() {
+        return condition;
+    }
+}
+```
+
+There are no null checks around this call site (no `if (cond != null)` or similar), and inside `removeParenthesis(IfCondition cond)` the parameter is dereferenced immediately:
+
+```java
+Mode mode = cond.getMode();
+for (IfCondition c : cond.getArgs()) {
+    if (c.getMode() == mode) {
+        c.add(AFlag.DONT_WRAP);
+    }
+}
+```
+
+There are no defensive null checks here either, so if `cond` could be null at runtime this method would crash with a `NullPointerException`. In production compiler/decompiler code like this, such a crash in a common pass would be unacceptable; the absence of checks indicates the design and usage assume `condition` is always non-null for any `TernaryInsn` that reaches this phase.
+
+Since the only caller always forwards the `condition` field, and that value is used unguardedly, the practical usage pattern in the call chain implies `cond` is not null in normal execution.
+    ]]></reason>
+    <value>NO</value>
+</response>

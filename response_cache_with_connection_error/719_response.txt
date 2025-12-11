@@ -1,0 +1,18 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void detectSpecialEdges(MethodNode mth) {
+		List<BlockNode> blocks = mth.getBasicBlocks();
+		BlockColor[] colors = new BlockColor[blocks.size()];
+		Arrays.fill(colors, BlockColor.WHITE);
+		BlockNode enterBlock = mth.getEnterBlock();
+		if (enterBlock == null) {
+			return;
+		}
+		colorDFS(mth, blocks, colors, enterBlock.getId());
+}
+  ```
+    ]]>
+  </code>
+</response>

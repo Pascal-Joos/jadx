@@ -1,0 +1,66 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private static boolean checkForIndexedLoop(MethodNode mth, LoopRegion loopRegion, IfCondition condition) {
+		BlockNode loopEndBlock = loopRegion.getInfo().getEnd();
+		InsnNode incrInsn = BlockUtils.getLastInsn(BlockUtils.skipSyntheticPredecessor(loopEndBlock));
+		if (incrInsn == null) {
+			return false;
+		}
+		RegisterArg incrArg = incrInsn.getResult();
+		if (incrArg == null
+				|| incrArg.getSVar() == null
+				|| !incrArg.getSVar().isUsedInPhi()) {
+			return false;
+		}
+		List<PhiInsn> phiInsnList = incrArg.getSVar().getUsedInPhi();
+		if (phiInsnList.size() != 1) {
+			return false;
+		}
+		PhiInsn phiInsn = phiInsnList.get(0);
+		if (phiInsn.getArgsCount() != 2
+				|| !phiInsn.containsVar(incrArg)
+				|| incrArg.getSVar().getUseCount() != 1) {
+			return false;
+		}
+		RegisterArg arg = phiInsn.getResult();
+		List<RegisterArg> condArgs = condition.getRegisterArgs();
+		if (!condArgs.contains(Nullability.castToNonnull(arg)) || arg.getSVar().isUsedInPhi()) {
+			return false;
+		}
+		RegisterArg initArg = phiInsn.getArg(0);
+		InsnNode initInsn = initArg.getAssignInsn();
+		if (initInsn == null
+				|| initInsn.contains(AFlag.DONT_GENERATE)
+				|| initArg.getSVar().getUseCount() != 1) {
+			return false;
+		}
+		if (!usedOnlyInLoop(mth, loopRegion, arg)) {
+			return false;
+		}
+		// can't make loop if argument from increment instruction is assign in loop
+		List<RegisterArg> args = new ArrayList<>();
+		incrInsn.getRegisterArgs(args);
+		for (RegisterArg iArg : args) {
+			try {
+				if (assignOnlyInLoop(mth, loopRegion, iArg)) {
+					return false;
+				}
+			} catch (StackOverflowError error) {
+				throw new JadxOverflowException("LoopRegionVisitor.assignOnlyInLoop endless recursion");
+			}
+		}
+
+		// all checks passed
+		initInsn.add(AFlag.DONT_GENERATE);
+		incrInsn.add(AFlag.DONT_GENERATE);
+
+		LoopType arrForEach = checkArrayForEach(mth, loopRegion, initInsn, incrInsn, condition);
+		loopRegion.setType(arrForEach != null ? arrForEach : new ForLoop(initInsn, incrInsn));
+		return true;
+	}
+  ```
+    ]]>
+  </code>
+</response>

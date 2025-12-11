@@ -1,0 +1,46 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone:
+
+public static String signature(ArgType type) {
+    PrimitiveType stype = type.getPrimitiveType();
+    if (stype == PrimitiveType.OBJECT) {
+        return Utils.makeQualifiedObjectName(type.getObject());
+    }
+    if (stype == PrimitiveType.ARRAY) {
+        return '[' + signature(type.getArrayElement());
+    }
+    return stype.getShortName();
+}
+
+The null-safety of `stype` at `return stype.getShortName();` depends entirely on the contract of `ArgType.getPrimitiveType()` and any invariants about `ArgType`:
+
+1. `stype` is obtained directly from `type.getPrimitiveType()`. There are no null checks on `stype` before it is dereferenced.
+2. The two preceding branches only handle the cases where
+   - `stype == PrimitiveType.OBJECT`, or
+   - `stype == PrimitiveType.ARRAY`.
+   In those cases, the method returns before reaching `stype.getShortName()`.
+
+3. The final return is executed for all remaining cases, effectively: 
+   - when `stype != PrimitiveType.OBJECT` AND `stype != PrimitiveType.ARRAY`.
+
+4. For `stype` to be null at the last line, `getPrimitiveType()` must be able to return `null`. If it does, both `stype == PrimitiveType.OBJECT` and `stype == PrimitiveType.ARRAY` will evaluate to `false`, and control will proceed to `return stype.getShortName();`, causing a NullPointerException.
+
+5. From the given code alone, there is no guarantee that:
+   - `type` itself is non-null, or
+   - `type.getPrimitiveType()` never returns null.
+
+Whether `stype` can actually be null depends on:
+- The implementation and specification of `ArgType.getPrimitiveType()`.
+- Any external invariants (e.g., "ArgType instances used here always have a non-null PrimitiveType").
+
+Because those details are not provided, we cannot definitively conclude that `stype` is always non-null or that `getPrimitiveType()` never returns null. Thus, based solely on this snippet and without additional contracts, it is not possible to prove that `stype` cannot be null on the last line.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or documented contract of ArgType.getPrimitiveType().]]></request>
+        <request><![CDATA[Clarify whether ArgType instances passed to signature(...) are guaranteed to always have a non-null PrimitiveType.]]></request>
+    </requests>
+</response>
+```

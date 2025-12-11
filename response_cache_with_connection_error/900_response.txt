@@ -1,0 +1,28 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void processInsn(MethodNode mth, InsnNode insn,  Map<String, FieldFixInfo> fixInfoMap) {
+		FieldInfo fieldInfo = getFieldInfo(insn);
+		if (fieldInfo == null) {
+			return;
+		}
+		InsnArg arg = insn.getArg(insn.getArgsCount() - 1);
+		ArgType type = arg.getType();
+		if (!type.isTypeKnown() || !type.isObject()) {
+			return;
+		}
+		FieldFixInfo fieldFixInfo = Nullability.castToNonnull(fixInfoMap).get(type.getObject());
+		if (fieldFixInfo == null) {
+			return;
+		}
+		FieldFixType fieldFixType = fieldFixInfo.fieldFixMap.get(fieldInfo);
+		if (fieldFixType == null) {
+			return;
+		}
+		fixFieldAccess(mth, fieldInfo, fieldFixType, arg);
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,30 @@
+```xml
+<response>
+    <reason><![CDATA[
+The expression in question is the use of `classes` at:
+
+    Map<String, ClspClass> names = new HashMap<>(classes.length);
+
+We need to know if `classes` can be null at that point.
+
+At the start of the method:
+
+    private void save(OutputStream output) throws IOException {
+        if (classes == null) {
+            throw new JadxRuntimeException("Missing classes");
+        }
+
+This is a guard clause that immediately throws an exception if `classes` is null. Since `throw` is non-returning, any execution that reaches the `new HashMap<>(classes.length)` line must have passed this null check, implying `classes != null`.
+
+No reassignment to `classes` occurs within this method between the null check and the line in question, so there is no later operation that could set `classes` to null.
+
+Therefore, along all code paths that reach:
+
+    new HashMap<>(classes.length)
+
+the variable `classes` is guaranteed to be non-null. If it were null, control flow would have already been terminated by the thrown `JadxRuntimeException`.
+
+Thus, `classes` cannot be null at that expression.]]></reason>
+    <value>NO</value>
+</response>
+```

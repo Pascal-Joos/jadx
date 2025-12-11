@@ -1,0 +1,69 @@
+<response>
+  <reason><![CDATA[
+At the shown call site, `customNode` is an instance of `InvokeCustomNode` created by `CustomLambdaCall.buildLambdaMethodCall`, which in turn delegates to `buildMethodCall`.
+
+Inside `buildMethodCall`:
+
+```java
+InvokeCustomNode invokeCustomNode = new InvokeCustomNode(lambdaInfo, insn, false, isRange);
+...
+InvokeNode invokeNode = buildInvokeNode(methodHandleType, invokeCustomNode, callMthInfo);
+
+if (methodHandleType == MethodHandleType.INVOKE_CONSTRUCTOR) {
+    ConstructorInsn ctrInsn = new ConstructorInsn(mth, invokeNode);
+    invokeCustomNode.setCallInsn(ctrInsn);
+} else {
+    invokeCustomNode.setCallInsn(invokeNode);
+}
+```
+
+Key points:
+
+1. `invokeCustomNode` is constructed within `buildMethodCall` and then immediately initialized with a non-null `callInsn`:
+   - Either `ctrInsn` (a `ConstructorInsn`) or
+   - `invokeNode` (an `InvokeNode`).
+
+2. `buildInvokeNode` is not shown to return `null`, but even if it did, that would be a different concern (NPE when used). For the question of "can `getCallInsn()` return null", what matters is that:
+   - There is no branch where `setCallInsn` is skipped.
+   - No subsequent code in `buildMethodCall` re-sets `callInsn` to `null` or alters it.
+   - `buildLambdaMethodCall` only optionally calls `resNode.setResult(...)`; it does not modify or clear `callInsn`.
+
+3. The call site in `InsnGen`:
+
+```java
+private void makeInvokeLambda(ICodeWriter code, InvokeCustomNode customNode) throws CodegenException {
+    if (customNode.isUseRef()) {
+        makeRefLambda(code, customNode);
+        return;
+    }
+    if (fallback || !customNode.isInlineInsn()) {
+        makeSimpleLambda(code, customNode);
+        return;
+    }
+    MethodNode callMth = (MethodNode) customNode.getCallInsn().get(AType.METHOD_DETAILS);
+    ...
+}
+```
+
+and in the same class:
+
+```java
+private void makeSimpleLambda(ICodeWriter code, InvokeCustomNode customNode) {
+    ...
+    InsnNode callInsn = customNode.getCallInsn();
+    ...
+}
+```
+
+`customNode` here is exactly the `InvokeCustomNode` returned by `buildLambdaMethodCall`, which in turn returns the `invokeCustomNode` built in `buildMethodCall`. There is no intermediate code in the shown chain that can set `callInsn` to `null`.
+
+Since:
+
+- `InvokeCustomNode` is always constructed via `new InvokeCustomNode(...)` in `buildMethodCall` within this call chain, and
+- `setCallInsn(...)` is always invoked with a non-null instruction object before the node is returned,
+- and no code path shown unsets or nulls out `callInsn`,
+
+the `getCallInsn()` accessor cannot return `null` at this specific call site (`customNode.getCallInsn()` in `InsnGen.makeInvokeLambda` / `makeSimpleLambda` / `makeRefLambda`) given the provided call chain.
+  ]]></reason>
+  <value>NO</value>
+</response>

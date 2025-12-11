@@ -1,0 +1,53 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+ 	private InsnNode simplifyStringConstructor(MethodNode mth, ConstructorInsn insn) {
+ 		if (insn.getCallMth().getDeclClass().getType().equals(ArgType.STRING)
+ 				&& insn.getArgsCount() != 0
+ 				&& insn.getArg(0).isInsnWrap()) {
+ 			InsnNode arrInsn = ((InsnWrapArg) insn.getArg(0)).getWrapInsn();
+ 			if (arrInsn.getType() == InsnType.FILLED_NEW_ARRAY
+ 					&& arrInsn.getArgsCount() != 0) {
+ 				ArgType elemType = ((FilledNewArrayNode) arrInsn).getElemType();
+ 				if (elemType == ArgType.BYTE || elemType == ArgType.CHAR) {
+ 					int printable = 0;
+ 					byte[] arr = new byte[arrInsn.getArgsCount()];
+ 					for (int i = 0; i < arr.length; i++) {
+ 						InsnArg arrArg = arrInsn.getArg(i);
+ 						if (!arrArg.isLiteral()) {
+ 							return null;
+ 						}
+ 						arr[i] = (byte) ((LiteralArg) arrArg).getLiteral();
+ 						if (NameMapper.isPrintableChar((char) arr[i])) {
+ 							printable++;
+ 						}
+ 					}
+ 					if (printable >= arr.length - printable) {
+ 						InsnNode constStr = new ConstStringNode(new String(arr));
+ 						if (insn.getArgsCount() == 1) {
+ 							constStr.setResult(insn.getResult());
+ 							constStr.copyAttributesFrom(insn);
+ 							InsnRemover.unbindArgUsage(mth, insn.getArg(0));
+ 							return constStr;
+ 						} else {
+ 							if (stringGetBytesMth == null) {
+ 								return null;
+ 							}
+ 							InvokeNode in = new InvokeNode(Nullability.castToNonnull(stringGetBytesMth), InvokeType.VIRTUAL, 1);
+ 							in.addArg(InsnArg.wrapArg(constStr));
+ 							InsnArg bytesArg = InsnArg.wrapArg(in);
+ 							bytesArg.setType(stringGetBytesMth.getReturnType());
+ 							insn.setArg(0, bytesArg);
+ 							return null;
+ 						}
+ 					}
+ 				}
+ 			}
+ 		}
+ 		return null;
+}
+  ```
+    ]]>
+  </code>
+</response>

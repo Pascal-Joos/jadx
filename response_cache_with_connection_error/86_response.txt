@@ -1,0 +1,58 @@
+<response>
+    <reason><![CDATA[
+The parameter in question is `inner` in:
+
+```java
+private static boolean isClassInnerFor(ClassInfo inner, ClassInfo parent) {
+    if (inner.isInner()) {
+        ClassInfo p = inner.getParentClass();
+        return Objects.equals(p, parent) || isClassInnerFor(p, parent);
+    }
+    return false;
+}
+```
+
+From the provided call sites within `ClassGen`:
+
+1. In `useClassInternal`:
+   ```java
+   if (isClassInnerFor(useCls, extClsInfo)) {
+       return shortName;
+   }
+   ```
+   Here `useCls` and `extClsInfo` are the two arguments. There is no indication in this snippet that `useCls` or `extClsInfo` are ever null:
+   - `useCls` is passed from `cls.getClassInfo()` in `addClsName`, which is expected to be a valid `ClassInfo` of the current class.
+   - `extClsInfo` is the `classInfo` parameter of `addClsName`, and is used throughout `useClassInternal` without any null checks (e.g., `extClsInfo.getAliasFullName()`, `extClsInfo.getAliasShortName()`, etc.). If `extClsInfo` were null, those dereferences would cause immediate crashes, so the calling code (outside the provided snippets) is effectively required to pass a non-null `ClassInfo`.
+
+2. In `expandInnerClassName`:
+   ```java
+   while (parentCls != null) {
+       if (parentCls == useCls || isClassInnerFor(useCls, parentCls)) {
+           addImport = false;
+           break;
+       }
+       clsList.add(parentCls);
+       parentCls = parentCls.getParentClass();
+   }
+   ```
+   Here `isClassInnerFor(useCls, parentCls)` is only called when `parentCls != null` due to the loop condition. So the second argument (`parent`) is guaranteed non-null at this call site. `useCls` again is a normal `ClassInfo` parameter used freely elsewhere, implying it is expected to be non-null.
+
+Inside `isClassInnerFor`, `inner.isInner()` is called immediately with no null check. If `inner` were ever null, this would throw a `NullPointerException`. Given the internal usage:
+- It is never called with a possibly-null `parentCls` (guarded by `parentCls != null`).
+- It is never called with a possibly-null `useCls` or `extClsInfo` in the provided code; both are used as non-null elsewhere without checks.
+
+Additionally, the recursive call:
+
+```java
+ClassInfo p = inner.getParentClass();
+return Objects.equals(p, parent) || isClassInnerFor(p, parent);
+```
+
+will recurse with `p` even when `p` might be null. If `p` could be null in the data model, the recursive call would execute `inner.isInner()` on a null reference, causing a crash. Since this code is part of a widely used code generator (jadx) and is expected to function correctly, this strongly implies that `getParentClass()` never returns null for an inner class, and that callers never pass null for `inner`.
+
+Given all observed call sites and internal dereferences, there is no path shown where `inner` can be null without immediately crashing the program. The code is written assuming `inner` is always non-null in practice.
+
+Therefore, based solely on the usage patterns in the provided call chain, `inner` is treated as non-null and is not expected to ever be null.
+    ]]></reason>
+    <value>NO</value>
+</response>

@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean checkDeclareAtAssign( SSAVar var) {
+		RegisterArg arg = Nullability.castToNonnull(var).getAssign();
+		InsnNode parentInsn = arg.getParentInsn();
+		if (parentInsn == null
+				|| parentInsn.contains(AFlag.WRAPPED)
+				|| parentInsn.getType() == InsnType.PHI) {
+			return false;
+		}
+		if (!arg.equals(parentInsn.getResult())) {
+			return false;
+		}
+		parentInsn.add(AFlag.DECLARE_VAR);
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

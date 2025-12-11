@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private boolean isValuesMethod(MethodNode mth, ArgType clsType) {
+		ArgType retType = mth.getReturnType();
+		if (!retType.isArray()) {
+			return false;
+		}
+		ArgType arrayElement = retType.getArrayElement();
+		if (arrayElement == null || !arrayElement.equals(clsType)) {
+			return false;
+		}
+		InsnNode returnInsn = BlockUtils.getOnlyOneInsnFromMth(mth);
+		if (returnInsn == null || returnInsn.getType() != InsnType.RETURN || returnInsn.getArgsCount() != 1) {
+			return false;
+		}
+		InsnNode wrappedInsn = getWrappedInsn(getSingleArg(returnInsn));
+		IndexInsnNode castInsn = (IndexInsnNode) checkInsnType(wrappedInsn, InsnType.CHECK_CAST);
+		if (castInsn != null && Objects.equals(castInsn.getIndex(), ArgType.array(clsType))) {
+			InvokeNode invokeInsn = (InvokeNode) checkInsnType(getWrappedInsn(getSingleArg(castInsn)), InsnType.INVOKE);
+			return invokeInsn != null && invokeInsn.getCallMth().equals(cloneMth);
+		}
+		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

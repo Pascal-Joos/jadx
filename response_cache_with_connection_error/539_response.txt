@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void collectWhileDominates(BlockNode dominator, BlockNode child, Collection<BlockNode> result,
+			BitSet visited, boolean includeExcHandlers) {
+		if (visited.get(child.getId())) {
+			return;
+		}
+		visited.set(child.getId());
+		List<BlockNode> successors = includeExcHandlers ? child.getSuccessors() : child.getCleanSuccessors();
+		if (successors == null) {
+			return;
+		}
+		for (BlockNode node : successors) {
+			if (node.isDominator(dominator)) {
+				result.add(node);
+				collectWhileDominates(dominator, node, result, visited, includeExcHandlers);
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

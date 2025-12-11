@@ -1,0 +1,39 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void placePhi(MethodNode mth, int regNum, LiveVarAnalysis la) {
+		List<BlockNode> blocks = mth.getBasicBlocks();
+		int blocksCount = blocks.size();
+		BitSet hasPhi = new BitSet(blocksCount);
+		BitSet processed = new BitSet(blocksCount);
+		Deque<BlockNode> workList = new ArrayDeque<>();
+
+		BitSet assignBlocks = la.getAssignBlocks(regNum);
+		for (int id = assignBlocks.nextSetBit(0); id >= 0; id = assignBlocks.nextSetBit(id + 1)) {
+			processed.set(id);
+			workList.add(blocks.get(id));
+		}
+		while (!workList.isEmpty()) {
+			BlockNode block = workList.pop();
+			BitSet domFrontier = block.getDomFrontier();
+			if (domFrontier == null) {
+				continue;
+			}
+			for (int id = domFrontier.nextSetBit(0); id >= 0; id = domFrontier.nextSetBit(id + 1)) {
+				if (!hasPhi.get(id) && la.isLive(id, regNum)) {
+					BlockNode df = blocks.get(id);
+					addPhi(mth, df, regNum);
+					hasPhi.set(id);
+					if (!processed.get(id)) {
+						processed.set(id);
+						workList.add(df);
+					}
+				}
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

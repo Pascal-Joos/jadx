@@ -1,0 +1,66 @@
+```xml
+<response>
+  <reason><![CDATA[
+The method `followEmptyPath` contains only one return statement:
+
+```java
+if (next == null) {
+    return start;
+}
+```
+
+So the question becomes: can `start` ever be null at that point?
+
+Control flow:
+1. The parameter `start` is accepted as-is (no null check).
+2. In each loop iteration, `getNextBlockOnEmptyPath(Nullability.castToNonnull(start))` is invoked.
+3. If `next` is null, the method returns the current value of `start`.
+
+Key observations:
+
+- `start` is directly returned; it is never replaced with any non-derived value, only with `next`:
+  ```java
+  start = next;
+  ```
+  Therefore, `start` is always either:
+  - the original argument passed to `followEmptyPath`, or
+  - some `BlockNode` instance previously obtained as `next` from `getNextBlockOnEmptyPath(...)`.
+
+- `getNextBlockOnEmptyPath(BlockNode block)`:
+  - Can return `null` (there are explicit `return null` paths).
+  - Otherwise returns `successors.get(0)`, which under normal Java semantics is non-null if the list contains a non-null element.
+  - It never returns `block` itself, except potentially if `successors.get(0)` is the same instance; but that does not introduce a new null source.
+
+- `Nullability.castToNonnull(start)` is treated as a cast / assertion helper. We are explicitly instructed that its declaration is not available, and to assume a “default implementation” as best guess. Under standard Java behavior and usual naming, such a method:
+  - Does not change the runtime value, only its static nullability information.
+  - If it throws when `start` is null, that leads to an exception, not to the method returning null.
+  - It is not a source of null values; it simply returns its argument or throws.
+
+Considering possible null sources:
+
+1. If the caller passes `start == null`:
+   - `castToNonnull(start)` would, in a typical implementation, either:
+     - Return `null` (unsafe but logically just a cast), or
+     - Throw an exception.
+   - If it returns `null`, then `getNextBlockOnEmptyPath(null)` would be called and immediately attempt:
+     ```java
+     if (!block.getInstructions().isEmpty() || block.getPredecessors().size() > 1) {
+     ```
+     which would cause a `NullPointerException` before any `null` return from `followEmptyPath` is possible.
+   - Therefore, with a null `start`, the most plausible behaviors are:
+     - An exception before returning.
+     - Undefined behavior if the helper did something exotic, but not a normal null return.
+
+2. If `start` is non-null:
+   - Each assignment `start = next;` only happens when `next != null`.
+   - Thus `start` is always non-null at the top of each iteration, provided the initial `start` was non-null and no method in the chain fabricates a `null` where a non-null `BlockNode` is expected.
+   - The only return point is `return start;`, which at that moment holds either:
+     - The original non-null argument, or
+     - A non-null block obtained via `successors.get(0)`.
+
+Given standard Java semantics and the provided implementations, there is no execution path where `followEmptyPath` reaches its `return start;` with `start == null`. All paths that could produce a null (e.g., passing null into `castToNonnull` or dereferencing a null inside `getNextBlockOnEmptyPath`) would result in an exception, not in a null return.
+
+Therefore, under reasonable and typical assumptions about `Nullability.castToNonnull` (it either returns its argument or throws), the method `followEmptyPath` cannot return null.]]></reason>
+  <value>NO</value>
+</response>
+```

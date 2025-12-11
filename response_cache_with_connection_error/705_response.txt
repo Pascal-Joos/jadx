@@ -1,0 +1,47 @@
+```xml
+<response>
+  <reason><![CDATA[
+There is a single return site in the method:
+
+    if (next == null) {
+        return start;
+    }
+
+The returned value is always `start`.
+
+Inside the loop, `start` is initially the method parameter, and then only ever updated as:
+
+    start = next;
+
+Thus, `start` at any point in the loop is equal to either:
+- the original argument passed into `followEmptyPath`, or
+- a value previously obtained from `getNextBlockOnEmptyPath(...)`.
+
+When the method returns, it returns the current `start`, which is one of those two categories.
+
+We are not given:
+- whether the parameter `start` can be null, or
+- whether the method `getNextBlockOnEmptyPath(BlockNode)` can return null values other than the one stored in `next` that ends the loop (in particular, whether it ever returns null *while also having possibly returned null into `start` beforehand*).
+
+Also, the method applies `Nullability.castToNonnull(start)` when calling `getNextBlockOnEmptyPath`. This is a cast/helper whose implementation is not provided; it may throw, assert, or simply act as a no-op cast. Without its definition, we cannot determine if it guarantees that `start` is non-null at runtime or merely suppresses static warnings.
+
+Because:
+- we cannot assume non-nullability of the input argument `start`, and
+- we cannot assume that `getNextBlockOnEmptyPath` never returns null (and hence never assigns null into `start` via `start = next`),
+
+we cannot safely conclude that `start` is non-null at the return site. The actual nullability of the return value depends on the contracts/implementations of:
+
+- `getNextBlockOnEmptyPath(BlockNode)`
+- `Nullability.castToNonnull(BlockNode)`
+
+which are not provided.
+
+Therefore, based solely on the given code and the stated rules (no assumptions about other methods), we cannot determine whether `followEmptyPath` can or cannot return null.
+  ]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>getNextBlockOnEmptyPath</method>
+    <method>Nullability.castToNonnull</method>
+  </methods>
+</response>
+```

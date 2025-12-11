@@ -1,0 +1,15 @@
+```xml
+<response>
+    <reason><![CDATA[
+This method does initialize a field (`nameMap`) and enforces a one-time call semantics by throwing an exception if called again. However, based solely on the provided code, it does not match NullAway’s notion of an “initializer method,” which is reserved for methods that are part of a class’s construction/lifecycle contract and are guaranteed (by framework or convention) to be called before any other methods (other than constructors).
+
+Here, `addClasspath`:
+- Is not a known framework lifecycle method (e.g., Activity.onCreate, Servlet.init, etc.).
+- Has a name and API shape more consistent with a “business logic” or “configuration” method than a dedicated initialization hook.
+- Could be invoked at arbitrary times by callers, not necessarily as part of object construction or before all other methods, unless an external convention or framework guarantee exists (which is not shown).
+
+Setter-like or configuration methods, even if they guard against multiple calls, are not treated by NullAway as initializer methods unless they are part of a recognized initialization lifecycle. Therefore, given only this snippet and no framework/lifecycle context, it should not be considered an initializer method under NullAway’s definition.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

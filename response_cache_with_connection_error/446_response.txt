@@ -1,0 +1,52 @@
+<response>
+  <reason><![CDATA[
+At this call site, `thenResArg` is obtained in `TernaryMod.makeTernaryInsn`:
+
+```java
+InsnNode thenInsn = tb.getInstructions().get(0);
+...
+RegisterArg thenResArg = thenInsn.getResult();
+RegisterArg elseResArg = elseInsn.getResult();
+if (thenResArg != null && elseResArg != null) {
+    PhiInsn thenPhi = thenResArg.getSVar().getOnlyOneUseInPhi();
+    ...
+}
+```
+
+The call in question is `thenResArg.getSVar()` inside this `if` block.
+
+Key points:
+
+1. `thenResArg` is explicitly checked for null:
+   ```java
+   if (thenResArg != null && elseResArg != null) {
+       PhiInsn thenPhi = thenResArg.getSVar().getOnlyOneUseInPhi();
+       ...
+   }
+   ```
+   So the call happens only when `thenResArg != null`.
+
+2. Could `thenResArg.getSVar()` be null even if `thenResArg` is non‑null?
+
+   Across the codebase, `RegisterArg.getSVar()` is generally expected to be non-null for real SSA-processed instructions. Many usages assume non-null without checks, and `DebugChecks.checkVar` will throw if a non-null `RegisterArg` from an instruction has `sVar == null` once SSA is present:
+   ```java
+   SSAVar sVar = reg.getSVar();
+   if (sVar == null) {
+       if (Utils.notEmpty(mth.getSVars())) {
+           throw new JadxRuntimeException("Null SSA var in " + insn + ", mth: " + mth);
+       }
+       return;
+   }
+   ```
+   `TernaryMod` works after SSA transform and other passes that populate `mth.getSVars()` and link all `RegisterArg`s, so `mth.getSVars()` will be non-empty. In that state, any `RegisterArg` used as an instruction result without an SSA var would violate this invariant and trigger a debug exception.
+
+3. In this specific flow, `thenInsn` is obtained from a basic block that is part of a well-formed if-region, and we are operating deep in the optimization pipeline. There are no code paths here that intentionally set a non-null result `RegisterArg` with a null `sVar`; instead, all result args created in decoding/SSA/transform steps either:
+   - get an `SSAVar` assigned (normal case), or
+   - are used only in contexts where `getSVar()` is guarded or allowed to be null (e.g., some debug/metadata utilities), which is not the case here.
+
+Given these invariants and the enforcement in `DebugChecks`, a non-null `RegisterArg` that is the result of a normal instruction in this phase effectively must have a non-null `sVar`, otherwise the decompiler is in an inconsistent (buggy) state and would typically throw, not return null.
+
+Therefore at this call site, assuming normal, non-buggy execution of the decompiler pipeline, `thenResArg.getSVar()` cannot be null.
+  ]]></reason>
+  <value>NO</value>
+</response>

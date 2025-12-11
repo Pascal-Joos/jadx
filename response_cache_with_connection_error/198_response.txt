@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static String makeFullClsName( String pkg, String shortName,  ClassInfo parentClass, boolean alias,
+  			boolean raw) {
+  		if (parentClass != null) {
+  			String innerSep = raw ? "$" : ".";
+  			String parentFullName;
+  			if (alias) {
+  				parentFullName = raw ? parentClass.makeAliasRawFullName() : parentClass.getAliasFullName();
+  			} else {
+  				parentFullName = raw ? parentClass.makeRawFullName() : parentClass.getFullName();
+  			}
+  			return parentFullName + innerSep + shortName;
+  		}
+  		return Nullability.castToNonnull(pkg).isEmpty() ? shortName : Nullability.castToNonnull(pkg) + '.' + shortName;
+  }
+  ```
+    ]]>
+  </code>
+</response>

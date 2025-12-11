@@ -1,0 +1,39 @@
+<response>
+  <reason><![CDATA[
+`MethodNode.getInstructions()` is a trivial getter:
+
+```java
+public InsnNode[] getInstructions() {
+    return instructions;
+}
+```
+
+So it returns exactly whatever the field `instructions` currently holds. The question is whether `instructions` can be `null` at the sites where `mth.getInstructions()` is used in the shown call chain.
+
+From the provided code, there is one place that clearly assumes `getInstructions()` *may* be null and handles it explicitly:
+
+```java
+InsnNode[] insnArr = mth.getInstructions();
+if (insnArr == null) {
+    code.startLine("// Can't load method instructions.");
+    return;
+}
+```
+
+in `MethodGen.addFallbackMethodCode`, and similarly in `DotGraphVisitor.DumpDotGraph`:
+
+```java
+InsnNode[] insnArr = mth.getInstructions();
+if (insnArr == null) {
+    return;
+}
+```
+
+This demonstrates that, in this codebase, `mth.getInstructions()` is not guaranteed to be non‑null: callers explicitly check for `null`.
+
+Furthermore, `BlockSplitter.visit` calls `mth.unloadInsnArr();` at the end, which, by its name, is likely to clear or null out the instruction array. The details of `unloadInsnArr()` are not shown, but the existence of explicit null checks for `getInstructions()` strongly suggests that unloading can result in `instructions == null` and that this is an expected state.
+
+Because `getInstructions()` is just a field getter with no internal non‑null enforcement, and other call sites treat a `null` result as normal and possible, there is no basis to conclude that `instructions` is always non‑null at the call site `mth.getInstructions()` in the provided chain. Therefore, for this specific call site, the method *can* return `null`.
+  ]]></reason>
+  <value>YES</value>
+</response>

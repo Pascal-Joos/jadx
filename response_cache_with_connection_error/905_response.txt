@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private boolean validateParsedType(ArgType parsedType, ArgType currentType) {
+		if (root == null) {
+			return false;
+		}
+		TypeCompareEnum result = root.getTypeCompare().compareTypes(parsedType, currentType);
+		return result != TypeCompareEnum.CONFLICT;
+}
+  ```
+    ]]>
+  </code>
+</response>

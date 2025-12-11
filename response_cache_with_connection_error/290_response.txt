@@ -1,0 +1,41 @@
+<response>
+    <reason><![CDATA[
+The parameter `type` in `TypeGen.signature(ArgType type)` is always used without any null checks and would cause an immediate `NullPointerException` if it were null:
+
+```java
+PrimitiveType stype = type.getPrimitiveType();
+```
+
+So if `type` were ever null in practice, this method would crash at every call site.
+
+From the provided call chain and usages:
+
+1. **`MethodInfo.makeShortId` / `makeSignature`**
+   - Calls: `TypeGen.signature(arg)` for each `ArgType arg` in `argTypes`, and `TypeGen.signature(retType)` only when `retType != null`.
+   - `argTypes` is treated as a list of valid argument types; there is no indication that it contains nulls. A null element would similarly crash, so by usage it is assumed non-null.
+   - When `makeSignature` wants to omit the return type, it passes `null` to `makeShortId` as `retType`, but `makeShortId` itself checks `if (retType != null)` before calling `TypeGen.signature(retType)`. Hence, `TypeGen.signature` is never invoked with a null return type.
+
+2. **`FieldInfo` (`getFullId`, `getShortId`, `getRawFullId`)**
+   - Each uses `TypeGen.signature(type)` where `type` is the field’s `ArgType`.
+   - These methods assume `type` is a valid field type; no null checks are present. If `type` were possibly null, code would likely defensively handle it, but it does not.
+
+3. **`EnumVisitor.removeEnumMethods`**
+   - Constructs: `TypeGen.signature(ArgType.array(clsType))`
+   - `ArgType.array(clsType)` is a factory method that returns a non-null `ArgType` for an array of `clsType`. It is not passed through from an external nullable source; it is being created here, so it won’t be null.
+
+4. **`ConstructorVisitor.processConstructor`**
+   - Uses: `TypeGen.signature(instanceArg.getInitType())` only when `passThis` is true.
+   - `instanceArg.getInitType()` is expected to be a valid inferred type for the `this` reference; it is used without null checks. If it were nullable, this code would be fragile and prone to NPEs, which the author clearly does not guard against.
+
+Across all these usages:
+
+- There is **never** a call passing `null` directly to `TypeGen.signature`.
+- Whenever a value might be conceptually absent (e.g., return type omitted in a signature), the code avoids calling `TypeGen.signature` by checking for null upstream.
+- There are no defensive null checks in `TypeGen.signature` itself, and its first line dereferences `type`, meaning the codebase assumes `type` is always non-null at runtime.
+
+Given this usage pattern and the lack of any null-tolerant behavior, the parameter `type` is treated as **non-null** in all observed calls, and callers are structured so that `TypeGen.signature` is not invoked when a type is absent.
+
+Therefore, based strictly on actual usage in the call chain, `type` is not intended to be null and is never passed as null.
+]]></reason>
+    <value>NO</value>
+</response>

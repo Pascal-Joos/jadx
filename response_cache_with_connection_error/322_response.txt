@@ -1,0 +1,47 @@
+```xml
+<response>
+    <reason><![CDATA[
+The potential nullability of `innerType` at the line
+
+    ArgType outerType = innerType.getOuterType();
+
+depends entirely on the contract and implementation of `baseType.getInnerType()`.
+
+From the provided method:
+
+    private void addInnerType(ICodeWriter code, ArgType baseType) {
+        ArgType innerType = baseType.getInnerType();
+        ArgType outerType = innerType.getOuterType();
+        if (outerType != null) {
+            useClassWithShortName(code, baseType, outerType);
+            code.add('.');
+            addInnerType(code, innerType);
+            return;
+        }
+        useClassWithShortName(code, baseType, innerType);
+    }
+
+we can observe:
+
+1. `innerType` is directly assigned from `baseType.getInnerType()` with no intervening checks or defaulting.
+2. Before the dereference `innerType.getOuterType()`, there is no null check on `innerType`.
+3. The code assumes that `innerType` is non-null; otherwise it would risk a `NullPointerException` at that line.
+4. There is no information here about:
+   - Whether `baseType` itself can ever be null when `addInnerType` is called.
+   - Whether `ArgType.getInnerType()` is specified (by API contract, annotations, or implementation) to always return a non-null `ArgType` for all valid `baseType` values passed into this method.
+
+Without seeing:
+- The implementation or specification of `ArgType.getInnerType()`
+- Any external invariants (e.g., "addInnerType is only called with baseType such that getInnerType() is non-null")
+we cannot soundly conclude that `innerType` is guaranteed non-null.
+
+Thus, from this method alone, it's not possible to prove that `innerType` cannot be null. It is *possible* (logically) that `baseType.getInnerType()` returns null, in which case `innerType` *would* be null at that line, causing a potential `NullPointerException`. Whether this actually happens in practice depends on contracts not visible in this snippet.
+
+Therefore, with the information provided, the safe determination about the expression `innerType` at `ArgType outerType = innerType.getOuterType();` is UNKNOWN.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or API contract (including any annotations such as @NotNull/@Nullable) for ArgType.getInnerType().]]></request>
+        <request><![CDATA[Clarify any external invariants: is addInnerType ever called with a baseType for which baseType.getInnerType() might return null?]]></request>
+    </requests>
+</response>
+```

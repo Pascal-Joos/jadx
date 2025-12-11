@@ -1,0 +1,77 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void initJumps(MethodNode mth, InsnNode[] insnByOffset) {
+		for (int offset = 0; offset < Nullability.castToNonnull(insnByOffset).length; offset++) {
+			InsnNode insn = insnByOffset[offset];
+			if (insn == null) {
+				continue;
+			}
+			switch (insn.getType()) {
+				case SWITCH:
+					SwitchInsn sw = (SwitchInsn) insn;
+					if (sw.needData()) {
+						attachSwitchData(insnByOffset, offset, sw);
+					}
+					int defCaseOffset = sw.getDefaultCaseOffset();
+					if (defCaseOffset != -1) {
+						addJump(mth, insnByOffset, offset, defCaseOffset);
+					}
+					for (int target : sw.getTargets()) {
+						addJump(mth, insnByOffset, offset, target);
+					}
+					break;
+
+				case IF:
+					int next = getNextInsnOffset(insnByOffset, offset);
+					if (next != -1) {
+						addJump(mth, insnByOffset, offset, next);
+					}
+					addJump(mth, insnByOffset, offset, ((IfNode) insn).getTarget());
+					break;
+
+				case GOTO:
+					addJump(mth, insnByOffset, offset, ((GotoNode) insn).getTarget());
+					break;
+
+				case INVOKE:
+					if (insn.getResult() == null) {
+						ArgType retType = ((BaseInvokeNode) insn).getCallMth().getReturnType();
+						mergeMoveResult(insnByOffset, offset, insn, retType);
+					}
+					break;
+
+				case STR_CONCAT:
+					// invoke-custom with string concatenation translated directly to STR_CONCAT, merge next move-result
+					if (insn.getResult() == null) {
+						mergeMoveResult(insnByOffset, offset, insn, ArgType.STRING);
+					}
+					break;
+
+				case FILLED_NEW_ARRAY:
+					ArgType arrType = ((FilledNewArrayNode) insn).getArrayType();
+					mergeMoveResult(insnByOffset, offset, insn, arrType);
+					break;
+
+				case FILL_ARRAY:
+					FillArrayInsn fillArrayInsn = (FillArrayInsn) insn;
+					int target = fillArrayInsn.getTarget();
+					InsnNode arrDataInsn = getInsnAtOffset(insnByOffset, target);
+					if (arrDataInsn != null && arrDataInsn.getType() == InsnType.FILL_ARRAY_DATA) {
+						fillArrayInsn.setArrayData((FillArrayData) arrDataInsn);
+						removeInsn(insnByOffset, arrDataInsn);
+					} else {
+						throw new JadxRuntimeException("Payload for fill-array not found at " + InsnUtils.formatOffset(target));
+					}
+					break;
+
+				default:
+					break;
+			}
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

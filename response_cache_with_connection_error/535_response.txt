@@ -1,0 +1,93 @@
+<response>
+  <reason><![CDATA[
+At this call site the expression is:
+
+```java
+BlockNode start = handler.getHandlerBlock(); // in RegionMaker.processExcHandler
+...
+handler.setHandlerRegion(makeRegion(start, stack));
+```
+
+and elsewhere (MarkFinallyVisitor):
+
+```java
+BlockNode handlerBlock = allHandler.getHandlerBlock();
+BlockNode startBlock = Utils.getOne(handlerBlock.getCleanSuccessors());
+```
+
+The requested call site is that latter usage: `handlerBlock.getCleanSuccessors()`, analogous to `start.getCleanSuccessors()`.
+
+The method under analysis is simply:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+So whether it can return null depends solely on whether `cleanSuccessors` on this particular `BlockNode` (`start`/`handlerBlock`) can be null.
+
+From the provided code, `cleanSuccessors` is a mutable field, not computed on the fly. We see several places that *assume* it might be null and guard accordingly:
+
+- `BlockUtils.getNextBlockOnEmptyPath`:
+  ```java
+  List<BlockNode> successors = block.getCleanSuccessors();
+  if (successors == null || successors.size() != 1) {
+      return null;
+  }
+  ```
+- `BlockUtils.buildSimplePath`:
+  ```java
+  List<BlockNode> successors = block.getCleanSuccessors();
+  if (successors == null || successors.size() >= 2) {
+      return Collections.emptyList();
+  }
+  ```
+- `BlockUtils.getNextBlock`:
+  ```java
+  List<BlockNode> s = block.getCleanSuccessors();
+  if (s == null || s.isEmpty()) {
+      return null;
+  }
+  ```
+- `RegionMaker.makeLoopRegion`:
+  ```java
+  List<BlockNode> successors = block.getCleanSuccessors();
+  if (successors == null) {
+      return null;
+  }
+  ```
+
+These checks demonstrate that for arbitrary `BlockNode` instances, `cleanSuccessors` is allowed to be null; callers explicitly defend against that.
+
+For this specific call site (`start.getCleanSuccessors()` / `handlerBlock.getCleanSuccessors()`), there is no preceding guarantee shown in the provided code that `cleanSuccessors` for that block has been initialized to a non-null list. The only relevant updating we see is in `BlockExceptionHandler.wrapBlocksWithTryCatch`:
+
+```java
+topSplitterBlock.updateCleanSuccessors();
+if (bottomSplitterBlock != null) {
+    bottomSplitterBlock.updateCleanSuccessors();
+}
+```
+
+but we do not see any similar mandatory call for arbitrary handler blocks, and we do not have the implementation of `updateCleanSuccessors()` or the `BlockNode` constructor to assert that `cleanSuccessors` is never null for handler blocks.
+
+Moreover, other code that uses `getCleanSuccessors()` on blocks in similar contexts sometimes wraps it with `Nullability.castToNonnull(...)` when it wants to assert non-nullness, e.g.:
+
+```java
+BlockNode block = Nullability.castToNonnull(mth.getEnterBlock().getCleanSuccessors()).get(0);
+...
+for (BlockNode s : Nullability.castToNonnull(block.getCleanSuccessors())) { ... }
+```
+
+At this particular call site (`start.getCleanSuccessors()`), there is **no** such cast or null check; instead, the code immediately passes the result into `Utils.getOne(...)`, which presumably expects a non-null collection, but its implementation is not provided. That indicates a logical assumption, but not a proven guarantee from the given declarations.
+
+Because:
+
+1. `cleanSuccessors` is a field directly returned.
+2. Other parts of the codebase treat `getCleanSuccessors()` as possibly returning null.
+3. No provided method or invariant ensures that `cleanSuccessors` for this specific `start`/`handlerBlock` is always non-null.
+4. We are not given the constructor or `updateCleanSuccessors()` implementation to prove otherwise.
+
+we must conclude that, based purely on the supplied code, `start.getCleanSuccessors()` **can** be null at this call site.]]></reason>
+  <value>YES</value>
+</response>

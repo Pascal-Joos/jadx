@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public boolean isDominator(BlockNode block) {
+  		return doms != null && doms.get(block.getId());
+  }
+  ```
+    ]]>
+  </code>
+</response>

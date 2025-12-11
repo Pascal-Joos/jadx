@@ -1,0 +1,41 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone:
+
+public static boolean isClsKnown(RootNode root, ArgType cls) {
+    if (cls.isObject()) {
+        return root.getClsp().isClsKnown(cls.getObject());
+    }
+    return false;
+}
+
+we can analyze:
+
+1. Control flow:
+   - The expression root.getClsp() is evaluated only when cls.isObject() is true.
+   - There are no null checks on root or on root.getClsp() in this method.
+
+2. Variables and calls:
+   - root is a parameter and is used directly. There is no guarantee here that root itself is non-null.
+   - getClsp() is a method on RootNode. Nothing in this snippet indicates it is guaranteed to return a non-null value.
+   - No prior initialization or invariant is shown that would ensure root.getClsp() is always non-null when isClsKnown is called.
+
+3. Contracts / semantics:
+   - Without the definition of RootNode and its getClsp() method, we cannot know:
+     - whether RootNode instances are always constructed with a non-null clsp field,
+     - whether getClsp() is annotated as @NotNull or otherwise documented to never return null,
+     - or whether callers of isClsKnown are guaranteed to pass only RootNode instances whose clsp is initialized.
+
+Because none of these guarantees or invariants are visible in the provided code, we cannot conclusively say that root.getClsp() cannot be null. At the same time, we also cannot assert that it definitely can be null without seeing how RootNode and getClsp() are implemented or constrained.
+
+Thus, based solely on this snippet and without additional class/contract information, the nullability of root.getClsp() is indeterminate.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation (or relevant parts) of RootNode, especially the field backing getClsp() and the getClsp() method itself.]]></request>
+        <request><![CDATA[Provide any documentation, annotations (e.g., @NotNull/@Nullable), or invariants that describe whether RootNode.getClsp() is guaranteed to be non-null.]]></request>
+        <request><![CDATA[Describe how RootNode instances are constructed and whether clsp (or the object returned by getClsp()) is always initialized before use.]]></request>
+    </requests>
+</response>
+```

@@ -1,0 +1,6 @@
+```xml
+<response>
+    <reason><![CDATA[The method is named and shaped like a typical setter (`setArrayData`), simply assigning a field from its parameter with no special lifecycle semantics indicated. According to the given definition, setter methods are explicitly not considered initializer methods, even if they initialize fields, because they may be called multiple times and are not guaranteed to be part of the one-time object setup sequence. Therefore, this method should not be treated as an initializer method by NullAway.]]></reason>
+    <value>NO</value>
+</response>
+```

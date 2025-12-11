@@ -1,0 +1,48 @@
+<response>
+    <reason><![CDATA[
+The parameter `pkg` of `makeFullClsName` can be null.
+
+From the provided code:
+
+```java
+private void splitAndApplyNames(RootNode root, ArgType type, boolean canBeInner) {
+    ...
+    int sep = clsName.lastIndexOf('$');
+    if (canBeInner && sep > 0 && sep != clsName.length() - 1) {
+        ...
+        pkg = null;
+        parentClass = fromName(root, parClsName);
+        clsName = clsName.substring(sep + 1);
+    } else {
+        pkg = clsPkg;
+        parentClass = null;
+    }
+    this.name = clsName;
+    this.fullName = makeFullName();
+}
+
+private String makeFullName() {
+    return makeFullClsName(pkg, name, parentClass, false, false);
+}
+```
+
+In the `splitAndApplyNames` method, when `canBeInner` is true and the `$` separator condition holds, `pkg` is explicitly set to `null`. Immediately afterward, `makeFullName()` is called, which in turn calls:
+
+```java
+makeFullClsName(pkg, name, parentClass, false, false);
+```
+
+So `makeFullClsName` is directly invoked with `pkg` potentially being `null`.
+
+Even though within `makeFullClsName` there is a branch on `parentClass != null`, in this specific path, `parentClass` is set via `fromName(root, parClsName)` and not guaranteed to be non-null. If `parentClass` is null, execution will reach:
+
+```java
+return pkg.isEmpty() ? shortName : pkg + '.' + shortName;
+```
+
+If `pkg` is null here, this would cause a `NullPointerException` when calling `pkg.isEmpty()`. This indicates that, by usage, `pkg` *can* be null, and the method is not defensively coded against that, but the question is about possibility, not safety.
+
+Therefore, based strictly on actual assignments and calls in the code, `pkg` can be null when passed to `makeFullClsName`.
+]]></reason>
+    <value>YES</value>
+</response>

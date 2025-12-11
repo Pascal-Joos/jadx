@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public String makeNameWithoutPkg() {
+		String prefix;
+		ClassNode parentClass = Nullability.castToNonnull(cls.getParentClass());
+		if (parentClass != cls) {
+			DeobfClsInfo parentDeobfClsInfo = deobfuscator.getClsMap().get(parentClass.getClassInfo());
+			if (parentDeobfClsInfo != null) {
+				prefix = parentDeobfClsInfo.makeNameWithoutPkg();
+			} else {
+				prefix = deobfuscator.getNameWithoutPackage(parentClass.getClassInfo());
+			}
+			prefix += Deobfuscator.INNER_CLASS_SEPARATOR;
+		} else {
+			prefix = "";
+		}
+		return prefix + (this.alias != null ? this.alias : this.cls.getShortName());
+}
+  ```
+    ]]>
+  </code>
+</response>

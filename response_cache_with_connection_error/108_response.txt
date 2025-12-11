@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void addMethods(ClassNode cls, JsonClsMapping jsonCls) {
+		List<MethodNode> methods = cls.getMethods();
+		if (methods.isEmpty()) {
+			return;
+		}
+		jsonCls.setMethods(new ArrayList<>(methods.size()));
+		for (MethodNode method : methods) {
+			JsonMthMapping jsonMethod = new JsonMthMapping();
+			MethodInfo methodInfo = method.getMethodInfo();
+			jsonMethod.setSignature(methodInfo.getShortId());
+			jsonMethod.setName(methodInfo.getName());
+			jsonMethod.setAlias(methodInfo.getAlias());
+			jsonMethod.setOffset("0x" + Long.toHexString(method.getMethodCodeOffset()));
+			Nullability.castToNonnull(jsonCls.getMethods()).add(jsonMethod);
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

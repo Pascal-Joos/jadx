@@ -1,0 +1,23 @@
+<response>
+  <reason><![CDATA[
+At every shown call site, `getCleanSuccessors()` is used as a non‑null `List<BlockNode>`:
+
+- It is iterated in enhanced for‑loops:
+  - `for (BlockNode node : block.getCleanSuccessors())`
+  - `for (BlockNode s : block.getCleanSuccessors())`
+- Its methods are called directly:
+  - `block.getCleanSuccessors().get(0);`
+  - `block.getCleanSuccessors().size() == 1`
+  - `block.getCleanSuccessors().contains(to)`
+  - Used as a `List<BlockNode>` return from utility helpers, etc.
+
+In all these usages, a *null* value would cause immediate `NullPointerException`. The codebase consistently treats `cleanSuccessors` as a list that may be **empty** but never `null`.
+
+Additionally, where `cleanSuccessors` is recomputed, the code explicitly calls `updateCleanSuccessors()` (see `BlockExceptionHandler.wrapBlocksWithTryCatch`, which finishes with `topSplitterBlock.updateCleanSuccessors();`). This strongly implies the design contract is that `cleanSuccessors` is always initialized to a non‑null list (likely an empty list by default) and then updated, never set to `null`.
+
+There is no path in the provided code that assigns `null` to `this.cleanSuccessors`, nor any defensive null‑checks around `getCleanSuccessors()`; instead, only size/emptiness checks are present. That usage pattern is incompatible with `cleanSuccessors` being nullable.
+
+Therefore, at the specific call site `block.getCleanSuccessors()` (and generally throughout this code), the method is not expected to return `null`; if it did, much of this code would be inherently unsafe and would frequently throw at runtime, which contradicts the evident design.
+  ]]></reason>
+  <value>NO</value>
+</response>

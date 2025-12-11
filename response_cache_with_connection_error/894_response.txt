@@ -1,0 +1,50 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private IMethodDetails resolveTypeVars(IMethodDetails mthDetails, Map<ArgType, ArgType> typeVarsMapping) {
+		if (root == null) {
+			throw new JadxRuntimeException("Null root node");
+		}
+		List<ArgType> argTypes = mthDetails.getArgTypes();
+		int argsCount = argTypes.size();
+		boolean fixed = false;
+		List<ArgType> fixedArgTypes = new ArrayList<>(argsCount);
+		for (int argNum = 0; argNum < argsCount; argNum++) {
+			ArgType argType = argTypes.get(argNum);
+			if (argType == null) {
+				throw new JadxRuntimeException("Null arg type in " + mthDetails + " at: " + argNum + " in: " + argTypes);
+			}
+			if (argType.containsTypeVariable()) {
+				ArgType resolvedType = Nullability.castToNonnull(root.getTypeUtils()).replaceTypeVariablesUsingMap(argType, typeVarsMapping);
+				if (resolvedType == null || resolvedType.equals(argType)) {
+					// type variables erased from method info by compiler
+					resolvedType = mthDetails.getMethodInfo().getArgumentsTypes().get(argNum);
+				}
+				fixedArgTypes.add(resolvedType);
+				fixed = true;
+			} else {
+				fixedArgTypes.add(argType);
+			}
+		}
+		ArgType returnType = mthDetails.getReturnType();
+		if (returnType.containsTypeVariable()) {
+			ArgType resolvedType = Nullability.castToNonnull(root).getTypeUtils().replaceTypeVariablesUsingMap(returnType, typeVarsMapping);
+			if (resolvedType == null || resolvedType.containsTypeVariable()) {
+				returnType = mthDetails.getMethodInfo().getReturnType();
+				fixed = true;
+			}
+		}
+
+		if (!fixed) {
+			return mthDetails;
+		}
+		MutableMethodDetails mutableMethodDetails = new MutableMethodDetails(mthDetails);
+		mutableMethodDetails.setArgTypes(fixedArgTypes);
+		mutableMethodDetails.setRetType(returnType);
+		return mutableMethodDetails;
+	}
+  ```
+    ]]>
+  </code>
+</response>

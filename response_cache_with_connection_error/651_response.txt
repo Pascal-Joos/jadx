@@ -1,0 +1,20 @@
+```xml
+<response>
+    <reason><![CDATA[From the provided snippet we only see a call to getResult() used directly:
+
+RegisterArg arg = InsnArg.reg(getResult().getRegNum(), getResult().getInitType());
+
+To determine whether getResult() can be null, we must know:
+- How getResult() is implemented,
+- What invariants or contracts are documented or enforced for this method (e.g., @NotNull annotations, assertions),
+- The lifecycle of the object on which bindArg is invoked (e.g., whether getResult() is guaranteed to be initialized before bindArg is called),
+- Any prior control-flow or initialization logic that ensures a non-null result.
+
+None of that information is provided. Without the implementation or specification of getResult(), or the class context (e.g., if this is an instruction node that always has a result), we cannot soundly conclude that getResult() is always non-null or that it may be null. Therefore, the nullability of getResult() at this call site cannot be determined from the given method alone.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation (or interface/abstract declaration) of getResult(), including any annotations (e.g., @Nullable/@NotNull).]]></request>
+        <request><![CDATA[Provide the class definition containing bindArg, and any relevant initialization or construction logic that sets or guarantees the presence of the result used by getResult().]]></request>
+    </requests>
+</response>
+```

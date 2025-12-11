@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+ 	public boolean isSame(InsnNode obj) {
+ 		if (this == obj) {
+ 			return true;
+ 		}
+ 		if (!(obj instanceof InvokeCustomNode) || !super.isSame(obj)) {
+ 			return false;
+ 		}
+ 		InvokeCustomNode other = (InvokeCustomNode) obj;
+ 		return handleType == other.handleType
+ 				&& implMthInfo != null
+ 				&& other.implMthInfo != null
+ 				&& implMthInfo.equals(other.implMthInfo)
+ 				&& callInsn.isSame(other.callInsn)
+ 				&& inlineInsn == other.inlineInsn
+ 				&& useRef == other.useRef;
+ }
+  ```
+    ]]>
+  </code>
+</response>

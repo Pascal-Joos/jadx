@@ -1,0 +1,41 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean deleteMove(MethodNode mth, InsnNode move) {
+		InsnArg moveArg = move.getArg(0);
+		if (!moveArg.isRegister()) {
+			return false;
+		}
+		RegisterArg moveReg = (RegisterArg) moveArg;
+		SSAVar ssaVar = moveReg.getSVar();
+		if (ssaVar.getUseCount() != 1 || ssaVar.isUsedInPhi()) {
+			return false;
+		}
+		RegisterArg assignArg = ssaVar.getAssign();
+		InsnNode parentInsn = assignArg.getParentInsn();
+		if (parentInsn == null) {
+			return false;
+		}
+		if (parentInsn.getSourceLine() != move.getSourceLine()
+				|| moveArg.contains(AType.REG_DEBUG_INFO)) {
+			// preserve debug info
+			return false;
+		}
+		// set move result into parent insn result
+		InsnRemover.unbindAllArgs(mth, move);
+		InsnRemover.unbindResult(mth, parentInsn);
+
+		RegisterArg resArg = parentInsn.getResult();
+		if (resArg == null) {
+			return false;
+		}
+		RegisterArg newResArg = move.getResult().duplicate(resArg.getInitType());
+		newResArg.copyAttributesFrom(resArg);
+		parentInsn.setResult(newResArg);
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

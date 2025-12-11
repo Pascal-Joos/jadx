@@ -1,0 +1,33 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private InsnNode filledNewArray(InsnData insn, boolean isRange) {
+		ArgType arrType = ArgType.parse(insn.getIndexAsType());
+		ArgType elType = Nullability.castToNonnull(arrType.getArrayElement());
+		boolean typeImmutable = elType.isPrimitive();
+		int regsCount = insn.getRegsCount();
+		InsnArg[] regs = new InsnArg[regsCount];
+		if (isRange) {
+			int r = insn.getReg(0);
+			for (int i = 0; i < regsCount; i++) {
+				regs[i] = InsnArg.reg(r, elType, typeImmutable);
+				r++;
+			}
+		} else {
+			for (int i = 0; i < regsCount; i++) {
+				int regNum = insn.getReg(i);
+				regs[i] = InsnArg.reg(regNum, elType, typeImmutable);
+			}
+		}
+		InsnNode node = new FilledNewArrayNode(elType, regs.length);
+		// node.setResult(resReg == -1 ? null : InsnArg.reg(resReg, arrType));
+		for (InsnArg arg : regs) {
+			node.addArg(arg);
+		}
+		return node;
+}
+  ```
+    ]]>
+  </code>
+</response>

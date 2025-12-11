@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static ArgType outerGeneric(ArgType genericOuterType, ArgType innerType) {
+		return new OuterGenericObject(Nullability.castToNonnull((ObjectType) genericOuterType), (ObjectType) innerType);
+}
+  ```
+    ]]>
+  </code>
+</response>

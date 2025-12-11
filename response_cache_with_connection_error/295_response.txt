@@ -1,0 +1,6 @@
+```xml
+<response>
+  <reason><![CDATA[The method body consists of a single return statement: `return null;`. There are no conditions, no calls to other methods, and no alternative return paths. Therefore, every invocation of this method will return null unconditionally.]]></reason>
+  <value>YES</value>
+</response>
+```

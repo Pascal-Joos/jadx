@@ -1,0 +1,52 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the shown method body, jsonCls.getMethods() is invoked only after this line:
+
+    jsonCls.setMethods(new ArrayList<>(methods.size()));
+
+and only when:
+
+    if (methods.isEmpty()) {
+        return;
+    }
+
+has already returned for the empty-list case.
+
+So, for every execution path that reaches:
+
+    jsonCls.getMethods().add(jsonMethod);
+
+we know:
+
+1. methods is not empty, so the early return did not occur.
+2. jsonCls.setMethods(...) has been called in this invocation of addMethods, assigning a non-null ArrayList instance to whatever internal field jsonCls.getMethods() reads from.
+
+Under the normal and expected contract that:
+- jsonCls.setMethods(List<...> list) stores the list in a field;
+- jsonCls.getMethods() returns that same field unchanged; and
+- neither setMethods nor getMethods is overridden or implemented in a way that can null out the value between the call to setMethods and the subsequent call to getMethods in the same thread,
+
+then jsonCls.getMethods() cannot be null at the point of jsonCls.getMethods().add(jsonMethod).
+
+However, from the snippet alone, we do not see the implementations of:
+- JsonClsMapping#setMethods(...)
+- JsonClsMapping#getMethods()
+
+If either of these methods:
+- can assign null to the backing field,
+- can return a different (possibly null) value than what was passed into setMethods,
+- or if there is concurrent modification to jsonCls changing its methods list to null between setMethods and getMethods,
+
+then jsonCls.getMethods() could, in principle, be null.
+
+Because those implementations and concurrency assumptions are not provided here, we cannot strictly guarantee non-nullness purely from this method’s code.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation (or contract) of JsonClsMapping#getMethods().]]></request>
+        <request><![CDATA[Provide the implementation (or contract) of JsonClsMapping#setMethods(List<?> methods).]]></request>
+        <request><![CDATA[Clarify whether jsonCls can be accessed/modified concurrently while addMethods is executing.]]></request>
+    </requests>
+</response>
+```

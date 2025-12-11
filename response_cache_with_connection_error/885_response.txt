@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private Map<ArgType, ArgType> getTypeVarsMapping(BaseInvokeNode invokeInsn) {
+		if (root == null) {
+			return Collections.emptyMap();
+		}
+		MethodInfo callMthInfo = invokeInsn.getCallMth();
+		ArgType declClsType = callMthInfo.getDeclClass().getType();
+		ArgType callClsType = getClsCallType(invokeInsn, declClsType);
+
+		TypeUtils typeUtils = root.getTypeUtils();
+		Map<ArgType, ArgType> clsTypeVars = typeUtils.getTypeVariablesMapping(callClsType);
+		Map<ArgType, ArgType> mthTypeVars = typeUtils.getTypeVarMappingForInvoke(invokeInsn);
+		return Utils.mergeMaps(clsTypeVars, mthTypeVars);
+}
+  ```
+    ]]>
+  </code>
+</response>

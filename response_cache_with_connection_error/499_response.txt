@@ -1,0 +1,17 @@
+```xml
+<response>
+    <reason><![CDATA[
+This method is named `lock`, not something like `init` or a known framework lifecycle hook, and its behavior is to transform several list fields into "locked" versions (likely making them unmodifiable) and validate a precondition (`domFrontier` must be set). Conceptually, it represents a state transition from a mutable to an immutable/locked state, not the initial construction or setup of the object.
+
+Initializer methods, per NullAway’s definition, are those that are guaranteed to be called exactly once during object setup by a framework or well-defined lifecycle (e.g., `onCreate`, `init` in servlets/processors). They establish the *initial* non-null state of fields before general use.
+
+Nothing in the provided code or description indicates that:
+- `lock()` is a framework lifecycle method,
+- it is guaranteed to be called exactly once during object initialization, or
+- it is the designated setup method before all other methods.
+
+Instead, it can plausibly be called as part of a later phase (e.g., after construction and configuration) and might even be callable multiple times (idempotently or otherwise). Therefore, by NullAway’s definition, `lock()` should not be treated as an initializer method.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

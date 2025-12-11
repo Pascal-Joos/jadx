@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	public IMethodDetails getMethodDetails(MethodInfo callMth) {
+		MethodNode mthNode = root.resolveMethod(callMth);
+		if (mthNode != null) {
+			return mthNode;
+		}
+		if (root.getClsp() == null) {
+			return null;
+		}
+		return root.getClsp().getMethodDetails(callMth);
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,23 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private List<ArgType> getWiderTypes(ArgType type) {
+		if (type.isTypeKnown()) {
+			if (type.isObject()) {
+				RootNode root = mth.root();
+				if (root == null) {
+					return Collections.emptyList();
+				}
+				Set<String> ancestors = root.getClsp().getSuperTypes(type.getObject());
+				return ancestors.stream().map(ArgType::object).collect(Collectors.toList());
+			}
+		} else {
+			return expandUnknownType(type);
+		}
+		return Collections.emptyList();
+  }
+  ```
+    ]]>
+  </code>
+</response>

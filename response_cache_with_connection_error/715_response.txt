@@ -1,0 +1,13 @@
+<response>
+  <reason><![CDATA[mth.getEnterBlock() simply returns the field enterBlock from MethodNode. None of the provided call sites or surrounding logic guarantees that enterBlock is non‑null at the time of this call.
+
+Across the codebase, getEnterBlock() is treated as potentially null: in several places it is immediately wrapped with Nullability.castToNonnull (e.g., BlockUtils.dfsVisit, BlockUtils.isFirstInsn, RegionMakerVisitor.visit), which would be unnecessary if enterBlock were always non‑null. Other sites (like ClassModifier.removeFieldUsageFromConstructor and many uses in BlockExceptionHandler, RegionMaker, SSATransform, etc.) dereference the result directly, which indicates an expectation (or requirement) that enterBlock be initialized, but this is not enforced by the MethodNode.getEnterBlock() method itself.
+
+Because:
+- getEnterBlock() has no internal null checks or fallbacks,
+- the initialization and invariants of enterBlock are not shown,
+- and the presence of explicit non‑null casts elsewhere proves that callers consider null a possibility,
+
+we cannot conclude that, at this specific call site mth.getEnterBlock(), enterBlock is definitely non‑null. Therefore, the method can return null here.]]></reason>
+  <value>YES</value>
+</response>

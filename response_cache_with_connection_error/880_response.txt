@@ -1,0 +1,19 @@
+```xml
+<response>
+    <reason><![CDATA[From the snippet alone, we only know that the method is named `init`, is `@Override`, and assigns a field. NullAway’s notion of an initializer method depends on *how* the method is used: it must be part of a framework lifecycle or otherwise guaranteed (by the framework or calling convention) to be called exactly once during object setup and before any other methods are used.
+
+In the examples, methods like `HttpServlet.init` or `Filter.init` are initializer methods *because the framework guarantees* they are called once as part of the lifecycle. Your method could be an override of such a framework-defined `init` (e.g., in a compiler, DI framework, or custom lifecycle interface), but the provided information does not show what class or interface it overrides, nor whether there is a lifecycle guarantee around it.
+
+Without knowing:
+- The type declaring this method
+- The supertype / interface whose method is being overridden
+- The lifecycle or usage contract of that method
+
+we cannot conclude it is an initializer method in NullAway’s sense. It could just as well be a custom setup or setter-like method with no framework guarantee.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[What is the superclass or interface that declares the `init(RootNode root)` method being overridden here? (Please provide its fully qualified name and, if possible, its Javadoc or specification.)]]></request>
+        <request><![CDATA[Is this `init` method called by a framework (e.g., a container, lifecycle manager, or annotation processor) as part of object creation, with a guarantee that it runs before any other methods on this object are used and is called at most once?]]></request>
+    </requests>
+</response>
+```

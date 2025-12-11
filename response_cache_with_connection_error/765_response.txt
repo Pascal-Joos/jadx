@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void processMethodRegion(MethodNode mth) {
+			processRegion(mth, Nullability.castToNonnull(mth.getRegion()));
+			for (ExceptionHandler h : mth.getExceptionHandlers()) {
+				if (h.getHandlerRegion() != null) {
+					processRegion(mth, h.getHandlerRegion());
+				}
+			}
+			Set<IBlock> regionsBlocks = new HashSet<>(mth.getBasicBlocks().size());
+			RegionUtils.getAllRegionBlocks(mth.getRegion(), regionsBlocks);
+			for (ExceptionHandler handler : mth.getExceptionHandlers()) {
+				IContainer handlerRegion = handler.getHandlerRegion();
+				if (handlerRegion != null) {
+					RegionUtils.getAllRegionBlocks(handlerRegion, regionsBlocks);
+				}
+			}
+			for (BlockNode block : mth.getBasicBlocks()) {
+				if (!regionsBlocks.contains(block)) {
+					processBlock(mth, block, true);
+				}
+			}
+}
+  ```
+    ]]>
+  </code>
+</response>

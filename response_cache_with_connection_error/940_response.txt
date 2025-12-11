@@ -1,0 +1,29 @@
+<response>
+  <reason><![CDATA[
+At every shown call site, `varInfo` (or `var`) is a `TypeSearchVarInfo` instance obtained from `state.getVarInfo(...)` or from `state.getUnresolvedVars()` / `vars`. For each such variable, `collectConstraints` is called in `run()`:
+
+```java
+private void collectConstraints(SSAVar var) {
+    TypeSearchVarInfo varInfo = state.getVarInfo(var);
+    if (varInfo.isTypeResolved()) {
+        varInfo.setConstraints(Collections.emptyList());
+        return;
+    }
+    varInfo.setConstraints(new ArrayList<>());
+    addConstraint(varInfo, makeConstraint(var.getAssign()));
+    for (RegisterArg regArg : var.getUseList()) {
+        addConstraint(varInfo, makeConstraint(regArg));
+    }
+}
+```
+
+Both branches of `collectConstraints` assign a **non-null** list to `varInfo` via `setConstraints`:
+- `Collections.emptyList()` (never null)
+- `new ArrayList<>()` (never null)
+
+After this, all uses of `varInfo.getConstraints()` in the provided code (`singleCheck`, `addConstraint`, `resolveIndependentVariables`, `fullCheck`) operate on this initialized `constraints` field. The `addConstraint` method only calls `varInfo.getConstraints().add(...)`, which assumes and uses this non-null list; there is no code shown that ever assigns `null` to `constraints`.
+
+Thus, at the provided call site `varInfo.getConstraints()`, the method returns the `constraints` field, which has been initialized to a non-null list and is never set to null in the shown code. Therefore it cannot be null at this call site.
+]]></reason>
+  <value>NO</value>
+</response>

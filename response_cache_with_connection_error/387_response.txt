@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static FieldInfo fromRef(RootNode root, IFieldRef fieldRef) {
+		ClassInfo declClass = ClassInfo.fromName(root, fieldRef.getParentClassType());
+		FieldInfo field = new FieldInfo(declClass, fieldRef.getName(), Nullability.castToNonnull(ArgType.parse(fieldRef.getType())));
+		return root.getInfoStorage().getField(field);
+}
+  ```
+    ]]>
+  </code>
+</response>

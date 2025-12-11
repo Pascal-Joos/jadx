@@ -1,0 +1,338 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void makeInsnBody(ICodeWriter code, InsnNode insn, Set<Flags> state) throws CodegenException {
+		switch (insn.getType()) {
+			case CONST_STR:
+				String str = ((ConstStringNode) insn).getString();
+				code.add(mth.root().getStringUtils().unescapeString(str));
+				break;
+
+			case CONST_CLASS:
+				ArgType clsType = ((ConstClassNode) insn).getClsType();
+				useType(code, clsType);
+				code.add(".class");
+				break;
+
+			case CONST:
+				LiteralArg arg = (LiteralArg) insn.getArg(0);
+				code.add(lit(arg));
+				break;
+
+			case MOVE:
+				addArg(code, insn.getArg(0), false);
+				break;
+
+			case CHECK_CAST:
+			case CAST: {
+				boolean wrap = state.contains(Flags.BODY_ONLY);
+				if (wrap) {
+					code.add('(');
+				}
+				code.add('(');
+				useType(code, (ArgType) ((IndexInsnNode) insn).getIndex());
+				code.add(") ");
+				addArg(code, insn.getArg(0), true);
+				if (wrap) {
+					code.add(')');
+				}
+				break;
+			}
+
+			case ARITH:
+				makeArith((ArithNode) insn, code, state);
+				break;
+
+			case NEG:
+				oneArgInsn(code, insn, state, '-');
+				break;
+
+			case NOT:
+				char op = insn.getArg(0).getType() == ArgType.BOOLEAN ? '!' : '~';
+				oneArgInsn(code, insn, state, op);
+				break;
+
+			case RETURN:
+				if (insn.getArgsCount() != 0) {
+					code.add("return ");
+					addArg(code, insn.getArg(0), false);
+				} else {
+					code.add("return");
+				}
+				break;
+
+			case BREAK:
+				code.add("break");
+				LoopLabelAttr labelAttr = insn.get(AType.LOOP_LABEL);
+				if (labelAttr != null) {
+					code.add(' ').add(mgen.getNameGen().getLoopLabel(labelAttr));
+				}
+				break;
+
+			case CONTINUE:
+				code.add("continue");
+				break;
+
+			case THROW:
+				code.add("throw ");
+				addArg(code, insn.getArg(0), true);
+				break;
+
+			case CMP_L:
+			case CMP_G:
+				code.add('(');
+				addArg(code, insn.getArg(0));
+				code.add(" > ");
+				addArg(code, insn.getArg(1));
+				code.add(" ? 1 : (");
+				addArg(code, insn.getArg(0));
+				code.add(" == ");
+				addArg(code, insn.getArg(1));
+				code.add(" ? 0 : -1))");
+				break;
+
+			case INSTANCE_OF: {
+				boolean wrap = state.contains(Flags.BODY_ONLY);
+				if (wrap) {
+					code.add('(');
+				}
+				addArg(code, insn.getArg(0));
+				code.add(" instanceof ");
+				useType(code, (ArgType) ((IndexInsnNode) insn).getIndex());
+				if (wrap) {
+					code.add(')');
+				}
+				break;
+			}
+			case CONSTRUCTOR:
+				makeConstructor((ConstructorInsn) insn, code);
+				break;
+
+			case INVOKE:
+				makeInvoke((InvokeNode) insn, code);
+				break;
+
+			case NEW_ARRAY: {
+				ArgType arrayType = ((NewArrayNode) insn).getArrayType();
+				code.add("new ");
+				useType(code, arrayType.getArrayRootElement());
+				int k = 0;
+				int argsCount = insn.getArgsCount();
+				for (; k < argsCount; k++) {
+					code.add('[');
+					addArg(code, insn.getArg(k), false);
+					code.add(']');
+				}
+				int dim = arrayType.getArrayDimension();
+				for (; k < dim - 1; k++) {
+					code.add("[]");
+				}
+				break;
+			}
+
+			case ARRAY_LENGTH:
+				addArg(code, insn.getArg(0));
+				code.add(".length");
+				break;
+
+			case FILLED_NEW_ARRAY:
+				filledNewArray((FilledNewArrayNode) insn, code);
+				break;
+
+			case FILL_ARRAY:
+				FillArrayInsn arrayNode = (FillArrayInsn) insn;
+				if (fallback) {
+					String arrStr = arrayNode.dataToString();
+					addArg(code, insn.getArg(0));
+					code.add(" = {").add(arrStr.substring(1, arrStr.length() - 1)).add("} // fill-array");
+				} else {
+					fillArray(code, arrayNode);
+				}
+				break;
+
+			case AGET:
+				addArg(code, insn.getArg(0));
+				code.add('[');
+				addArg(code, insn.getArg(1), false);
+				code.add(']');
+				break;
+
+			case APUT:
+				addArg(code, insn.getArg(0));
+				code.add('[');
+				addArg(code, insn.getArg(1), false);
+				code.add("] = ");
+				addArg(code, insn.getArg(2), false);
+				break;
+
+			case IGET: {
+				FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
+				instanceField(code, fieldInfo, insn.getArg(0));
+				break;
+			}
+			case IPUT: {
+				FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
+				instanceField(code, fieldInfo, insn.getArg(1));
+				code.add(" = ");
+				addArg(code, insn.getArg(0), false);
+				break;
+			}
+
+			case SGET:
+				staticField(code, (FieldInfo) ((IndexInsnNode) insn).getIndex());
+				break;
+			case SPUT:
+				FieldInfo field = (FieldInfo) ((IndexInsnNode) insn).getIndex();
+				staticField(code, field);
+				code.add(" = ");
+				addArg(code, insn.getArg(0), false);
+				break;
+
+			case STR_CONCAT:
+				boolean wrap = state.contains(Flags.BODY_ONLY);
+				if (wrap) {
+					code.add('(');
+				}
+				for (Iterator<InsnArg> it = insn.getArguments().iterator(); it.hasNext();) {
+					addArg(code, it.next());
+					if (it.hasNext()) {
+						code.add(" + ");
+					}
+				}
+				if (wrap) {
+					code.add(')');
+				}
+				break;
+
+			case MONITOR_ENTER:
+				if (isFallback()) {
+					code.add("monitor-enter(");
+					addArg(code, insn.getArg(0));
+					code.add(')');
+				}
+				break;
+
+			case MONITOR_EXIT:
+				if (isFallback()) {
+					code.add("monitor-exit(");
+					if (insn.getArgsCount() == 1) {
+						addArg(code, insn.getArg(0));
+					}
+					code.add(')');
+				}
+				break;
+
+			case TERNARY:
+				makeTernary((TernaryInsn) insn, code, state);
+				break;
+
+			case ONE_ARG:
+				addArg(code, insn.getArg(0), state);
+				break;
+
+			/* fallback mode instructions */
+			case IF:
+				fallbackOnlyInsn(insn);
+				IfNode ifInsn = (IfNode) insn;
+				code.add("if (");
+				addArg(code, insn.getArg(0));
+				code.add(' ');
+				code.add(ifInsn.getOp().getSymbol()).add(' ');
+				addArg(code, insn.getArg(1));
+				code.add(") goto ").add(MethodGen.getLabelName(ifInsn));
+				break;
+
+			case GOTO:
+				fallbackOnlyInsn(insn);
+				code.add("goto ").add(MethodGen.getLabelName(((GotoNode) insn).getTarget()));
+				break;
+
+			case MOVE_EXCEPTION:
+				fallbackOnlyInsn(insn);
+				code.add("move-exception");
+				break;
+
+			case SWITCH:
+				fallbackOnlyInsn(insn);
+				SwitchInsn sw = (SwitchInsn) insn;
+				code.add("switch(");
+				addArg(code, insn.getArg(0));
+				code.add(") {");
+				code.incIndent();
+				int[] keys = sw.getKeys();
+				int size = keys.length;
+				BlockNode[] targetBlocks = sw.getTargetBlocks();
+				if (targetBlocks != null) {
+					for (int i = 0; i < size; i++) {
+						code.startLine("case ").add(Integer.toString(keys[i])).add(": goto ");
+						code.add(MethodGen.getLabelName(targetBlocks[i])).add(';');
+					}
+					code.startLine("default: goto ");
+					code.add(MethodGen.getLabelName(sw.getDefTargetBlock())).add(';');
+				} else {
+					int[] targets = sw.getTargets();
+					for (int i = 0; i < size; i++) {
+						code.startLine("case ").add(Integer.toString(keys[i])).add(": goto ");
+						code.add(MethodGen.getLabelName(targets[i])).add(';');
+					}
+					code.startLine("default: goto ");
+					code.add(MethodGen.getLabelName(sw.getDefaultCaseOffset())).add(';');
+				}
+				code.decIndent();
+				code.startLine('}');
+				break;
+
+			case NEW_INSTANCE:
+				// only fallback - make new instance in constructor invoke
+				fallbackOnlyInsn(insn);
+				RegisterArg res = insn.getResult();
+				if (res != null) {
+					code.add("new ").add(res.getInitType().toString());
+				}
+				break;
+
+			case PHI:
+				fallbackOnlyInsn(insn);
+				code.add(insn.getType().toString()).add('(');
+				for (InsnArg insnArg : insn.getArguments()) {
+					addArg(code, insnArg);
+					code.add(' ');
+				}
+				code.add(')');
+				break;
+
+			case MOVE_RESULT:
+				fallbackOnlyInsn(insn);
+				code.add("move-result");
+				break;
+
+			case FILL_ARRAY_DATA:
+				fallbackOnlyInsn(insn);
+				code.add("fill-array " + insn);
+				break;
+
+			case SWITCH_DATA:
+				fallbackOnlyInsn(insn);
+				code.add(insn.toString());
+				break;
+
+			case MOVE_MULTI:
+				fallbackOnlyInsn(insn);
+				int len = insn.getArgsCount();
+				for (int i = 0; i < len - 1; i += 2) {
+					addArg(code, insn.getArg(i));
+					code.add(" = ");
+					addArg(code, insn.getArg(i + 1));
+					code.add("; ");
+				}
+				break;
+
+			default:
+				throw new CodegenException(mth, "Unknown instruction: " + insn.getType());
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

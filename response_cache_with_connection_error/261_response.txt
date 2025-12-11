@@ -1,0 +1,29 @@
+```xml
+<response>
+    <reason><![CDATA[
+The potentially nullable part is the result of retType.getArrayElement(). To decide if it can be null, we need to rely on the contract/implementation of ArgType.getArrayElement().
+
+From the given code:
+
+- retType is obtained from mth.getReturnType().
+- The code then checks: if (!retType.isArray() || !retType.getArrayElement().equals(clsType)) { ... }
+
+Control-flow-wise:
+- If retType.isArray() is false, the left side of the || is true, the right side (retType.getArrayElement().equals(clsType)) is not evaluated.
+- If retType.isArray() is true, the right side is evaluated: retType.getArrayElement().equals(clsType).
+
+Therefore:
+- getArrayElement() is only called when retType.isArray() returns true.
+- The question reduces to: "For any ArgType where isArray() == true, can getArrayElement() return null?"
+
+The snippet itself does not provide the implementation or documented contract of ArgType. Without that, we cannot conclude that getArrayElement() is guaranteed non-null for every array type. Many designs would guarantee a non-null element type when isArray() is true, but that is a design assumption, not a logical guarantee from the presented code.
+
+Since the behavior of ArgType.getArrayElement() under isArray() == true is not specified in the provided context, we cannot definitively say whether it can or cannot be null.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or specification/contract of ArgType.getArrayElement() and ArgType.isArray().]]></request>
+        <request><![CDATA[Confirm whether ArgType instances returned by MethodNode.getReturnType() are guaranteed to be well-formed array types (non-null element type) when isArray() is true.]]></request>
+    </requests>
+</response>
+```

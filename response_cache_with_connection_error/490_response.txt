@@ -1,0 +1,26 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void addArgs(InsnNode insn, List<RegisterArg> args) {
+		if (insn.getType() == InsnType.TERNARY) {
+			IfCondition condition = ((TernaryInsn) insn).getCondition();
+			if (condition != null) {
+				args.addAll(condition.getRegisterArgs());
+			}
+		}
+		for (InsnArg arg : insn.getArguments()) {
+			if (arg.isRegister()) {
+				args.add((RegisterArg) arg);
+			}
+		}
+		for (InsnArg arg : insn.getArguments()) {
+			if (arg.isInsnWrap()) {
+				addArgs(((InsnWrapArg) arg).getWrapInsn(), args);
+			}
+		}
+  }
+  ```
+    ]]>
+  </code>
+</response>

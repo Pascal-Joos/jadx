@@ -1,0 +1,26 @@
+```xml
+<response>
+    <reason><![CDATA[
+There is no information in the provided method that constrains `cond` to be non-null. The parameter `cond` is used directly at the first line:
+
+    if (cond.isCompare()) {
+
+with no preceding null-check. Whether `cond` can be null depends entirely on:
+
+1. The calling code: Does every caller guarantee a non-null `IfCondition` argument? There is no evidence of that here.
+2. The contract of the method: The signature `foundWrappedInsnInCondition(IfCondition cond, InsnNode insn)` does not, by itself, guarantee non-nullness of `cond` (no annotations like @NonNull, no explicit checks).
+3. The surrounding framework or conventions: If the project uses annotations or a coding standard that treats method parameters as non-null by default, then `cond` might be guaranteed non-null, but that is not visible in this snippet.
+
+Inside the method body itself, `cond` is never reassigned, and there are no internal control-flow paths that set it to null. Therefore, within this method, the only way `cond` could be null is if it were passed in as null by a caller.
+
+Because we do not see the callers, any annotations, or documentation that define a non-null contract for `cond`, we cannot conclusively say that `cond` can never be null. At the same time, we cannot assert that it *is* nullable without seeing a caller that actually passes null.
+
+Thus, based solely on the provided code, whether `cond` can be null at the `if (cond.isCompare()) {` line is not determinable.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show the code of all callers of foundWrappedInsnInCondition to see if any can pass null for cond.]]></request>
+        <request><![CDATA[Provide any nullability annotations or documented contracts for IfCondition and for method parameters in this codebase (e.g., @NonNull by default).]]></request>
+    </requests>
+</response>
+```

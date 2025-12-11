@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+At this call site, `copyInsn` is created in `TypeInferenceVisitor.checkAndSplitConstInsn`:
+
+```java
+InsnNode copyInsn = constInsn.copyWithNewSsaVar(mth);
+...
+RegisterArg phiArg = phiInsn.getArgBySsaVar(var);
+phiInsn.replaceArg(phiArg, copyInsn.getResult().duplicate());
+```
+
+Key points:
+
+1. `copyWithNewSsaVar` is defined as:
+   ```java
+   public InsnNode copyWithNewSsaVar(MethodNode mth) {
+       RegisterArg result = getResult();
+       if (result == null) {
+           throw new JadxRuntimeException("Result in null");
+       }
+       int regNum = result.getRegNum();
+       RegisterArg resDupArg = result.duplicate(regNum, null);
+       mth.makeNewSVar(resDupArg);
+       return copy(resDupArg);
+   }
+   ```
+   - It explicitly throws if `getResult()` on the *source* (`constInsn`) is null.
+   - So `constInsn.getResult()` is guaranteed non-null whenever `copyWithNewSsaVar` returns normally.
+
+2. `copy(resDupArg)` (not shown) is the method that creates the new instruction (`copyInsn`) and assigns `resDupArg` as its result. All later code assumes the new copy has a result; immediately after, it uses:
+   ```java
+   copyInsn.getResult().duplicate()
+   ```
+   which would NPE if `copyInsn.getResult()` were null. There is no guarding for null here.
+
+3. The only way `copyWithNewSsaVar` could return an `InsnNode` with a null result is if `copy(resDupArg)` itself discarded the passed `resDupArg` and produced an instruction without a result. That would violate the obvious contract and break many other callers (several parts of the codebase immediately dereference the result of copies). This would be a logic bug, not an intentional “may be null” behavior.
+
+4. Within this call site, neither `constInsn` nor `copyInsn` are ever modified to clear or null-out their result before `copyInsn.getResult()` is used.
+
+Therefore, under normal, non-buggy behavior of `copy(resDupArg)`, `copyInsn.getResult()` is guaranteed non-null at this call site and cannot be null without throwing earlier or causing widespread failures.]]></reason>
+  <value>NO</value>
+</response>

@@ -1,0 +1,39 @@
+<response>
+  <reason><![CDATA[
+`usedInPhi` is of type `PhiInsn` (from the surrounding context where `usedInPhi.getResult()` is used, e.g. `usedInPhi.getResult().getSVar()` patterns). `PhiInsn` extends `InsnNode` and inherits `getResult()`.
+
+For phi instructions, the result is *always* present and is required by all SSA and region-processing logic. Numerous methods assume `phiInsn.getResult()` is non-null and immediately dereference it without any null checks:
+
+- `SSATransform.replacePhiWithMove`:
+  ```java
+  SSAVar assign = phi.getResult().getSVar();
+  ```
+- `SSATransform.bindPhiArg`:
+  ```java
+  int regNum = phiInsn.getResult().getRegNum();
+  ```
+- `PhiInsn.bindArg`:
+  ```java
+  RegisterArg arg = InsnArg.reg(getResult().getRegNum(), getResult().getInitType());
+  ```
+- `PhiInsn.toString()`:
+  ```java
+  "PHI: " + getResult() + " = " + ...
+  ```
+- `InitCodeVariables.collectConnectedVars`:
+  ```java
+  SSAVar resultVar = phiInsn.getResult().getSVar();
+  ```
+- Debug and analysis code (`DebugInfoApplyVisitor`, `DebugChecks`, `TypeInferenceVisitor.mergePhiBounds`, etc.) all do `phiInsn.getResult().getSVar()` with no null handling.
+
+There is no code path that sets a `PhiInsn` result to `null`. Generic result-stripping utilities either explicitly skip PHI or operate only on instructions whose result they can safely null out; PHI is treated as the defining assignment in SSA, so its result must exist.
+
+Because:
+- `usedInPhi` is a `PhiInsn`,
+- `PhiInsn` is constructed/configured with a non-null result and never cleared,
+- and the rest of the codebase relies on `getResult()` for PHI being non-null and would crash otherwise,
+
+the specific call `usedInPhi.getResult()` cannot return null.
+  ]]></reason>
+  <value>NO</value>
+</response>

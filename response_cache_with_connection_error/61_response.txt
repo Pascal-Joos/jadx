@@ -1,0 +1,18 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private ClspClass getClspClass(ArgType clsType) {
+		if (nameMap == null) {
+			throw new JadxRuntimeException("Classpath must be loaded first");
+		}
+		ClspClass clspClass = nameMap.get(clsType.getObject());
+		if (clspClass == null) {
+			missingClasses.add(clsType.getObject());
+		}
+		return clspClass;
+}
+  ```
+    ]]>
+  </code>
+</response>

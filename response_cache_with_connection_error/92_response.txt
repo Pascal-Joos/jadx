@@ -1,0 +1,45 @@
+```xml
+<response>
+    <reason><![CDATA[
+Based solely on the provided method, there is no explicit null-check on the parameter `condition`, nor is there any demonstrated guarantee in this snippet that `condition` is non-null when `add` is called.
+
+Key points:
+
+1. `condition` is a method parameter:
+   ```java
+   private void add(ICodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
+   ```
+   In Java, reference parameters can always be null unless:
+   - The caller guarantees non-null by contract (e.g., via documentation, annotations, or construction logic), and
+   - That guarantee is known and trusted in this analysis.
+
+2. No local reassignment:
+   The variable `condition` is never reassigned inside the method. Its value is entirely determined by the caller.
+
+3. No null-check before use:
+   - First use: `stack.push(condition);` would throw a NullPointerException immediately if `condition` were null.
+   - Second use: `switch (condition.getMode()) { ... }` would also throw a NullPointerException if `condition` were null.
+   There is no guard like:
+   ```java
+   if (condition == null) { ... }
+   ```
+   or any conditional logic that would prevent `condition` from being null at the line in question.
+
+4. No visible external guarantees:
+   The question only provides this single method; it does not show:
+   - How `add` is called,
+   - Any annotations (e.g., `@NonNull`, `@NotNull`) on `IfCondition` or on this parameter,
+   - The implementation or contract of `CondStack` or `IfCondition`,
+   - Any higher-level invariants ensuring that `add` will never be called with a null `condition`.
+
+Without access to the broader context (e.g., the call sites, class invariants, annotations, or framework contracts), we cannot soundly assert that `condition` can never be null. From a purely local, defensive-code perspective, a null value is possible for a reference parameter unless proven otherwise.
+
+Thus, with the information provided, we cannot conclusively determine that `condition` is always non-null at `switch (condition.getMode()) {`. The correct classification, given the lack of broader context, is that it is unknown whether `condition` can be null or not.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show the code (or describe the logic) where this add(...) method is called, including any checks or invariants that might guarantee condition is non-null.]]></request>
+        <request><![CDATA[Provide the definition of IfCondition (especially the contract or annotations on getMode() and on any factory methods or builders that create IfCondition instances).]]></request>
+    </requests>
+</response>
+```

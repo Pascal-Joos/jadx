@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void fixMoveExceptionInsn(BlockNode block, ExcHandlerAttr excHandlerAttr) {
+		ExceptionHandler excHandler = excHandlerAttr.getHandler();
+		ArgType argType = excHandler.getArgType();
+		InsnNode me = BlockUtils.getLastInsn(block);
+		if (me != null && me.getType() == InsnType.MOVE_EXCEPTION) {
+			// set correct type for 'move-exception' operation
+			RegisterArg meRes = me.getResult();
+			if (meRes != null) {
+				RegisterArg resArg = InsnArg.reg(meRes.getRegNum(), argType);
+				resArg.copyAttributesFrom(me);
+				me.setResult(resArg);
+				me.add(AFlag.DONT_INLINE);
+				resArg.add(AFlag.CUSTOM_DECLARE);
+				excHandler.setArg(resArg);
+				me.addAttr(excHandlerAttr);
+				return;
+			}
+		}
+		// handler arguments not used
+		excHandler.setArg(new NamedArg("unused", argType));
+}
+  ```
+    ]]>
+  </code>
+</response>

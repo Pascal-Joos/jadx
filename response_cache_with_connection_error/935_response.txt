@@ -1,0 +1,47 @@
+<response>
+  <reason><![CDATA[BaseInvokeNode.getInstanceArg() is abstract and has no implementation shown. However, other code in the provided call chain explicitly handles the case where getInstanceArg() returns null, which implies that null is a valid and expected value for some BaseInvokeNode instances.
+
+In particular, in TypeInferenceVisitor.makeInvokeUseBound:
+```java
+InsnArg instanceArg = invoke.getInstanceArg();
+if (instanceArg == null) {
+    return null;
+}
+```
+This check would be unnecessary if getInstanceArg() could never return null. The method comment `// static call` in MethodInvokeVisitor.getCallClassFromInvoke also distinguishes between instance and static calls, using:
+```java
+InsnArg instanceArg = invokeInsn.getInstanceArg();
+if (instanceArg != null) {
+    return instanceArg.getType();
+}
+// static call
+return callMth.getDeclClass().getType();
+```
+This shows that for static calls, getInstanceArg() is expected to be null.
+
+The specific call site in question is inside TypeBoundInvokeUse:
+```java
+@Override
+public ArgType getType() {
+    return getArgType(invokeNode.getInstanceArg().getType(), arg.getType());
+}
+```
+Here, there is no null check before dereferencing `getInstanceArg()`, but `invokeNode` is a BaseInvokeNode that originated from TypeInferenceVisitor.makeInvokeUseBound, which only creates a TypeBoundInvokeUse when:
+```java
+InsnArg instanceArg = invoke.getInstanceArg();
+if (instanceArg == null) {
+    return null;
+}
+...
+return new TypeBoundInvokeUse(root, invoke, regArg, argType);
+```
+So, for this *particular* construction path of TypeBoundInvokeUse, `invokeNode.getInstanceArg()` will be non-null because makeInvokeUseBound guarded on it being non-null before constructing the object.
+
+However, the question asks about the specific call site `invokeNode.getInstanceArg()` *in general*, and the provided code does not guarantee that every possible `invokeNode` passed to TypeBoundInvokeUse (or any other call site) comes only from makeInvokeUseBound or is otherwise checked for non-null. Since:
+- getInstanceArg() is abstract with no non-null contract,
+- other parts of the codebase treat a null return as legitimate (for static calls),
+it follows that getInstanceArg() can return null overall.
+
+Given the information provided, we cannot assert that for this exact call site `invokeNode.getInstanceArg()` is globally guaranteed non-null under all usages; it *can* be null in the sense that the underlying method is allowed to and does return null in some cases (e.g., static calls), and nothing intrinsic to the abstract method or class prevents that.]]></reason>
+  <value>YES</value>
+</response>

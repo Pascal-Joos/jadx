@@ -1,0 +1,36 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided code alone, there is no guarantee that `type.getGenericTypes()` is non-null:
+
+1. `genericTypes` is initialized directly from `type.getGenericTypes()`:
+   ```java
+   List<ArgType> genericTypes = type.getGenericTypes();
+   ```
+   There is no null check on `genericTypes` before it is used in the `for` loop.
+
+2. The only guard before the loop is:
+   ```java
+   if (type.isGeneric() && notEmpty(genericTypes)) {
+       for (ArgType argType : genericTypes) {
+           processType(argType, consumer);
+       }
+   }
+   ```
+   Whether `genericTypes` can be null depends entirely on how `notEmpty(genericTypes)` is implemented:
+   - If `notEmpty` is implemented in a null-safe way (e.g. returns false when the argument is null), then the `for` loop will not execute when `genericTypes` is null, and thus `genericTypes` will not be dereferenced in the loop. In that case, at the point of `for (ArgType argType : genericTypes)`, the expression `genericTypes` cannot be null along the taken path.
+   - If `notEmpty` is *not* null-safe and directly calls `genericTypes.isEmpty()` (or otherwise dereferences it), then a null value would cause a `NullPointerException` *inside* `notEmpty`, which would prevent reaching the `for` loop at all. Still, along any execution path that reaches the `for` line, `genericTypes` would again be non-null.
+
+3. The missing piece is the contract of `ArgType.getGenericTypes()`:
+   - If `getGenericTypes()` is specified to never return null (always an empty list instead), then `genericTypes` cannot be null.
+   - If `getGenericTypes()` may return null, then whether the program is safe depends on `notEmpty`, but in all cases where execution actually reaches the `for` statement, `genericTypes` must be non-null (otherwise a null-related failure would have occurred earlier).
+
+Given only this snippet, there is no explicit guarantee in the method itself that `getGenericTypes()` is non-null; that guarantee, if it exists, must come from the implementation/contract of `ArgType` and `notEmpty`. Without that external information, we cannot conclusively say that `genericTypes` can never be null in general.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or documented contract of ArgType.getGenericTypes().]]></request>
+        <request><![CDATA[Provide the implementation of notEmpty(List<?> list) to see whether it is null-safe.]]></request>
+    </requests>
+</response>
+```

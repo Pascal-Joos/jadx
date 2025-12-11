@@ -1,0 +1,7 @@
+```xml
+<response>
+    <reason><![CDATA[
+The method `setHandlerBlock` is a typical setter: its name follows the standard "setX" pattern and its body simply assigns the parameter to a field. By definition, setter methods are not considered initializer methods for NullAway, even if they may be used to initialize fields, because they can be called multiple times and are not guaranteed to be part of a one-time object setup lifecycle. Therefore, this method does not qualify as an initializer method under NullAway's definition.]]></reason>
+    <value>NO</value>
+</response>
+```

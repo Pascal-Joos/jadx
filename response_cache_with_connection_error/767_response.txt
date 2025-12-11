@@ -1,0 +1,122 @@
+<response>
+    <reason><![CDATA[
+The parameter in question is `cont` in:
+```java
+public void makeRegion(ICodeWriter code, IContainer cont) throws CodegenException {
+    declareVars(code, Nullability.castToNonnull(cont));
+    cont.generate(this, code);
+}
+```
+
+We must determine if any call site can pass `null` as the `IContainer` argument, ignoring annotations.
+
+From the provided code, all direct and indirect callers pass an `IContainer` value that is derived from region structures and never explicitly from `null`:
+
+1. **Direct internal caller:**
+   ```java
+   private void makeRegionIndent(ICodeWriter code, IContainer region) throws CodegenException {
+       code.incIndent();
+       makeRegion(code, region);
+       code.decIndent();
+   }
+   ```
+   `makeRegionIndent` simply forwards its `region` parameter to `makeRegion` without modification. So we need to see how `makeRegionIndent` is called.
+
+2. **Callers of `makeRegionIndent`:**
+   - **SwitchRegion:**
+     ```java
+     for (CaseInfo caseInfo : sw.getCases()) {
+         ...
+         IContainer c = caseInfo.getContainer();
+         ...
+         makeRegionIndent(code, c);
+     }
+     ```
+     `c` is obtained from `caseInfo.getContainer()`. There is no null check here, and if `c` were `null`, `makeRegionIndent` would forward it directly to `makeRegion`, which would immediately dereference it (`cont.generate(...)`), causing an NPE. The absence of a defensive check strongly suggests `caseInfo.getContainer()` is expected to be non-null in practice.
+
+   - **LoopRegion:**
+     Multiple calls:
+     ```java
+     makeRegionIndent(code, region.getBody());
+     ...
+     makeRegionIndent(code, region.getBody());
+     ...
+     makeRegionIndent(code, region.getBody());
+     ...
+     makeRegionIndent(code, region.getBody());
+     ```
+     All use `region.getBody()` as the argument. Again, there are no null checks before these calls. A null `body` would crash in `makeRegion`, so the design assumes `getBody()` is non-null.
+
+   - **Catch blocks:**
+     ```java
+     IContainer region = handler.getHandlerRegion();
+     if (region == null) {
+         return;
+     }
+     ...
+     makeRegionIndent(code, region);
+     ```
+     Here, a null return from `getHandlerRegion()` is explicitly filtered out:
+     - If `region` is `null`, the method returns early and does *not* call `makeRegionIndent`.
+     - Therefore, any call to `makeRegionIndent` here is guaranteed to have a non-null `region`, hence non-null `cont` in `makeRegion`.
+
+   - **Try/finally:**
+     ```java
+     makeRegionIndent(code, region.getTryRegion());
+     ...
+     IContainer finallyRegion = region.getFinallyRegion();
+     if (finallyRegion != null) {
+         code.startLine("} finally {");
+         makeRegionIndent(code, finallyRegion);
+     }
+     ```
+     `getTryRegion()` is passed without check; if it could be null, this would NPE, so it is expected non-null. The `finallyRegion` is explicitly checked for null and only a non-null value is passed to `makeRegionIndent`.
+
+   - **IfRegion:**
+     ```java
+     makeRegionIndent(code, region.getThenRegion());
+     ...
+     IContainer els = region.getElseRegion();
+     if (RegionUtils.notEmpty(els)) {
+         ...
+         makeRegionIndent(code, els);
+         ...
+     }
+     ```
+     - `thenRegion` is passed directly; if null, it would lead to an NPE in `makeRegion`, so it is expected non-null.
+     - For the else-region, they *do* check `RegionUtils.notEmpty(els)` before calling `makeRegionIndent`. Although we don't see the implementation of `RegionUtils.notEmpty`, it's clear that the call is used as a guard. It strongly implies the method ensures `els` is not null/empty before it is used. Thus, a null else-region is filtered out, and only non-null is passed onward.
+
+   - **SynchronizedRegion:**
+     ```java
+     makeRegionIndent(code, cont.getRegion());
+     ```
+     Again, `getRegion()` is passed without null check. If it could be null, this would reliably cause an NPE in `makeRegion`. The lack of guarding indicates it is structurally non-null.
+
+3. **Top-level call to `makeRegion`:**
+   ```java
+   public void addRegionInsns(ICodeWriter code) throws CodegenException {
+       RegionGen regionGen = new RegionGen(this);
+       regionGen.makeRegion(code, mth.getRegion());
+       ...
+   }
+   ```
+   `mth.getRegion()` is passed directly to `makeRegion` with no null check. If `mth.getRegion()` could be null, this would cause an immediate NPE on `cont.generate(...)`. Given that this is the main entry into structured code generation and there is no fallback/null-handling path before the call, the design presumes `mth.getRegion()` is always non-null when `addRegionInsns` is used.
+
+4. **Internal behavior of `makeRegion` itself:**
+   The method:
+   ```java
+   declareVars(code, Nullability.castToNonnull(cont));
+   cont.generate(this, code);
+   ```
+   There are no explicit null checks or defensive programming around `cont`. Instead, it uses a helper that conceptually asserts non-null (`castToNonnull`) and then immediately dereferences `cont`. If `cont` were ever null, this would throw at runtime, so the implementation is based on an invariant that `cont` is never null at call time.
+
+Across all callers provided:
+- When a region/container *might* be absent according to the model (handler region, finally region, else region), the code explicitly checks for null/emptiness and avoids calling `makeRegionIndent` / `makeRegion` in those cases.
+- In all other cases, the container is passed without any safety check, and the callee unconditionally dereferences it.
+
+This consistent pattern is strong evidence that, in the actual usage of the API, `cont` is never allowed to be null at the point where `makeRegion` is called. Any null value would lead to an immediate NPE, and the surrounding code is written as though that cannot happen in valid control flow.
+
+Therefore, based on the provided call chain and usage patterns, `cont` is not intended to be null in practice.
+    ]]></reason>
+    <value>NO</value>
+</response>

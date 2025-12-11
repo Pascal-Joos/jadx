@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void addConstraint(TypeSearchVarInfo varInfo, ITypeConstraint constraint) {
+    if (constraint != null) {
+        Nullability.castToNonnull(varInfo.getConstraints()).add(constraint);
+    }
+}
+  ```
+    ]]>
+  </code>
+</response>

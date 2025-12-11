@@ -1,0 +1,33 @@
+<response>
+    <reason><![CDATA[
+In this call chain, `sVar` is obtained in `checkInsn` as:
+
+```java
+if (insn.contains(AFlag.DONT_INLINE)
+        || insn.contains(AFlag.DONT_GENERATE)
+        || insn.getResult() == null) {
+    return;
+}
+SSAVar sVar = insn.getResult().getSVar();
+```
+
+The method explicitly returns if `insn.getResult() == null`, so by the time `sVar` is retrieved, `insn.getResult()` is guaranteed non-null. We are not shown the implementation of `getSVar()`, but there is no indication in this code path that it can return `null` once a non-null result exists. Immediately after assignment, `sVar` is used without any null-check:
+
+- It is passed directly into `forbidNullInlines(sVar)` in the `CONST`/`MOVE` branch.
+- It is dereferenced (`sVar.isUsedInPhi()`) in the `CONST_CLASS` branch.
+
+There are no defensive null checks around `sVar` in `checkInsn` or in `forbidNullInlines`:
+
+```java
+private static boolean forbidNullInlines(SSAVar sVar) {
+    List<RegisterArg> useList = sVar.getUseList();
+    ...
+}
+```
+
+If `sVar` were ever null, both `sVar.getUseList()` and `sVar.isUsedInPhi()` would cause immediate `NullPointerException`s. The presence of these direct dereferences, together with the explicit guard against `insn.getResult() == null` before obtaining `sVar`, indicates that the code assumes `sVar` is never null in practice for this call chain.
+
+Given only this call chain and ignoring annotations, there is no path where `forbidNullInlines` is invoked with a null `sVar`. Any such path would reliably crash, which would be inconsistent with this being production code. Therefore, based on usage, `sVar` is effectively non-null.
+]]></reason>
+    <value>NO</value>
+</response>

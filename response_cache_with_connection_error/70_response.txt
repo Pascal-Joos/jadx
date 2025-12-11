@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Nullable
+  public ClspClass getClsDetails(ArgType type) {
+      if (nameMap == null) {
+          return null;
+      }
+      return nameMap.get(type.getObject());
+  }
+  ```
+    ]]>
+  </code>
+</response>

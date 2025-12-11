@@ -1,0 +1,22 @@
+<response>
+  <reason><![CDATA[
+At the call site:
+
+```java
+ArgType elemType = arrType.getArrayElement();
+```
+
+`getArrayElement()` is the instance method:
+
+```java
+public ArgType getArrayElement() {
+    return null;
+}
+```
+
+This method has a single unconditional return statement that always returns `null`. There are no branches, no dependencies on parameters, and no calls to other methods that could alter the return value.
+
+Therefore, regardless of what `arrType` is, this invocation will always assign `null` to `elemType`. The method can (and in fact will) return `null` at this specific call site.
+  ]]></reason>
+  <value>YES</value>
+</response>

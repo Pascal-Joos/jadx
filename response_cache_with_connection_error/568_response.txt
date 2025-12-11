@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void addToDF(BlockNode block, BlockNode dfBlock, int blocksCount) {
+		BitSet df = Nullability.castToNonnull(block).getDomFrontier();
+		if (df == null) {
+			df = new BitSet(blocksCount);
+			block.setDomFrontier(df);
+		}
+		df.set(dfBlock.getId());
+}
+  ```
+    ]]>
+  </code>
+</response>

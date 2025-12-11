@@ -1,0 +1,29 @@
+<response>
+    <reason><![CDATA[
+`attachDebugInfo` is only called from `processDebugInfo`:
+
+```java
+private void processDebugInfo(MethodNode mth, IDebugInfo debugInfo) {
+    InsnNode[] insnArr = mth.getInstructions();
+    attachSourceLines(mth, debugInfo.getSourceLineMapping(), insnArr);
+    attachDebugInfo(mth, debugInfo.getLocalVars(), Nullability.castToNonnull(insnArr));
+    setMethodSourceLine(mth, Nullability.castToNonnull(insnArr));
+}
+```
+
+Ignoring annotations, the actual value passed is the result of `mth.getInstructions()`, stored in `insnArr`. That same `insnArr` local is also passed directly (without the nonnull cast) to `attachSourceLines`. Inside `attachDebugInfo`, `insnArr` is used with plain array indexing:
+
+```java
+InsnNode insn = insnArr[i];
+```
+
+with no null check on the array itself. If `insnArr` were ever `null`, this would throw a `NullPointerException`. There is no defensive check against a null array, and the code clearly assumes a non-null array to iterate over offsets and attach debug info.
+
+To decide whether `insnArr` can in fact be null, we must know whether `MethodNode.getInstructions()` can return null. That declaration/implementation is not provided, and there are no other call sites in the given chain that constrain it further. Without knowing how `getInstructions()` behaves, we cannot soundly conclude that `insnArr` is always non-null or may be null.
+
+Therefore, to make a determination, the declaration (or implementation) of `MethodNode.getInstructions()` is required.]]></reason>
+    <success>false</success>
+    <methods>
+      <method>jadx.core.dex.nodes.MethodNode.getInstructions</method>
+    </methods>
+</response>

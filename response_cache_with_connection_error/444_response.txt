@@ -1,0 +1,26 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void rebindArgs() {
+ 		RegisterArg resArg = getResult();
+ 		if (resArg != null) {
+ 			Nullability.castToNonnull(resArg.getSVar()).setAssign(resArg);
+ 		}
+ 		for (InsnArg arg : getArguments()) {
+ 			if (arg instanceof RegisterArg) {
+ 				RegisterArg reg = (RegisterArg) arg;
+ 				SSAVar ssaVar = reg.getSVar();
+ 				if (ssaVar != null) {
+ 					ssaVar.use(reg);
+ 					ssaVar.updateUsedInPhiList();
+ 				}
+ 			} else if (arg instanceof InsnWrapArg) {
+ 				((InsnWrapArg) arg).getWrapInsn().rebindArgs();
+ 			}
+ 		}
+}
+  ```
+    ]]>
+  </code>
+</response>

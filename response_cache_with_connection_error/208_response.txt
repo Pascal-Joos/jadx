@@ -1,0 +1,8 @@
+```xml
+<response>
+    <reason><![CDATA[
+The method is named and structured as a typical setter (`setImplMthInfo`) and simply assigns a value to a field. By NullAway’s definition, setter methods are explicitly not considered initializer methods, even if they assign non-null values to fields, because they can be called multiple times and are not guaranteed to be part of a one-time object setup lifecycle. There is no indication that this method is a special framework lifecycle or one-shot initialization hook.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

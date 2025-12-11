@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static ArgType wildcard(ArgType obj, WildcardBound bound) {
+		return new WildcardType(Nullability.castToNonnull(obj), bound);
+}
+  ```
+    ]]>
+  </code>
+</response>

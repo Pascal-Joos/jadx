@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+At the call site `bn.getCleanSuccessors()` the method is simply:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+So the result is exactly the value of the field `cleanSuccessors` in the `BlockNode` instance referred to by `bn`.
+
+From the provided code, we see multiple usages of `getCleanSuccessors()` (including chained calls like `mth.getEnterBlock().getCleanSuccessors().get(0)` and iterations like `for (BlockNode s : bn.getCleanSuccessors())`). All those usages assume that `getCleanSuccessors()` returns a non-null `List` (they call `size()`, `get(0)`, iterate in for-each). However, this only shows how it is *used*, not how `cleanSuccessors` is initialized.
+
+The only place we see related logic is in `BlockExceptionHandler.wrapBlocksWithTryCatch`:
+
+```java
+topSplitterBlock.updateCleanSuccessors();
+if (bottomSplitterBlock != null) {
+    bottomSplitterBlock.updateCleanSuccessors();
+}
+```
+
+but we are not given the implementation of `BlockNode.updateCleanSuccessors()`, nor any constructor or setter for `cleanSuccessors`. Whether `bn.getCleanSuccessors()` can be null depends entirely on:
+
+- how `cleanSuccessors` is declared (e.g., initialized to `new ArrayList<>()` vs left uninitialized), and
+- what `updateCleanSuccessors()` or any other mutator does regarding this field.
+
+Since those declarations/implementations are not provided, we cannot safely conclude that `cleanSuccessors` is always non-null. It might be:
+
+- initialized to `null` by default and only set later in certain flows, or
+- conditionally set in `updateCleanSuccessors()`.
+
+Therefore, to decide confidently whether `bn.getCleanSuccessors()` can be null, we must inspect the relevant parts of `BlockNode`, especially the field declaration and any initialization logic for `cleanSuccessors`.
+  ]]></reason>
+  <success>false</success>
+  <methods>
+    <method>jadx.core.dex.nodes.BlockNode.cleanSuccessors field declaration (and any initializer)</method>
+    <method>jadx.core.dex.nodes.BlockNode.updateCleanSuccessors()</method>
+    <method>jadx.core.dex.nodes.BlockNode constructor(s)</method>
+  </methods>
+</response>

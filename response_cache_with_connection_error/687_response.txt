@@ -1,0 +1,27 @@
+<response>
+    <reason><![CDATA[
+The parameter `c` of `makeName(IContainer c)` is always passed from non-null sources in the provided call chain:
+
+1. Call sites:
+   - `makeName(region)` inside `processRegion(MethodNode mth, IContainer region)`:
+     - `processRegion` is called with:
+       * `mth.getRegion()` in `processMethodRegion`.
+       * `h.getHandlerRegion()` only after checking `if (h.getHandlerRegion() != null)`.
+       * Elements from `r.getSubBlocks()` (iterating `for (IContainer c : r.getSubBlocks())`), which by design are real region sub-blocks (not `null` placeholders).
+   - `makeName(from)` and `makeName(to)` in `addEdge(BlockNode from, BlockNode to, String style)`:
+     - `addEdge` is called from `processBlock` in `for (BlockNode next : block.getSuccessors())`, where `block` and `next` are real CFG blocks. A `null` successor would cause immediate failures elsewhere (e.g., iterations, method calls on the block), and the code does not guard against that.
+   - `makeName(block)` in `processBlock` and `processIBlock`:
+     - Both are called with actual `BlockNode` or `IBlock` instances; they are obtained from `mth.getBasicBlocks()`, `RegionUtils.getAllRegionBlocks(...)`, or constructed directly, and are used immediately without null checks (e.g., `block.getCId()`, `block.getStartOffset()`), which would throw if `block` were null.
+   - `makeName(enterBlock)` in `process(MethodNode mth)`:
+     - `enterBlock` is initialized from `mth.getEnterBlock()`. If `blocks == null`, a new non-null `BlockNode` is created and assigned to `enterBlock`. In the typical path, `enterBlock` is the method's real entry basic block; using a null entry would break control-flow graph processing and is not guarded against.
+
+2. No defensive null checks:
+   - `makeName` itself immediately dereferences `c` (`c instanceof BlockNode`, `c.getClass()`, `c.hashCode()`) with no null check, so if `c` could be null, this method would crash. The surrounding code also does not defensively check for nulls before calling `makeName`.
+
+3. Invariants implied by control-flow structure:
+   - The control-flow and region-building code assumes that regions, handler regions, blocks, and successors are valid non-null objects. The absence of null guards and the immediate dereferencing of these objects strongly indicates that, in practice, null is not an allowed or expected value for these parameters.
+
+Based on these usage patterns and the absence of any call that can pass `null` (and the fact that such a null would cause an immediate NPE), `c` is effectively never null in this codebase.
+]]></reason>
+    <value>NO</value>
+</response>

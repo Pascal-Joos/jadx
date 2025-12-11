@@ -1,0 +1,29 @@
+<response>
+    <reason><![CDATA[
+Across all usages of `TypeCompare.compareTypes(ArgType first, ArgType second)` in the provided call chain, the `first` argument is always obtained from non-null-typed sources and is not checked for null before passing. Moreover, inside `compareTypes`, `first` is dereferenced immediately (`first.isTypeKnown()`, `first.isArray()`, etc.) without any null guard; if `first` could be null in practice, this would produce frequent NPEs throughout type inference and simplification.
+
+Concretely, every call site passes `first` as:
+- A method/field/variable return value or element from collections where `null` is not used as a sentinel:
+  - `instanceType` and `clsType` in `ModVisitor.fixFieldUsage`: both come from field/method metadata where types are always present.
+  - `parentCastType` and `castType` in `SimplifyVisitor.shadowedByOuterCast`.
+  - `from` in `ArgType.isCastNeeded`.
+  - `argType` and `mthType` in `MethodInvokeVisitor.isMethodAcceptable`.
+  - `superType` in `OverrideMethodVisitor.updateReturnType` / `updateArgType`.
+  - `ssaType` and `codeVarType` in `ProcessVariables.checkCodeVars`: `ssaType` is explicitly filtered by `ssaType != null`, while `codeVarType == null` is handled earlier and replaced by `ArgType.UNKNOWN`, so the compared types are never null.
+  - `argType`, `candidateType`, `arrayElement`, `returnType`, etc., in multiple `TypeUpdate` listeners (`checkBound`, `applyInvokeTypes`, `moveListener`, `arrayPutListener`, `checkCastListener`, `arrayGetListener`, `ifListener`, etc.). These all come from existing `ArgType` fields or methods, and `updateTypeChecked` enforces `candidateType != null` (throws if null), so `candidateType` cannot be null when passed to `compareTypes`.
+  - `resType` and `argType` in `TypeSearch$1.check`.
+  - Elements of lists (`firstGenericTypes.get(i)`, `secondGenericTypes.get(i)`) and extend types in `TypeCompare` helper methods; these lists are built from `ArgType` internals and are not populated with nulls.
+  - `parsedType`, `currentType` in `SignatureProcessor.validateParsedType`: they are produced by the signature parser and method/field info, and nulls are filtered out earlier (`signatureType == null` returns immediately).
+
+Where any variable could be null, the code either:
+- Filters it out before the call (e.g., `if (ssaType != null && …)`), or
+- Replaces null with a concrete non-null `ArgType` (e.g., `codeVarType == null` ⇒ `codeVar.setType(ArgType.UNKNOWN)` and then only that non-null value is used downstream).
+
+No call site passes a literal `null`, and no code path shows `first` being derived from a nullable value without null-guarding.
+
+Additionally, the heavy reliance on `compareTypes` in core type inference and simplification logic, coupled with its unchecked dereferences of `first`, implies it is assumed non-null throughout the system; otherwise, NPEs would be common and likely guarded against, which they are not.
+
+Therefore, based on actual usage and internal assumptions, the `first` parameter is not intended to be null and is effectively non-null in practice.
+    ]]></reason>
+    <value>NO</value>
+</response>

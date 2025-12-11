@@ -1,0 +1,34 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void addGenerics(ICodeWriter code, ArgType type) {
+		List<ArgType> generics = type.getGenericTypes();
+		if (generics != null) {
+			code.add('<');
+			int len = generics.size();
+			for (int i = 0; i < len; i++) {
+				if (i != 0) {
+					code.add(", ");
+				}
+				ArgType gt = generics.get(i);
+				ArgType wt = gt.getWildcardType();
+				if (wt != null) {
+					ArgType.WildcardBound bound = gt.getWildcardBound();
+					if (bound == null || bound == ArgType.WildcardBound.UNBOUND) {
+						code.add('?');
+					} else {
+						code.add(bound.getStr());
+						useType(code, wt);
+					}
+				} else {
+					useType(code, gt);
+				}
+			}
+			code.add('>');
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

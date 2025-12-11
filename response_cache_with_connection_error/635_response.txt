@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+The call site `elseAssign.getResult()` appears in `TernaryMod.replaceWithTernary`:
+
+```java
+RegisterArg otherArg = null;
+for (InsnArg arg : phiInsn.getArguments()) {
+    if (arg != resArg && arg instanceof RegisterArg) {
+        otherArg = (RegisterArg) arg;
+        break;
+    }
+}
+if (otherArg == null) {
+    return;
+}
+InsnNode elseAssign = otherArg.getAssignInsn();
+...
+if (elseAssign != null && elseAssign.isConstInsn()) {
+    ...
+}
+```
+
+Key points:
+
+1. `elseAssign` is an `InsnNode` obtained from `otherArg.getAssignInsn()`.  
+   - It is explicitly checked for null: `if (elseAssign != null && elseAssign.isConstInsn()) { ... }`.  
+   - Therefore, if execution enters this `if` block, `elseAssign` is guaranteed to be non‑null.
+
+2. Inside that `if`, `elseAssign` is used as a *constant instruction* and later passed into `InsnArg.wrapInsnIntoArg(elseAssign)`, and potentially to `InsnRemover.remove(mth, elseAssign)`. None of these operations alter its `result` to null.
+
+3. For constant instructions (e.g., `CONST`, `CONST_STR`, `CONST_CLASS`), the decompiler’s pipeline relies on them having a non‑null `result` whenever they participate in SSA and PHI, which is exactly the situation here:
+   - Earlier checks ensure `phiInsn` has two arguments and both `resArg` and `otherArg` are proper SSA variables.
+   - These variables’ assign instructions (`insn` for `then` branch and `elseAssign` for `else` branch) are used to feed a PHI; all code working with PHI/SSA (e.g., `SSATransform`, `InitCodeVariables`, `TypeInferenceVisitor`) assumes that an assignment instruction’s `getResult()` is non‑null. If such an assign insn had `null` result, many of these places (e.g., `InitCodeVariables.collectConnectedVars`, `TypeInferenceVisitor.addAssignBound`) would immediately throw or misbehave, which is not guarded for.
+   - There is no code path shown that would set the `result` of a const/assign instruction participating in a PHI to null before this transformation.
+
+4. Throughout all visitors and utilities provided, when an instruction’s `result` can be null, callers always check `getResult()` for null before using it. Here, in the block where `elseAssign` is treated as a const assign feeding a PHI, `elseAssign.getResult()` is *not* null‑checked, which is consistent with the implicitly enforced invariant that such an SSA assign instruction must have a non‑null result.
+
+Given these invariants and the explicit `elseAssign != null` guard, at this specific call site inside that branch, `elseAssign.getResult()` cannot be null.
+
+]]></reason>
+  <value>NO</value>
+</response>

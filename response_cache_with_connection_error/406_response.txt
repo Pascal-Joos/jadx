@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public boolean sameCodeVar(RegisterArg arg) {
+      return Nullability.castToNonnull(this.getSVar()).getCodeVar() == arg.getSVar().getCodeVar();
+  }
+  ```
+    ]]>
+  </code>
+</response>

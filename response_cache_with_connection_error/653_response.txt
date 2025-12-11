@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public RegisterArg bindArg(BlockNode pred) {
+		RegisterArg res = getResult();
+		if (res == null) {
+			return null;
+		}
+		RegisterArg arg = InsnArg.reg(res.getRegNum(), res.getInitType());
+		bindArg(arg, pred);
+		return arg;
+  }
+  ```
+    ]]>
+  </code>
+</response>

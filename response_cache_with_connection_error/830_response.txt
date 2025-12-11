@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public List<RegisterArg> getRegisterArgs() {
+		List<RegisterArg> list = new ArrayList<>();
+		if (mode == Mode.COMPARE && compare != null) {
+			compare.getInsn().getRegisterArgs(list);
+		} else {
+			for (IfCondition arg : args) {
+				list.addAll(arg.getRegisterArgs());
+			}
+		}
+		return list;
+  }
+  ```
+    ]]>
+  </code>
+</response>

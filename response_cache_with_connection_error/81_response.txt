@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public Set<String> getSuperTypes(String clsName) {
+  		Map<String, Set<String>> superTypesCacheRef = Nullability.castToNonnull(superTypesCache);
+  		Set<String> result = superTypesCacheRef.get(clsName);
+  		return result == null ? Collections.emptySet() : result;
+  }
+  ```
+    ]]>
+  </code>
+</response>

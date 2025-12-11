@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private boolean isMethodAcceptable(IMethodDetails methodDetails, List<ArgType> types,
+ 			Function<TypeCompareEnum, Boolean> acceptFunction) {
+ 		if (root == null) {
+ 			return false;
+ 		}
+ 		List<ArgType> mthTypes = methodDetails.getArgTypes();
+ 		int argCount = mthTypes.size();
+ 		if (argCount != types.size()) {
+ 			return false;
+ 		}
+ 		TypeCompare typeCompare = Nullability.castToNonnull(root.getTypeUpdate().getTypeCompare());
+ 		for (int i = 0; i < argCount; i++) {
+ 			ArgType mthType = mthTypes.get(i);
+ 			ArgType argType = types.get(i);
+ 			TypeCompareEnum result = typeCompare.compareTypes(argType, mthType);
+ 			if (!acceptFunction.apply(result)) {
+ 				return false;
+ 			}
+ 		}
+ 		return true;
+ 	}
+  ```
+    ]]>
+  </code>
+</response>

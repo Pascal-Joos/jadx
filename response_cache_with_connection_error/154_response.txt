@@ -1,0 +1,73 @@
+<response>
+    <reason><![CDATA[
+`EdgeInsnAttr.addEdgeInsn(Edge edge, InsnNode insn)` is called from `insertLoopBreak` as:
+
+```java
+EdgeInsnAttr.addEdgeInsn(insertEdge, breakInsn);
+```
+
+Within `insertLoopBreak`, `insertEdge` is initialized to `null`:
+
+```java
+Edge insertEdge = null;
+boolean confirm = false;
+```
+
+Every path that proceeds to the call must first set `insertEdge` and `confirm`:
+
+1. **First branch (jump to outer loop):**
+   ```java
+   for (LoopInfo loopAtEnd : loops) {
+       if (loopAtEnd != loop && loop.hasParent(loopAtEnd)) {
+           insertEdge = exitEdge;
+           confirm = true;
+           break;
+       }
+   }
+   ```
+
+2. **Second branch (path search):**
+   ```java
+   if (!confirm) {
+       BlockNode insertBlock = null;
+       while (exit != null) {
+           if (insertBlock != null && isPathExists(loopExit, exit)) {
+               if (canInsertBreak(insertBlock)) {
+                   insertEdge = new Edge(insertBlock, insertBlock.getSuccessors().get(0));
+                   confirm = true;
+                   break;
+               }
+               return false;
+           }
+           ...
+       }
+   }
+   ```
+
+After these, there is an explicit check:
+
+```java
+if (!confirm) {
+    return false;
+}
+```
+
+Only if `confirm` is `true` does execution reach:
+
+```java
+EdgeInsnAttr.addEdgeInsn(insertEdge, breakInsn);
+```
+
+In both branches that can set `confirm = true`, `insertEdge` is assigned a non-null value (`exitEdge` or `new Edge(...)`). If no such assignment happens, the method returns `false` before the call. Thus, along all executable paths reaching `addEdgeInsn`, `insertEdge` is guaranteed to be non-null.
+
+Within `EdgeInsnAttr.addEdgeInsn`, `edge` is used immediately:
+
+```java
+addEdgeInsn(edge.getSource(), edge.getTarget(), insn);
+```
+
+If `edge` were null, this would throw a `NullPointerException`, so the caller logic must (and does) prevent a null value from reaching this point.
+
+Therefore, based on the actual call chain and control flow, the `edge` parameter cannot be null in practice.]]></reason>
+    <value>NO</value>
+</response>

@@ -1,0 +1,32 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void processInvoke(MethodNode parentMth, BaseInvokeNode invokeInsn) {
+ 		if (root == null) {
+ 			return;
+ 		}
+ 		MethodInfo callMth = invokeInsn.getCallMth();
+ 		if (callMth.getArgsCount() == 0) {
+ 			return;
+ 		}
+ 		IMethodDetails mthDetails = Nullability.castToNonnull(root.getMethodUtils()).getMethodDetails(invokeInsn);
+ 		if (mthDetails == null) {
+ 			if (Consts.DEBUG) {
+ 				parentMth.addDebugComment("Method info not found: " + callMth);
+ 			}
+ 			processUnknown(invokeInsn);
+ 		} else {
+ 			if (mthDetails.isVarArg()) {
+ 				ArgType last = Utils.last(mthDetails.getArgTypes());
+ 				if (last != null && last.isArray()) {
+ 					invokeInsn.add(AFlag.VARARG_CALL);
+ 				}
+ 			}
+ 			processOverloaded(parentMth, invokeInsn, mthDetails);
+ 		}
+  }
+  ```
+    ]]>
+  </code>
+</response>

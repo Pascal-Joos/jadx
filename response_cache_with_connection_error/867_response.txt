@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private BlockInsnPair getValuesInitInsn(EnumData data) {
+		if (data.valuesField == null) {
+			return null;
+		}
+		FieldInfo searchField = data.valuesField.getFieldInfo();
+		for (BlockNode blockNode : data.staticBlocks) {
+			for (InsnNode insn : blockNode.getInstructions()) {
+				if (insn.getType() == InsnType.SPUT) {
+					IndexInsnNode indexInsnNode = (IndexInsnNode) insn;
+					FieldInfo f = (FieldInfo) indexInsnNode.getIndex();
+					if (f.equals(searchField)) {
+						return new BlockInsnPair(blockNode, indexInsnNode);
+					}
+				}
+			}
+		}
+		return null;
+	}
+  ```
+    ]]>
+  </code>
+</response>

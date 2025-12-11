@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void markThisArgs(RegisterArg thisArg) {
+      if (thisArg != null) {
+          markOneArgAsThis(thisArg);
+          Nullability.castToNonnull(thisArg.getSVar()).getUseList().forEach(SSATransform::markOneArgAsThis);
+      }
+  }
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,28 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Override
+	public boolean replaceArg(InsnArg from, InsnArg to) {
+		if (!(from instanceof RegisterArg) || !(to instanceof RegisterArg)) {
+			return false;
+		}
+
+		int argIndex = getArgIndex(from);
+		if (argIndex == -1) {
+			return false;
+		}
+		SSAVar toSVar = ((RegisterArg) to).getSVar();
+		if (toSVar != null) {
+			toSVar.addUsedInPhi(this);
+		}
+		super.setArg(argIndex, to);
+
+		InsnRemover.unbindArgUsage(null, from);
+		((RegisterArg) from).getSVar().updateUsedInPhiList();
+		return true;
+	}
+  ```
+    ]]>
+  </code>
+</response>

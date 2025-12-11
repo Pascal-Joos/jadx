@@ -1,0 +1,46 @@
+<response>
+  <reason><![CDATA[
+The method `ClassNode.getParentClass()` simply returns the field `parentClass` without any checks or defaulting:
+
+```java
+public ClassNode getParentClass() {
+    return parentClass;
+}
+```
+
+For the specific call site:
+
+```java
+if (!innerCls.getParentClass().equals(cls)) {
+    // ...
+}
+```
+
+in `EnumVisitor.processEnumCls`, we have:
+
+```java
+private static void processEnumCls(ClassNode cls, EnumField field, ClassNode innerCls) {
+    // ...
+    if (!innerCls.getParentClass().equals(cls)) {
+        // not inner
+        cls.addInlinedClass(innerCls);
+        innerCls.add(AFlag.DONT_GENERATE);
+    }
+}
+```
+
+There is no guarantee in the shown code that `innerCls.parentClass` is non-null:
+
+- The constructor(s) or initialization logic for `ClassNode` are not provided, so we cannot assume `parentClass` is always set.
+- In other parts of the codebase, `getParentClass()` is explicitly checked against `null` (e.g. `AndroidResourcesUtils.isResourceClass`), which shows that `null` is an expected possible value of `parentClass`:
+  ```java
+  ClassNode parentClass = cls.getParentClass();
+  return parentClass != null && parentClass.getShortName().equals("R");
+  ```
+- Likewise, `Deobfuscator.getNameWithoutPackage(ClassInfo)` uses a nullable parent for `ClassInfo`, and `DeobfClsInfo.makeNameWithoutPkg()` compares `parentClass != cls`, not `parentClass != null`, further indicating that top-level vs. inner handling may be special-cased, not that `parentClass` is guaranteed non-null.
+
+Because no invariant or code at this call site ensures that `innerCls.parentClass` is non-null before calling `innerCls.getParentClass()`, and since other code explicitly treats `getParentClass()` as potentially null, it is entirely possible for `innerCls.getParentClass()` to return `null` here.
+
+Thus, at this specific call site, the result of `innerCls.getParentClass()` can be `null`.]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public static LiteralArg lit(long literal, ArgType type) {
+		return LiteralArg.makeWithFixedType(literal, Nullability.castToNonnull(type));
+  }
+  ```
+    ]]>
+  </code>
+</response>

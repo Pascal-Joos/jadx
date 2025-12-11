@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public List<String> getImplementations(String clsName) {
+  		Map<String, List<String>> map = Nullability.castToNonnull(implementsCache);
+  		List<String> list = map.get(clsName);
+  		return list == null ? Collections.emptyList() : list;
+  }
+  ```
+    ]]>
+  </code>
+</response>

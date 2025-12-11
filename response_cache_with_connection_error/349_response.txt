@@ -1,0 +1,6 @@
+```xml
+<response>
+    <reason><![CDATA[The method body unconditionally executes `return null;` with no alternative code paths or conditions. Therefore, on every possible execution path, the returned expression is the literal `null`, which is always null by definition. There are no other variables, method calls, or control-flow branches that could alter this value.]]></reason>
+    <value>YES</value>
+</response>
+```

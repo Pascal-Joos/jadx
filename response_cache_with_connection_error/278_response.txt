@@ -1,0 +1,32 @@
+<response>
+  <reason><![CDATA[
+The specific call site in question is inside `InsnDecoder.filledNewArray`:
+
+```java
+ArgType arrType = ArgType.parse(insn.getIndexAsType());
+ArgType elType = arrType.getArrayElement();
+```
+
+For this analysis we must consider the actual implementation of `ArgType.getArrayElement()` that is in scope at this call site. The only provided implementation is:
+
+```java
+class jadx.core.dex.instructions.args.ArgType {
+    public ArgType getArrayElement() {
+        return null;
+    }
+}
+```
+
+There is no conditional logic or dependency on parameters or other methods here: the method unconditionally returns `null` on every invocation.
+
+Therefore, at this specific call site:
+
+```java
+ArgType elType = arrType.getArrayElement();
+```
+
+`elType` will always be assigned `null`, meaning the method can (and in fact must) return `null` at this call site.
+
+Subsequent uses like `elType.isPrimitive()` would actually be unsafe and would lead to a `NullPointerException` at runtime, but that does not change the fact that the return value of `getArrayElement()` itself is `null`.]]></reason>
+  <value>YES</value>
+</response>

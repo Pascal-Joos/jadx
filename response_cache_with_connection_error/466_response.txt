@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public void rebindArgs() {
+      super.rebindArgs();
+      IfCondition cond = condition;
+      if (cond != null) {
+          for (RegisterArg reg : cond.getRegisterArgs()) {
+              InsnNode parentInsn = reg.getParentInsn();
+              if (parentInsn != null) {
+                  parentInsn.rebindArgs();
+              }
+          }
+      }
+  }
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,35 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void processOverloaded(MethodNode parentMth, BaseInvokeNode invokeInsn, IMethodDetails mthDetails) {
+		if (root == null) {
+			return;
+		}
+		MethodInfo callMth = invokeInsn.getCallMth();
+		ArgType callCls = getCallClassFromInvoke(parentMth, invokeInsn, callMth);
+		List<IMethodDetails> overloadMethods = root.getMethodUtils().collectOverloadedMethods(callCls, callMth);
+		if (overloadMethods.isEmpty()) {
+			// not overloaded
+			return;
+		}
+
+		// resolve generic type variables
+		Map<ArgType, ArgType> typeVarsMapping = getTypeVarsMapping(invokeInsn);
+		IMethodDetails effectiveMthDetails = resolveTypeVars(mthDetails, typeVarsMapping);
+		List<IMethodDetails> effectiveOverloadMethods = new ArrayList<>(overloadMethods.size() + 1);
+		for (IMethodDetails overloadMethod : overloadMethods) {
+			effectiveOverloadMethods.add(resolveTypeVars(overloadMethod, typeVarsMapping));
+		}
+		effectiveOverloadMethods.add(effectiveMthDetails);
+
+		// search cast types to resolve overloading
+		int argsOffset = invokeInsn.getFirstArgOffset();
+		List<ArgType> compilerVarTypes = collectCompilerVarTypes(invokeInsn, argsOffset);
+		List<ArgType> castTypes = searchCastTypes(parentMth, effectiveMthDetails, effectiveOverloadMethods, compilerVarTypes);
+		applyArgsCast(invokeInsn, argsOffset, compilerVarTypes, castTypes);
+}
+  ```
+    ]]>
+  </code>
+</response>

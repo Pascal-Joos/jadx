@@ -1,0 +1,30 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private boolean resolveIndependentVariables(TypeSearchVarInfo varInfo) {
+		List<ITypeConstraint> constraints = varInfo.getConstraints();
+		if (constraints == null) {
+			return false;
+		}
+		boolean allRelatedVarsResolved = constraints.stream()
+				.flatMap(c -> c.getRelatedVars().stream())
+				.allMatch(v -> state.getVarInfo(v).isTypeResolved());
+		if (!allRelatedVarsResolved) {
+			return false;
+		}
+		// variable is independent, run single search
+		varInfo.reset();
+		do {
+			if (singleCheck(varInfo)) {
+				varInfo.setTypeResolved(true);
+				return true;
+			}
+		} while (!varInfo.nextType());
+
+		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

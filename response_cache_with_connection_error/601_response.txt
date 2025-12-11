@@ -1,0 +1,46 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the provided method, `parentNode` is initialized as:
+
+    ClassNode parentNode = mth.getParentClass();
+
+and then used in the loop as:
+
+    ClassInfo parentCls = parentNode.getClassInfo();
+
+There is no null check on `parentNode` before this call, and the only subsequent assignment is:
+
+    ClassNode nextParent = parentNode.getParentClass();
+    if (nextParent == parentNode) {
+        // no parent, class not found
+        return null;
+    }
+    parentNode = nextParent;
+
+This logic assumes that:
+1. `mth.getParentClass()` returns a non-null `ClassNode`, and
+2. `ClassNode.getParentClass()` always returns a non-null `ClassNode` (or at least the same non-null node when there is "no parent").
+
+However, from the snippet alone, there is no explicit guarantee that:
+- `mth` is non-null,
+- `mth.getParentClass()` cannot return null, or
+- `parentNode.getParentClass()` cannot return null in some hierarchy configurations.
+
+If any of these methods (`mth.getParentClass()`, `parentNode.getParentClass()`) can legally return null according to their contracts or implementation, then `parentNode` can become null:
+- Immediately, if `mth.getParentClass()` returns null (so `parentNode` is null at first use),
+- Or on a later iteration, if `parentNode.getParentClass()` returns null and `parentNode = nextParent` sets it to null.
+
+In both cases, the unguarded call `parentNode.getClassInfo()` would dereference a potentially null `parentNode`.
+
+Because the snippet does not include the definitions or documented contracts of `mth`, `getParentClass()`, `ClassNode`, or their invariants, there is no way to prove from this code alone that null is impossible. The method relies on external guarantees that are not shown.
+
+Therefore, based solely on the given code and without additional class/method contracts, we must treat `parentNode` as possibly null.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or documented contract of mth.getParentClass(): does it guarantee a non-null ClassNode for all calls to getClassForSuperCall?]]></request>
+        <request><![CDATA[Provide the implementation or documented contract of ClassNode.getParentClass(): can it ever return null, or is it guaranteed to return either the same node (for root) or a non-null parent?]]></request>
+        <request><![CDATA[Confirm any class invariants for mth and ClassNode (e.g., “every MethodInfo is always attached to a ClassNode”).]]></request>
+    </requests>
+</response>
+```

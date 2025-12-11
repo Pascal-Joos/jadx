@@ -1,0 +1,58 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void processInsn(RootNode root, MethodNode mth, InsnData insnData, UsageInfo usageInfo) {
+		if (insnData.getOpcode() == Opcode.UNKNOWN) {
+			return;
+		}
+		switch (insnData.getIndexType()) {
+			case TYPE_REF:
+				insnData.decode();
+				ArgType usedType = ArgType.parse(insnData.getIndexAsType());
+				usageInfo.clsUse(mth, Nullability.castToNonnull(usedType));
+				break;
+
+			case FIELD_REF:
+				insnData.decode();
+				FieldNode fieldNode = root.resolveField(FieldInfo.fromRef(root, insnData.getIndexAsField()));
+				if (fieldNode != null) {
+					usageInfo.fieldUse(mth, fieldNode);
+				}
+				break;
+
+			case METHOD_REF: {
+				insnData.decode();
+				IMethodRef mthRef;
+				ICustomPayload payload = insnData.getPayload();
+				if (payload != null) {
+					mthRef = ((IMethodRef) payload);
+				} else {
+					mthRef = insnData.getIndexAsMethod();
+				}
+				MethodNode methodNode = root.resolveMethod(MethodInfo.fromRef(root, mthRef));
+				if (methodNode != null) {
+					usageInfo.methodUse(mth, methodNode);
+				}
+				break;
+			}
+
+			case CALL_SITE: {
+				insnData.decode();
+				ICallSite callSite = InsnDataUtils.getCallSite(insnData);
+				IMethodHandle methodHandle = InsnDataUtils.getMethodHandleAt(callSite, 4);
+				if (methodHandle != null) {
+					IMethodRef mthRef = methodHandle.getMethodRef();
+					MethodNode mthNode = root.resolveMethod(MethodInfo.fromRef(root, mthRef));
+					if (mthNode != null) {
+						usageInfo.methodUse(mth, mthNode);
+					}
+				}
+				break;
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

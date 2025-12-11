@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public ClspClass getClsDetails(ArgType type) {
+      if (nameMap == null) {
+          throw new JadxRuntimeException("Classpath must be loaded first");
+      }
+      return nameMap.get(type.getObject());
+  }
+  ```
+    ]]>
+  </code>
+</response>

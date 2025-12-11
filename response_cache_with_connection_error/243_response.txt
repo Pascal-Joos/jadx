@@ -1,0 +1,44 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+InsnNode callInsn = customNode.getCallInsn();
+```
+
+`customNode` is an instance of `InvokeCustomNode` created specifically by `CustomLambdaCall.buildLambdaMethodCall`, which in turn calls `buildMethodCall`.
+
+Inside `buildMethodCall`:
+
+```java
+InvokeCustomNode invokeCustomNode = new InvokeCustomNode(lambdaInfo, insn, false, isRange);
+// ...
+InvokeNode invokeNode = buildInvokeNode(methodHandleType, invokeCustomNode, callMthInfo);
+
+if (methodHandleType == MethodHandleType.INVOKE_CONSTRUCTOR) {
+    ConstructorInsn ctrInsn = new ConstructorInsn(mth, invokeNode);
+    invokeCustomNode.setCallInsn(ctrInsn);
+} else {
+    invokeCustomNode.setCallInsn(invokeNode);
+}
+```
+
+In all non-exceptional code paths that return `invokeCustomNode`, `setCallInsn` is called with either:
+
+- a newly constructed `ConstructorInsn`, or  
+- a newly constructed `InvokeNode`.
+
+Both are non-null local variables just created with `new`. No alternative branch exists where `setCallInsn` is skipped or passed `null`. After this point `invokeCustomNode` is returned and becomes the `customNode` used by `InsnGen.makeInvokeLambda`.
+
+In `makeSimpleLambda` and `makeRefLambda`, the same `getCallInsn()` getter is used:
+
+```java
+InsnNode callInsn = customNode.getCallInsn();
+```
+
+Those methods are only entered after the `InvokeCustomNode` has been fully constructed as shown above; there is no further mutation that can reset `callInsn` to null. Therefore, at this specific call site, `callInsn` has been set to a non-null `InsnNode` earlier in `buildMethodCall`.
+
+Since the field is always initialized along the only normal-return path that produces this `customNode`, `getCallInsn()` cannot return null at this call site.
+]]></reason>
+  <value>NO</value>
+</response>

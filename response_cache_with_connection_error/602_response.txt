@@ -1,0 +1,28 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private ClassInfo getClassForSuperCall(MethodInfo callMth) {
+		ArgType declClsType = callMth.getDeclClass().getType();
+		ClassNode parentNode = mth.getParentClass();
+		while (true) {
+			if (parentNode == null) {
+				return null;
+			}
+			ClassInfo parentCls = parentNode.getClassInfo();
+			if (ArgType.isInstanceOf(root, parentCls.getType(), declClsType)) {
+				return parentCls;
+			}
+			ClassNode nextParent = parentNode.getParentClass();
+			if (nextParent == parentNode) {
+				// no parent, class not found
+				return null;
+			}
+			parentNode = nextParent;
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,17 @@
+<response>
+  <reason><![CDATA[
+At this call site (`extArg.getSVar()`), `extArg` is a `RegisterArg` obtained as `RegisterArg extArg = (RegisterArg) customNode.getArg(i);` in `InsnGen.makeInlinedLambdaMethod`. `customNode.getArg(i)` comes from the decoded invoke-custom instruction, where all register arguments are created with non-SSA `RegisterArg`s (via `InsnArg.reg(...)`) and later bound to SSA variables during SSA transformation.
+
+Across the code base, there are many usages of `reg.getSVar()` guarded by null checks, proving that `sVar` can be null in general. However, for this particular path:
+
+- Before `makeInlinedLambdaMethod` is used, SSA has already been built (`SSATransform.process`), and `InitCodeVariables.initCodeVars` has initialized code variables for all `SSAVar`s. During SSA rename (`SSATransform.renameVarsInBlock`), every register used in instructions is assigned an `SSAVar` via `var.use(reg)`. That includes all invoke arguments.
+- `InvokeCustomNode` is created by the decoder and then flows through the normal SSA pipeline; there is no place that deliberately leaves its register arguments without an `SSAVar` once SSA is built.
+- Later consumers (e.g., `DeboxingVisitor`, `TypeInferenceVisitor`, `LoopRegionVisitor`, many others) freely call `arg.getSVar()` on invoke arguments and their derived registers without null checks, which would be unsafe if these could still be null after SSA. This indicates an invariant: after SSA is constructed, every live `RegisterArg` in real code paths has a non-null `SSAVar`.
+- In `makeInlinedLambdaMethod` itself, just above the `extArg` usage, the code accesses `callArgs.get(i).getSVar().getCodeVar()` with no null check; if any argument SSA var could be null here, that code would be equally unsafe. This shows the method assumes SSA vars for all these arguments are non-null at this point.
+
+While there are helper utilities like `VarNode.get(MethodNode mth, RegisterArg reg)` that check `reg.getSVar()` for null, those are for generic tooling APIs where SSA may not exist (e.g., abstract/interface methods or before SSA). In contrast, this path is in the fully-processed, codegen stage with SSA guaranteed.
+
+Therefore, under the invariants of Jadx's pipeline at the moment this code runs, `extArg.getSVar()` cannot be null at this specific call site.
+  ]]></reason>
+  <value>NO</value>
+</response>

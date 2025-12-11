@@ -1,0 +1,59 @@
+<response>
+    <reason><![CDATA[
+The `block` parameter of `addToDF` is the `runner` variable in `computeDominanceFrontier`.
+
+Trace of how `block` is obtained:
+
+- In `computeDominanceFrontier`, we iterate:
+  ```java
+  for (BlockNode block : blocks) {
+      List<BlockNode> preds = block.getPredecessors();
+      if (preds.size() >= 2) {
+          BlockNode idom = block.getIDom();
+          for (BlockNode pred : preds) {
+              BlockNode runner = pred;
+              while (runner != idom) {
+                  addToDF(runner, block, blocksCount);
+                  runner = runner.getIDom();
+              }
+          }
+      }
+  }
+  ```
+- So `addToDF` is always called as:
+  ```java
+  addToDF(runner, block, blocksCount);
+  ```
+  where:
+  - `runner` starts as `pred` (an element of `preds`, which comes from `block.getPredecessors()`).
+  - Then updated by `runner = runner.getIDom()`.
+
+Key points:
+
+1. For any element to be in `preds`, it must already be a `BlockNode` (not `null`) because:
+   - `preds` is a `List<BlockNode>`. In typical CFG construction in Jadx, predecessors are explicit block objects; there is no indication in this call chain of adding `null` predecessors.
+   - The loop uses enhanced for: `for (BlockNode pred : preds)`. If any entry were `null`, then `runner` could be `null`, and the subsequent `runner != idom` and `runner.getIDom()` would risk `NullPointerException`. There is no defensive null-check, suggesting the code assumes non-null predecessors.
+
+2. The `while (runner != idom)` loop:
+   - If `idom` might be `null` (e.g., for the entry block), the loop condition is still safe: comparing a `BlockNode` to `null` is fine, but only if `runner` itself is non-null.
+   - Inside the loop, `runner.getIDom()` is called unconditionally. If `runner` could ever be `null`, this would immediately throw `NullPointerException`.
+   - There are no guards around `runner.getIDom()`, strongly implying `runner` is never expected to be `null` at runtime.
+
+3. Because `runner` must be non-null for the method not to crash, every call to:
+   ```java
+   addToDF(runner, block, blocksCount);
+   ```
+   passes a non-null first argument, i.e., `block` in `addToDF` is always non-null in practice.
+
+4. Inside `addToDF`, `block` is used immediately:
+   ```java
+   BitSet df = block.getDomFrontier();
+   ...
+   block.setDomFrontier(df);
+   ```
+   Again, there is no null check; a null `block` would cause a `NullPointerException`. Combined with the above, the codebase is written under the invariant that this parameter is never null.
+
+Based solely on this usage chain (and ignoring annotations), there is no path where `null` is intentionally or safely passed to `addToDF` as `block`. If it were, the program would crash; the absence of defensive checks and the reliance on non-null semantics indicate `block` is intended and effectively required to be non-null.
+    ]]></reason>
+    <value>NO</value>
+</response>

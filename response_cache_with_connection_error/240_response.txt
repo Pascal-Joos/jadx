@@ -1,0 +1,59 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within this method, every execution path that reaches the line
+
+    invokeCustomNode.getCallInsn().addAttr(callMth);
+
+first executes one of:
+
+    invokeCustomNode.setCallInsn(ctrInsn);   // in the INVOKE_CONSTRUCTOR case
+    invokeCustomNode.setCallInsn(invokeNode); // in the non-constructor case
+
+Control flow analysis:
+
+1. `invokeCustomNode` is created with `new InvokeCustomNode(...)` and is therefore non-null.
+
+2. `InvokeNode invokeNode = buildInvokeNode(...)` is created unconditionally before the `if` statement.
+
+3. The `if` statement:
+
+       if (methodHandleType == MethodHandleType.INVOKE_CONSTRUCTOR) {
+           ConstructorInsn ctrInsn = new ConstructorInsn(mth, invokeNode);
+           invokeCustomNode.setCallInsn(ctrInsn);
+       } else {
+           invokeCustomNode.setCallInsn(invokeNode);
+       }
+
+   is a full `if/else`:
+   - If `methodHandleType == INVOKE_CONSTRUCTOR`, `setCallInsn` is called with a new `ConstructorInsn`.
+   - Otherwise, `setCallInsn` is called with `invokeNode`.
+
+   Thus, after this `if/else`, `invokeCustomNode.setCallInsn(...)` has been called on all control‑flow paths that continue in this method.
+
+4. The potentially null value here is `callMth`, not `invokeCustomNode.getCallInsn()`:
+
+       MethodNode callMth = root.resolveMethod(callMthInfo);
+       if (callMth != null) {
+           invokeCustomNode.getCallInsn().addAttr(callMth);
+           ...
+
+   The body containing `invokeCustomNode.getCallInsn().addAttr(callMth);` is executed only when `callMth != null`. There is no conditional around `getCallInsn()` itself.
+
+5. For `invokeCustomNode.getCallInsn()` to be null here, one of the following would need to be true:
+   - `setCallInsn(...)` was never called on `invokeCustomNode` before this line, or
+   - `setCallInsn(...)` allows `null` to be passed and was actually called with `null`, or
+   - `InvokeCustomNode` mutates its internal `callInsn` field to `null` between `setCallInsn(...)` and this line.
+
+   From the shown method:
+   - `setCallInsn(...)` is always called in the `if/else` block (no path that skips both branches).
+   - Both arguments passed to `setCallInsn` (`ctrInsn` and `invokeNode`) are created with `new`, so they are non-null.
+   - There is no other assignment to the call instruction field in this method after the `if/else`.
+
+Given only this method and normal Java semantics (i.e., constructors never return null, fields not being mutated behind the scenes), `invokeCustomNode.getCallInsn()` is guaranteed to be non-null at the point of use. The only nullable item controlled here is `callMth`, which is already guarded by `if (callMth != null)`.
+
+Therefore, under the reasonable assumption that `InvokeCustomNode.setCallInsn` does not intentionally discard or null out the provided instruction, the expression `invokeCustomNode.getCallInsn()` cannot be null at that line.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

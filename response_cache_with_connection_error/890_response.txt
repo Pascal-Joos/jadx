@@ -1,0 +1,23 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the body of resolveTypeVars, the field/variable root is only referenced after this explicit check:
+
+    if (root == null) {
+        throw new JadxRuntimeException("Null root node");
+    }
+
+This check occurs at the very start of the method and throws an exception immediately if root is null. Because throwing the exception aborts execution, no subsequent line (including the one with "root.getTypeUtils().replaceTypeVariablesUsingMap(...)") can be reached with root == null.
+
+There are no assignments to root inside this method, and no control-flow paths that would bypass the null-check before calling root.getTypeUtils(). Thus, for any execution path that actually reaches:
+
+    ArgType resolvedType = root.getTypeUtils()
+        .replaceTypeVariablesUsingMap(returnType, typeVarsMapping);
+
+root is guaranteed to be non-null at that point.
+
+Therefore, the expression "root" at that line cannot be null within this method’s execution.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

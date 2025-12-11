@@ -1,0 +1,101 @@
+<response>
+  <reason><![CDATA[
+The call site in question is `((RegisterArg) to).getSVar()` inside `InsnArg.wrapInstruction`:
+
+```java
+class jadx.core.dex.instructions.args.InsnArg {
+    public InsnArg wrapInstruction(MethodNode mth, InsnNode insn, boolean unbind) {
+        InsnNode parent = parentInsn;
+        if (parent == null) {
+            return null;
+        }
+        if (parent == insn) {
+            LOG.debug("Can't wrap instruction info itself: {}", insn);
+            return null;
+        }
+        int i = getArgIndex(parent, this);
+        if (i == -1) {
+            return null;
+        }
+        if (insn.getType() == InsnType.MOVE && this.isRegister()) {
+            // preserve variable name for move insn (needed in `for-each` loop for iteration variable)
+            String name = ((RegisterArg) this).getName();
+            if (name != null) {
+                InsnArg arg = insn.getArg(0);
+                if (arg.isRegister()) {
+                    ((RegisterArg) arg).setNameIfUnknown(name);
+                } else if (arg.isInsnWrap()) {
+                    InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+                    RegisterArg registerArg = wrapInsn.getResult();
+                    if (registerArg != null) {
+                        registerArg.setNameIfUnknown(name);
+                    }
+                }
+            }
+        }
+        InsnArg arg = wrapInsnIntoArg(insn);
+        InsnArg oldArg = parent.getArg(i);
+        parent.setArg(i, arg);
+        InsnRemover.unbindArgUsage(mth, oldArg);
+        if (unbind) {
+            InsnRemover.unbindArgUsage(mth, this);
+            // result not needed in wrapped insn
+            InsnRemover.unbindResult(mth, insn);
+            insn.setResult(null);
+        }
+        return arg;
+    }
+}
+```
+
+The concrete call site you gave, however, is more general: `((RegisterArg) to).getSVar()`. Across the codebase, `RegisterArg.getSVar()` is used in many places *without* a preceding null check, but there are also explicit null checks in some locations (e.g. `VarNode.get`, `DebugChecks.checkVar`, `TypeSearchState.getArgType` handles non-registers but assumes SSA for registers, etc.). This indicates that, globally, `sVar` can be null for some `RegisterArg` instances.
+
+Within the shown code, there are explicit places where a `RegisterArg` can legally have a null `sVar`:
+
+- `MethodGen.addMethodArguments`:
+  ```java
+  SSAVar ssaVar = mthArg.getSVar();
+  CodeVar var;
+  if (ssaVar == null) {
+      // abstract or interface methods
+      var = CodeVar.fromMthArg(mthArg, classGen.isFallbackMode());
+  } else {
+      var = ssaVar.getCodeVar();
+  }
+  ```
+  Here method arguments may legitimately have `getSVar() == null`.
+
+- `VarNode.get(MethodNode mth, RegisterArg reg)`:
+  ```java
+  SSAVar ssaVar = reg.getSVar();
+  if (ssaVar == null) {
+      return null;
+  }
+  ```
+  This directly acknowledges that `getSVar()` can be null.
+
+- `DebugChecks.checkVar` throws if `getSVar()` is null only *after* SSA has been built and `mth.getSVars()` is non-empty:
+  ```java
+  SSAVar sVar = reg.getSVar();
+  if (sVar == null) {
+      if (Utils.notEmpty(mth.getSVars())) {
+          throw new JadxRuntimeException("Null SSA var in " + insn + ", mth: " + mth);
+      }
+      return;
+  }
+  ```
+  This shows that before SSA is populated, `getSVar()` may be null and is considered acceptable.
+
+There is no invariant in the provided code that guarantees `sVar` is always non-null on every `RegisterArg`. In fact, some code is explicitly written to handle the null case. Since `getSVar()` is a simple field getter:
+
+```java
+public SSAVar getSVar() {
+    return sVar;
+}
+```
+
+and no global guarantee is given that `sVar` is always initialized for all `RegisterArg` instances at the point `((RegisterArg) to).getSVar()` is called, the method can return null at such a call site. The codebase itself reflects this by guarding some uses with null checks and by allowing `null`-SSA cases (e.g., abstract/interface methods, pre-SSA stages).
+
+Therefore, at the specific kind of call `((RegisterArg) to).getSVar()`, there is no proof from the given snippets that `sVar` must be non-null, and there are multiple indications that it can be null in some execution paths.]]></reason>
+  <value>YES</value>
+</response>

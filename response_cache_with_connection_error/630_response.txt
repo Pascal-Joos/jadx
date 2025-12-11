@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void mergeMoveResult(InsnNode[] insnByOffset, int offset, InsnNode insn, ArgType resType) {
+      int nextInsnOffset = getNextInsnOffset(insnByOffset, offset);
+      if (nextInsnOffset == -1) {
+          return;
+      }
+      InsnNode nextInsn = insnByOffset[nextInsnOffset];
+      if (nextInsn.getType() != InsnType.MOVE_RESULT) {
+          return;
+      }
+      RegisterArg moveRes = nextInsn.getResult();
+      insn.setResult(Nullability.castToNonnull(moveRes).duplicate(resType));
+      insn.copyAttributesFrom(nextInsn);
+      removeInsn(insnByOffset, nextInsn);
+  }
+  ```
+    ]]>
+  </code>
+</response>

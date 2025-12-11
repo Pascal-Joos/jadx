@@ -1,0 +1,36 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private int addSuperType(RootNode root, List<ArgType> superTypesMap, Set<String> endTypes, ArgType superType) {
+		if (Objects.equals(superType, ArgType.OBJECT)) {
+			return 0;
+		}
+		superTypesMap.add(superType);
+		ClassNode classNode = root.resolveClass(superType);
+		if (classNode != null) {
+			collectSuperTypes(classNode, superTypesMap, endTypes);
+			return 1;
+		}
+		ClspGraph clsp = root.getClsp();
+		if (clsp != null) {
+			ClspClass clsDetails = clsp.getClsDetails(superType);
+			if (clsDetails != null) {
+				int k = 0;
+				for (ArgType parentType : clsDetails.getParents()) {
+					k += addSuperType(root, superTypesMap, endTypes, parentType);
+				}
+				if (k == 0) {
+					endTypes.add(superType.getObject());
+				}
+				return 1;
+			}
+		}
+		// no info found => treat as hierarchy end
+		endTypes.add(superType.getObject());
+		return 1;
+}
+  ```
+    ]]>
+  </code>
+</response>

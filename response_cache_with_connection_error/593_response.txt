@@ -1,0 +1,87 @@
+<response>
+  <reason><![CDATA[
+The call site is inside `ClassNode.visitParentClasses`:
+
+```java
+public void visitParentClasses(Consumer<ClassNode> consumer) {
+    ClassNode currentCls = this;
+    ClassNode parentCls = currentCls.getParentClass();
+    while (parentCls != currentCls) {
+        consumer.accept(parentCls);
+        currentCls = parentCls;
+        parentCls = Nullability.castToNonnull(currentCls.getParentClass());
+    }
+}
+```
+
+The first assignment is the one in question:
+
+```java
+ClassNode parentCls = currentCls.getParentClass();
+```
+
+The implementation of `getParentClass()` is:
+
+```java
+public ClassNode getParentClass() {
+    return parentClass;
+}
+```
+
+From the provided codebase, `ClassNode` is used in many places assuming a *non-null* parent, but with one special convention:
+
+- For *top-level* classes, `parentClass` is set to the class itself (a self-reference), not to `null`.
+
+Multiple methods rely on this invariant:
+
+- `ClassNode.getTopParentClass()`:
+  ```java
+  ClassNode parent = getParentClass();
+  return parent == this ? this : parent.getTopParentClass();
+  ```
+  This logic only makes sense if `getParentClass()` never returns `null`; it uses identity comparison to detect the root, not a null check.
+
+- `ClassNode.hasNotGeneratedParent()`:
+  ```java
+  ClassNode parent = getParentClass();
+  if (parent == this) {
+      return false;
+  }
+  return parent.hasNotGeneratedParent();
+  ```
+  Again, root detection is by `parent == this`.
+
+- Other call sites such as:
+  - `ProcessClass.generateCode`: `ClassNode topParentClass = cls.getTopParentClass();`
+  - `UsageInfo.clsUse`: `clsDeps.add(topParentClass, depCls.getTopParentClass());`
+  - `FixAccessModifiers.fixClassVisibility`: `ClassNode topParentClass = cls.getTopParentClass();`
+  - and many others dereference parent/top-parent without any null checks.
+
+If `parentClass` could be `null` for a `ClassNode`, these methods would throw `NullPointerException`. Instead, the codebase systematically uses the pattern "root has `parentClass == this`" and checks `parent == this` to detect the top class. That implies the intended and required invariant is:
+
+- `parentClass` is never `null`;
+- for the top-most class, `parentClass == this`;
+- for inner/anonymous/etc., `parentClass` is a valid `ClassNode` (their parent).
+
+Now, inside `visitParentClasses`:
+
+1. `currentCls` is initialized to `this`, some arbitrary but valid `ClassNode` instance.
+2. `parentCls = currentCls.getParentClass();`
+
+Because `currentCls` is a fully constructed `ClassNode` and the general invariant is that `parentClass` is always non-null (self for top-level, actual parent for inners), `getParentClass()` at this call site returns a non-null value:
+
+- For a top-level class: `parentCls == currentCls` (non-null).
+- For an inner or anonymous class: `parentCls` is its outer class (non-null).
+
+This is further backed by the subsequent reassignment:
+
+```java
+parentCls = Nullability.castToNonnull(currentCls.getParentClass());
+```
+
+which explicitly documents and enforces the expectation that `getParentClass()` never returns `null` in this context.
+
+Therefore, under the design and invariants of this codebase, `currentCls.getParentClass()` cannot be `null` at this call site.
+  ]]></reason>
+  <value>NO</value>
+</response>

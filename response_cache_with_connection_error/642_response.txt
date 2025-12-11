@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void copyCodeVars(InsnNode fromInsn, InsnNode toInsn) {
+		copyCodeVars(Nullability.castToNonnull(fromInsn.getResult()), toInsn.getResult());
+		int argsCount = fromInsn.getArgsCount();
+		for (int i = 0; i < argsCount; i++) {
+			copyCodeVars(fromInsn.getArg(i), toInsn.getArg(i));
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

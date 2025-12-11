@@ -1,0 +1,80 @@
+<response>
+  <reason><![CDATA[
+At the examined call site `start.getCleanSuccessors()`, `start` is a `BlockNode` obtained as:
+
+```java
+BlockNode start = handler.getHandlerBlock();
+if (start == null) {
+    return;
+}
+...
+handler.setHandlerRegion(makeRegion(start, stack));
+```
+
+inside `RegionMaker.processExcHandler`. After the null check, `start` is passed into `makeRegion`, which ultimately (through various region/loop/if/switch processing) calls `BlockNode.getCleanSuccessors()`.
+
+The `getCleanSuccessors` method itself is:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+So the only way for `getCleanSuccessors()` to return null is if `this.cleanSuccessors` is null.
+
+In the provided codebase, `cleanSuccessors` is treated everywhere as either:
+
+- a non-null list that may be empty, or
+- explicitly checked for null only in a few defensive helper methods.
+
+For example, in `BlockUtils.buildSimplePath` and `getNextBlockToPath`:
+
+```java
+List<BlockNode> successors = block.getCleanSuccessors();
+if (successors == null || successors.size() >= 2) {
+    return Collections.emptyList();
+}
+```
+
+and
+
+```java
+List<BlockNode> successors = block.getCleanSuccessors();
+if (successors == null) {
+    return null;
+}
+```
+
+These usages show the library allows for the *possibility* that `cleanSuccessors` is null in some states, hence the null checks. However, at the specific call site in question:
+
+- There is no surrounding null check or fallback; the code assumes `start.getCleanSuccessors()` is non-null.
+- `start` here is a normal handler block in a fully built CFG. In other places where blocks are constructed/split (e.g., in `BlockExceptionHandler.wrapBlocksWithTryCatch`), the code explicitly calls `updateCleanSuccessors()` on splitter blocks after connecting edges:
+
+  ```java
+  topSplitterBlock.updateCleanSuccessors();
+  if (bottomSplitterBlock != null) {
+      bottomSplitterBlock.updateCleanSuccessors();
+  }
+  ```
+
+This pattern indicates that once the control-flow graph is built and `updateCleanSuccessors()` has been applied, `cleanSuccessors` is expected to be initialized to a non-null list for every reachable block, including handler blocks like `start`.
+
+Additionally, other core algorithms (region making, loops, switches, etc.) frequently use:
+
+```java
+for (BlockNode node : block.getCleanSuccessors()) { ... }
+```
+
+without null checks, which would throw a `NullPointerException` if `cleanSuccessors` could be null in normal operation. This strongly implies the design invariant that for any CFG node processed by `RegionMaker` (including the handler `start`), `cleanSuccessors` is not null—only possibly empty.
+
+Given:
+
+- `start` is guaranteed non-null before use,
+- `start` is a regular handler block in a method already prepared for region analysis,
+- and the broader invariant that `cleanSuccessors` is non-null for such blocks,
+
+the specific invocation `start.getCleanSuccessors()` cannot yield null; it will return a non-null `List<BlockNode>` (possibly empty).
+  ]]></reason>
+  <value>NO</value>
+</response>

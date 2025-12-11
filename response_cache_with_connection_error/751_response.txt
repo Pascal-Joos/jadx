@@ -1,0 +1,34 @@
+<response>
+    <reason><![CDATA[
+`attachDebugInfo` is only called from `processDebugInfo`:
+
+```java
+private void processDebugInfo(MethodNode mth, IDebugInfo debugInfo) {
+    InsnNode[] insnArr = mth.getInstructions();
+    attachSourceLines(mth, debugInfo.getSourceLineMapping(), insnArr);
+    attachDebugInfo(mth, debugInfo.getLocalVars(), Nullability.castToNonnull(insnArr));
+    setMethodSourceLine(mth, Nullability.castToNonnull(insnArr));
+}
+```
+
+Here, the argument to `insnArr` is always `Nullability.castToNonnull(insnArr)`, where the local `insnArr` is exactly the result of `mth.getInstructions()`.
+
+Ignoring annotations and helper names as requested, the actual value being passed is just `mth.getInstructions()`; there is no branch, conditional, or alternative caller that ever passes a literal `null` or a variable that was possibly assigned `null`. There is also no reassignment of `insnArr` between the `getInstructions()` call and the `attachDebugInfo` call.
+
+Within `attachDebugInfo`, `insnArr` is dereferenced immediately:
+
+```java
+InsnNode insn = insnArr[i];
+```
+
+with no null check on `insnArr` itself. A null `insnArr` would cause an immediate `NullPointerException`. The surrounding code that uses `insnArr` (`attachSourceLines` and `setMethodSourceLine`) suggests the design assumes a non‑null array and does not guard against `null`.
+
+Based on the provided call chain:
+- No caller passes `null`.
+- There is no defensive handling for a null array.
+- If `mth.getInstructions()` could be `null`, the code would crash routinely, which is unlikely for production library code.
+
+Therefore, from actual usage patterns in the shown call chain, `insnArr` is treated as non‑null and is never passed `null`.
+    ]]></reason>
+    <value>NO</value>
+</response>

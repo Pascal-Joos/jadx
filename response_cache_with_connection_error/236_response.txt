@@ -1,0 +1,20 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void makeInvokeLambda(ICodeWriter code, InvokeCustomNode customNode) throws CodegenException {
+      if (customNode.isUseRef()) {
+          makeRefLambda(code, customNode);
+          return;
+      }
+      if (fallback || !customNode.isInlineInsn()) {
+          makeSimpleLambda(code, customNode);
+          return;
+      }
+      MethodNode callMth = (MethodNode) Nullability.castToNonnull(customNode.getCallInsn()).get(AType.METHOD_DETAILS);
+      makeInlinedLambdaMethod(code, customNode, callMth);
+  }
+  ```
+    ]]>
+  </code>
+</response>

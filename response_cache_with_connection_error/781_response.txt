@@ -1,0 +1,24 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided snippet, we only know that `getBasicBlocks()` returns the field `blocks`:
+
+public List<BlockNode> getBasicBlocks() {
+    return blocks;
+}
+
+Whether `return blocks;` can be null depends entirely on:
+- How and where `blocks` is declared,
+- How it is initialized (e.g., in constructors, field initializers, setters),
+- Whether any code path can assign `null` to `blocks`,
+- Whether there are any invariants or contracts (e.g., annotations like @NonNull, @NotNull) that guarantee non-null.
+
+None of this information is included in the snippet. There is no visible initialization, null-check, or contract ensuring that `blocks` is always non-null. Therefore, based solely on the given method, we cannot determine if `blocks` is guaranteed to be non-null at this return statement.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show the declaration of the field `blocks` (including any annotations, e.g., @NonNull/@Nullable) and its type.]]></request>
+        <request><![CDATA[Show all constructors and any methods that assign to `blocks`, including whether `blocks` can ever be set to null.]]></request>
+    </requests>
+</response>
+```

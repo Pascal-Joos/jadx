@@ -1,0 +1,48 @@
+<response>
+    <reason><![CDATA[
+In all usages shown, the `end` parameter of `BlockUtils.isPathExists(BlockNode start, BlockNode end)` is always passed a `BlockNode` that is not nullable at the call site.
+
+From the provided call chain:
+
+1. **RegionUtils.hasPathThroughBlock**
+   - Calls `BlockUtils.isPathExists(block, (BlockNode) cont)` only when `cont instanceof BlockNode`.
+   - The cast `(BlockNode) cont` implies `cont` is a non-null `BlockNode` in that branch; if `cont` were null, `instanceof` would be false and that branch would not execute.
+
+2. **RegionMaker (multiple usages)**
+   - `isPathExists(exitBlock, node)` in `traverseMonitorExitsCross`: both `exitBlock` and `node` come from sets/collections of `BlockNode` successors/exits; they are never assigned null inside the loops.
+   - `BlockUtils.isPathExists(exit, block)` in `makeEndlessLoop`: `exit` comes from `exitEdge.getTarget()` and `block` from iterating `BitSet`-derived block lists. No null assignment or check suggests null is not expected.
+   - `isPathExists(loopExit, exit)` in `insertLoopBreak`: `loopExit` is a method parameter (expected non-null by logic) and `exit` is progressed along clean successors (`exit = cs.size() == 1 ? cs.get(0) : null;`), but note: as soon as `exit` becomes null, the while loop stops and `isPathExists(loopExit, exit)` is never called with that null value.
+   - `BlockUtils.isPathExists(start, exit)` in `processExcHandler`: `start` is returned earlier if null; `exit` is iterated from `handlerExits`, which are blocks from a bitset; again, no null insertion.
+
+3. **IfMakerHelper.mergeNestedIfNodes / searchNestedIf**
+   - Uses `!isPathExists(nextIf.getFirstIfBlock(), otherBranchBlock)`. Both `getFirstIfBlock()` and `otherBranchBlock` are derived from existing `BlockNode`s and `followEmptyPath`, which returns a `BlockNode` and is not shown being nullable at this call site.
+
+4. **CodeShrinkVisitor.canMoveBetweenBlocks**
+   - Calls `BlockUtils.isPathExists(assignBlock, useBlock)`. Both `assignBlock` and `useBlock` are required valid CFG blocks for the transformation; they are obtained from `getBlockByInsn` and current block variable, and the call to `canMoveBetweenBlocks` is guarded by `assignBlock != null`.
+
+5. **BlockExceptionHandler.searchBottomBlock**
+   - Uses `BlockUtils.atLeastOnePathExists(blocks, p)` and `BlockUtils.atLeastOnePathExists` in turn calls `isPathExists(startBlock, end)`. `p` comes from predecessors of a real block and is filtered, but never set to null; collections of blocks are CFG structures and expected non-null.
+
+6. **BlockUtils.atLeastOnePathExists / isAllPathExists**
+   - These helper methods also forward their `end` argument directly to `isPathExists` and in all shown uses they are passed `BlockNode` references derived from CFG and never conditionally null-checked or allowed to be null before the call.
+
+Inside `isPathExists` itself, `end` is used immediately:
+```java
+if (start == end
+        || end.isDominator(start)
+        || start.getCleanSuccessors().contains(end)) {
+    return true;
+}
+if (start.getPredecessors().contains(end)) {
+    return false;
+}
+return traverseSuccessorsUntil(start, end, new BitSet(), true);
+```
+There are no defensive null checks; calling this with `end == null` would dereference `end.isDominator(start)` and crash. Given the extensive use in CFG algorithms and the absence of any protections, the code implicitly relies on `end` never being null.
+
+Across all provided callers and helper methods, no call site passes a null value or a possibly-null expression into `end`. When a local variable could become null (e.g., `exit` in `insertLoopBreak`), the control flow ensures the `isPathExists` call is not reached in that state.
+
+Therefore, based solely on the actual usage patterns in the given call chain, `end` is treated as non-null and is never called with null.
+    ]]></reason>
+    <value>NO</value>
+</response>

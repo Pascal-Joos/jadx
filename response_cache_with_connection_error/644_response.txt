@@ -1,0 +1,36 @@
+<response>
+  <reason><![CDATA[
+At this call site, `phiInsn` is an instance of `PhiInsn`, which is a subclass of `InsnNode` and uses the same `getResult()` implementation.
+
+Key facts about `PhiInsn`:
+
+- `PhiInsn` methods repeatedly assume `getResult()` is non‑null and dereference it with no null checks, e.g.:
+  - `phiInsn.getResult().getRegNum()` in `SSATransform.bindPhiArg`
+  - `phiInsn.getResult().getSVar()` in many places (`InitCodeVariables.collectConnectedVars`, `TypeInferenceVisitor.mergePhiBounds`, etc.)
+  - `PhiInsn.bindArg`:
+    ```java
+    public RegisterArg bindArg(BlockNode pred) {
+        RegisterArg arg = InsnArg.reg(getResult().getRegNum(), getResult().getInitType());
+        ...
+    }
+    ```
+  None of these are guarded by `if (getResult() != null)`, meaning a null `result` would cause immediate NPEs in normal operation.
+
+- Control‑flow/region code also treats phi results as mandatory:
+  - `PhiListAttr.toString()` uses `phiInsn.getResult().getRegNum()` unconditionally.
+  - `LoopRegionVisitor.checkForIndexedLoop`, `TernaryMod`, `InitCodeVariables`, etc., all dereference `phiInsn.getResult()` directly.
+
+- There is no code path shown that sets a `PhiInsn` result to `null` after construction. By design, phi instructions represent variable merges and always have a target register.
+
+Given this pervasive, unchecked use of `phiInsn.getResult()`, the decompiler’s invariants require that every live `PhiInsn` has a non‑null `result`. If `phiInsn.getResult()` could be null, many of these methods would fail with NPEs; there is no defensive coding indicating that null is an expected state.
+
+Therefore, at the specific call site:
+
+```java
+RegisterArg arg = phiInsn.getResult();
+```
+
+`getResult()` is not expected to be null; under the library’s established invariants for `PhiInsn`, it effectively cannot be null in valid, processed IR.
+  ]]></reason>
+  <value>NO</value>
+</response>

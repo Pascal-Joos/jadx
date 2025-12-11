@@ -1,0 +1,20 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static boolean isAllCharsPrintable( String str) {
+		int len = Nullability.castToNonnull(str).length();
+		int offset = 0;
+		while (offset < len) {
+			int codePoint = str.codePointAt(offset);
+			if (!isPrintableAsciiCodePoint(codePoint)) {
+				return false;
+			}
+			offset += Character.charCount(codePoint);
+		}
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

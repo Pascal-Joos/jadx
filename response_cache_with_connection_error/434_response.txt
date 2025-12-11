@@ -1,0 +1,35 @@
+<response>
+  <reason><![CDATA[
+At this call site, `elseResArg` is obtained in `TernaryMod.makeTernaryInsn`:
+
+```java
+RegisterArg thenResArg = thenInsn.getResult();
+RegisterArg elseResArg = elseInsn.getResult();
+if (thenResArg != null && elseResArg != null) {
+    PhiInsn thenPhi = thenResArg.getSVar().getOnlyOneUseInPhi();
+    PhiInsn elsePhi = elseResArg.getSVar().getOnlyOneUseInPhi();
+    if (thenPhi == null || thenPhi != elsePhi) {
+        return false;
+    }
+    ...
+}
+```
+
+Key points:
+
+1. `elseResArg` is created earlier as the *result* of some instruction (`elseInsn.getResult()`), not a standalone `RegisterArg` without SSA:
+   - All instructions with a non-null result used after SSA transform are expected to have a non-null `SSAVar` attached to that result.
+   - This invariant is enforced in several places (e.g. `DebugChecks.checkSSAVars`, `InsnNode.rebindArgs`, `SSATransform.renameVarsInBlock`) where any result `RegisterArg` that participates in normal SSA-based processing will get an `SSAVar` assigned.
+
+2. Right before the call in question, the code already calls:
+   ```java
+   elseResArg.getSVar().getOnlyOneUseInPhi();
+   ```
+   This dereferences `getSVar()` and immediately dereferences its result. If `elseResArg.getSVar()` could be null here, the code would throw a `NullPointerException` immediately and the method would not proceed. Since this is library code intended to run under normal conditions, it relies on the invariant that `getSVar()` for instruction results is non-null at this stage of processing.
+
+3. Throughout the codebase, many other usages assume non-null `SSAVar` on results in similar contexts (loop analysis, ternary transform, type inference, etc.). When `SSAVar` can legitimately be null, there are explicit null checks (e.g. `if (sVar == null) return;`). No such check exists at this call site, indicating this is a context where SSA is guaranteed.
+
+Given these invariants and the immediately preceding usage of `elseResArg.getSVar()` without null checks, at this specific call site the field `sVar` on `elseResArg` is guaranteed to be non-null. Therefore, `getSVar()` cannot return null here.
+  ]]></reason>
+  <value>NO</value>
+</response>

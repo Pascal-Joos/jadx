@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void addFields(ClassNode cls, JsonClsMapping jsonCls) {
+		List<FieldNode> fields = cls.getFields();
+		if (fields.isEmpty()) {
+			return;
+		}
+		jsonCls.setFields(new ArrayList<>(fields.size()));
+		for (FieldNode field : fields) {
+			JsonFieldMapping jsonField = new JsonFieldMapping();
+			jsonField.setName(field.getName());
+			jsonField.setAlias(field.getAlias());
+			Nullability.castToNonnull(jsonCls.getFields()).add(jsonField);
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,52 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method:
+
+public String makeNameWithoutPkg() {
+    String prefix;
+    ClassNode parentClass = cls.getParentClass();
+    if (parentClass != cls) {
+        DeobfClsInfo parentDeobfClsInfo = deobfuscator.getClsMap().get(parentClass.getClassInfo());
+        ...
+    } else {
+        prefix = "";
+    }
+    return prefix + (this.alias != null ? this.alias : this.cls.getShortName());
+}
+
+The potentially-null expression under consideration is `parentClass` at:
+
+DeobfClsInfo parentDeobfClsInfo = deobfuscator.getClsMap().get(parentClass.getClassInfo());
+
+To determine if `parentClass` can be null there, we have to rely on what we know from this snippet alone:
+
+1. `parentClass` is obtained as:
+   ClassNode parentClass = cls.getParentClass();
+
+2. The only guard before using `parentClass` is:
+   if (parentClass != cls) { ... }
+
+   This checks reference inequality between `parentClass` and `cls`, but it does *not* check whether `parentClass` is non-null.
+
+3. In Java, comparing an object reference to another reference with `!=` is valid even if one of them is null; no exception is thrown. So:
+   - If `parentClass` is null and `cls` is non-null, then `parentClass != cls` is true, and execution enters the `if` block.
+   - Inside the block, `parentClass.getClassInfo()` is then called.
+   - If `parentClass` were null, this would immediately cause a NullPointerException.
+
+4. Therefore, from this method alone, there is *no* explicit null check preventing `parentClass` from being null at the point where `parentClass.getClassInfo()` is used.
+
+5. Whether `parentClass` is actually guaranteed non-null in practice depends entirely on the contract and implementation of `cls.getParentClass()`:
+   - If `getParentClass()` is specified (by design/contract) to *never* return null and to always return at least `cls` itself for top-level classes (i.e., root class returns itself, inner classes return a non-null outer class), then `parentClass` cannot be null and the call is safe.
+   - If `getParentClass()` can return null for top-level classes or for any reason, then `parentClass` can indeed be null, and this method has a possible NPE at `parentClass.getClassInfo()`.
+
+Because this contract/implementation of `getParentClass()` is not shown, the code snippet itself does not provide a definitive guarantee that `parentClass` is non-null. There is no null-check, no assertion, and no defensive programming around `parentClass`.
+
+Thus, based solely on the given code and without additional guarantees from `ClassNode.getParentClass()`, the possibility that `parentClass` is null at that line cannot be ruled out.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or documented contract of ClassNode.getParentClass() (specifically: can it ever return null?).]]></request>
+        <request><![CDATA[If available, provide any class-level or framework-level documentation that states invariants about parent/child relationships between ClassNode instances.]]></request>
+    </requests>
+</response>
+```

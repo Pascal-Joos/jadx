@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static String rebuildPkgMiddle(String aliasPkg, String renameOriginPkg, String newName) {
+		String[] aliasParts = Nullability.castToNonnull(aliasPkg).split("\\.");
+		String[] renameParts = renameOriginPkg.split("\\.");
+		aliasParts[renameParts.length - 1] = newName;
+		return String.join(".", aliasParts);
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,14 @@
+<response>
+  <reason><![CDATA[
+The implementation of `getInnerType()` in `ArgType` is:
+
+```java
+public ArgType getInnerType() {
+    return null;
+}
+```
+
+There is exactly one return path, and it always returns the literal `null` value with no conditions or further method calls involved. Therefore, this method can and will always return `null` whenever it is called. There are no alternative execution paths that could produce a non-null value.
+]]></reason>
+  <value>YES</value>
+</response>

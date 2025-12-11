@@ -1,0 +1,73 @@
+```xml
+<response>
+    <reason><![CDATA[
+The expression in question is:
+
+    return firstPrimitiveType.compareTo(secondPrimitiveType) > 0 ? WIDER : NARROW;
+
+This is reached only inside the branch:
+
+    if (firstPrimitive && secondPrimitive) {
+        PrimitiveType firstPrimitiveType = first.getPrimitiveType();
+        PrimitiveType secondPrimitiveType = second.getPrimitiveType();
+        if (firstPrimitiveType == PrimitiveType.BOOLEAN
+                || secondPrimitiveType == PrimitiveType.BOOLEAN) {
+            return CONFLICT;
+        }
+        if (swapEquals(Nullability.castToNonnull(firstPrimitiveType), secondPrimitiveType, PrimitiveType.CHAR, PrimitiveType.BYTE)
+                || swapEquals(Nullability.castToNonnull(firstPrimitiveType), secondPrimitiveType, PrimitiveType.CHAR, PrimitiveType.SHORT)) {
+            return CONFLICT;
+        }
+        return firstPrimitiveType.compareTo(secondPrimitiveType) > 0 ? WIDER : NARROW;
+    }
+
+Control-flow / guards:
+- We only enter this block if both `firstPrimitive` and `secondPrimitive` are `true`, where:
+  
+      boolean firstPrimitive = first.isPrimitive();
+      boolean secondPrimitive = second.isPrimitive();
+
+- There is no explicit null check on `first` or `second` at method entry, but the method dereferences them earlier (`isTypeKnown`, `isArray`, etc.), meaning that if either were null, a `NullPointerException` would already have occurred before reaching this branch. So at this point, both `first` and `second` are non-null.
+
+Possible nullability of `firstPrimitiveType` / `secondPrimitiveType`:
+- The only protection before calling `compareTo` is the `firstPrimitive && secondPrimitive` check (based on `isPrimitive()`), which is a *logical* property, not a compile-time guarantee about the return value of `getPrimitiveType()`.
+- There is no explicit null check on `firstPrimitiveType` or `secondPrimitiveType` after:
+
+      PrimitiveType firstPrimitiveType = first.getPrimitiveType();
+      PrimitiveType secondPrimitiveType = second.getPrimitiveType();
+
+- The code then uses:
+  
+      Nullability.castToNonnull(firstPrimitiveType)
+
+  This suggests that `firstPrimitiveType` **might** be nullable at the type level, and the helper is being used to assert/override nullability for analysis tools, not that a runtime null is impossible. If `firstPrimitiveType` were *statically* and *semantically* guaranteed non-null whenever `isPrimitive()` is true, calling such a helper would be unnecessary.
+
+- The `swapEquals(...)` calls and the earlier `if (firstPrimitiveType == PrimitiveType.BOOLEAN || ...)` conditions are safe even if `firstPrimitiveType` or `secondPrimitiveType` is null, because `==` comparisons to enum constants and equality checks inside `swapEquals` can be implemented to tolerate nulls. They do not prove non-nullness.
+
+The crucial point:
+- There is no code path between the assignments:
+
+      PrimitiveType firstPrimitiveType = first.getPrimitiveType();
+      PrimitiveType secondPrimitiveType = second.getPrimitiveType();
+
+  and the final line:
+
+      return firstPrimitiveType.compareTo(secondPrimitiveType) > 0 ? WIDER : NARROW;
+
+  that would guarantee `firstPrimitiveType` (or `secondPrimitiveType`) is non-null, unless you assume a *contract* on `ArgType` such as:
+  
+  “If `isPrimitive()` returns true, then `getPrimitiveType()` always returns a non-null PrimitiveType.”
+
+- That contract is not visible in the given snippet. Without it, `getPrimitiveType()` is free to return null even when `isPrimitive()` is true (e.g., due to an incomplete initialization, placeholder, or bug).
+
+Given only the provided code:
+- There is a clear runtime path:
+  1. `first.isPrimitive()` returns `true` while `first.getPrimitiveType()` returns `null` (or similarly for `second`).
+  2. None of the earlier checks throw or short-circuit (null survives the enum comparisons and `swapEquals` calls).
+  3. Execution reaches `firstPrimitiveType.compareTo(secondPrimitiveType)`, which would then dereference a `null` `firstPrimitiveType` (or `secondPrimitiveType` inside `compareTo`) and cause a `NullPointerException`.
+
+Therefore, from the standpoint of static reasoning on this method alone, the null-safety of `firstPrimitiveType` is *not* guaranteed, so it **can** be null on this line unless an external, strictly enforced invariant exists on `ArgType.getPrimitiveType()` that is not shown here.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

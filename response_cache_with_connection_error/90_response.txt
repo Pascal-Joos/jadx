@@ -1,0 +1,66 @@
+<response>
+    <reason><![CDATA[
+In the provided code, the parameter `extClsInfo` of `useClassInternal` is only supplied from `ClassGen.addClsName`:
+
+```java
+public void addClsName(ICodeWriter code, ClassInfo classInfo) {
+    String clsName = useClassInternal(cls.getClassInfo(), classInfo);
+    code.add(clsName);
+}
+```
+
+So any potential null for `extClsInfo` would have to come from `classInfo` in callers of `addClsName`.
+
+From the call chain shown:
+
+1. `InsnGen.makeConstructor` calls:
+   ```java
+   mgen.getClassGen().addClsName(code, insn.getClassType());
+   ```
+   Here `insn.getClassType()` returns a `ClassInfo`. There is no indication in the snippet that this call site ever passes `null`, and typical bytecode / decompiler models treat the "class type" of a constructor instruction as mandatory, not optional.
+
+2. `ClassGen.useClass(ICodeWriter code, ClassNode classNode)` calls:
+   ```java
+   addClsName(code, classNode.getClassInfo());
+   ```
+   A `ClassNode` should always have a non-null `ClassInfo`; if `getClassInfo()` were null, many other parts of the decompiler would break. No null checks are performed prior to this call, indicating the code assumes non-null.
+
+3. `ClassGen.useClass(ICodeWriter code, ClassInfo classInfo)`:
+   ```java
+   ClassNode classNode = cls.root().resolveClass(classInfo);
+   if (classNode != null) {
+       useClass(code, classNode);
+   } else {
+       addClsName(code, classInfo);
+   }
+   ```
+   Here `classInfo` is passed directly to `addClsName` when resolution fails. Again, there is no null check on `classInfo`. If `classInfo` could be null, this would potentially dereference null immediately in `resolveClass(classInfo)` or in `addClsName`, which lacks any defensive checks (and `useClassInternal` dereferences `extClsInfo` right away: `extClsInfo.getAliasFullName()`).
+
+Inside `useClassInternal`, `extClsInfo` is dereferenced repeatedly without any null checks:
+
+```java
+String fullName = extClsInfo.getAliasFullName();
+String shortName = extClsInfo.getAliasShortName();
+...
+if (extClsInfo.isInner()) { ... }
+...
+if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) { ... }
+...
+if (extClsInfo.isDefaultPackage()) { ... }
+...
+if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) { ... }
+...
+addImport(extClsInfo);
+```
+
+If `extClsInfo` were null, this method would crash immediately with an NPE. There are no guards suggesting `null` is an expected or tolerated value at any point in this chain. The calling code also makes no attempt to prevent such an NPE (no null checks, no alternative paths).
+
+Based solely on the actual usage patterns provided:
+- All call sites pass a `ClassInfo` that is treated as inherently non-null.
+- The method body is written under the assumption that `extClsInfo` is always non-null and would fail fast otherwise.
+- There is no evidence in the shown call chain of any `null` ever being passed.
+
+Therefore, from the observable call chain and internal usage, `extClsInfo` is not intended to be `null` and is effectively non-null in practice.
+]]></reason>
+    <value>NO</value>
+</response>

@@ -1,0 +1,25 @@
+<response>
+  <reason><![CDATA[
+At this specific call site, `jsonCls.getMethods()` is invoked inside `addMethods` only after `jsonCls.setMethods(new ArrayList<>(methods.size()));` has been executed, and only when `methods` (the list from `cls.getMethods()`) is **not** empty:
+
+```java
+private static void addMethods(ClassNode cls, JsonClsMapping jsonCls) {
+    List<MethodNode> methods = cls.getMethods();
+    if (methods.isEmpty()) {
+        return; // jsonCls.getMethods() is never called in this branch
+    }
+    jsonCls.setMethods(new ArrayList<>(methods.size()));
+    ...
+    jsonCls.getMethods().add(jsonMethod);
+}
+```
+
+Thus, along the concrete control-flow path where `jsonCls.getMethods()` is called:
+
+1. `methods.isEmpty()` is false, so the early `return` is skipped.
+2. `jsonCls.setMethods(...)` is called, assigning a **non-null** `ArrayList` instance to the `methods` field in `JsonClsMapping`.
+3. Immediately after that, `jsonCls.getMethods()` is invoked, returning whatever `setMethods` stored, i.e., that non-null `ArrayList`.
+
+There is no other write to `methods` between `setMethods` and `getMethods` on this path. Therefore, for this particular call site, the return value of `jsonCls.getMethods()` cannot be null.]]></reason>
+  <value>NO</value>
+</response>

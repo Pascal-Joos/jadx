@@ -1,0 +1,18 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void addClass(ClassNode cls) {
+  		if (nameMap == null) {
+  			throw new JadxRuntimeException("Classpath must be loaded first");
+  		}
+  		ArgType clsType = cls.getClassInfo().getType();
+  		String rawName = clsType.getObject();
+  		ClspClass clspClass = new ClspClass(clsType, -1);
+  		clspClass.setParents(ClsSet.makeParentsArray(cls));
+  		nameMap.put(rawName, clspClass);
+  }
+  ```
+    ]]>
+  </code>
+</response>

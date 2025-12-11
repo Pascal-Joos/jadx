@@ -1,0 +1,14 @@
+<response>
+    <reason><![CDATA[
+Across all usages, the `second` parameter of `compareTypes(ArgType first, ArgType second)` is always passed an `ArgType` value that is obtained from non-null-returning sources (per the visible code):
+
+- Fields and method signatures (`FieldInfo.getDeclClass().getType()`, `baseMth.getReturnType()`, `baseMth.getArgTypes().get(i)`, `getMethodInfo().getDeclClass().getType()`) are part of the decompiler’s type model and are treated as always present; there are no null checks around them before calling `compareTypes`.
+- Instruction-related types (`insn.getIndex()` cast to `ArgType`, `castInsn.getIndex()`, `checkCast.getIndex()`, `invoke` argument and result types, array element types via `getArrayElement()`, etc.) are similarly used without any null guards before being passed as `second`.
+- In places where a type *can* be null (e.g., `CodeVar.getType()`), the code explicitly checks for null and replaces it with `ArgType.UNKNOWN` before any possible comparison. The remaining usages then only compare against non-null types.
+- Inside `compareTypes` and all helper methods it calls (`compareObjectsNoPreCheck`, `compareWildcardTypes`, `compareTypeVariables`, etc.), `second` is dereferenced immediately (e.g., `second.isTypeKnown()`, `second.isArray()`, `second.getObject()`) with no defensive null checks, meaning a null value would reliably lead to an NPE. Given this central utility method is heavily used, such a bug would be evident; the surrounding codebase is consistently written to avoid passing null and uses sentinel types like `ArgType.UNKNOWN` instead.
+
+There is also no branch in the shown code that would intentionally pass `null` as `second`; when something might be absent, the code either early-returns or converts it into a non-null `ArgType`.
+
+From the actual call patterns, `second` is therefore not expected to be null in practice; passing null would crash.]]></reason>
+    <value>NO</value>
+</response>

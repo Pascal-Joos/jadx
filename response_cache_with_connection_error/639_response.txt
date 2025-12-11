@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void mergePhiBounds(SSAVar ssaVar) {
+		for (PhiInsn usedInPhi : ssaVar.getUsedInPhi()) {
+			Set<ITypeBound> bounds = ssaVar.getTypeInfo().getBounds();
+			bounds.addAll(Nullability.castToNonnull(usedInPhi.getResult()).getSVar().getTypeInfo().getBounds());
+			for (InsnArg arg : usedInPhi.getArguments()) {
+				bounds.addAll(((RegisterArg) arg).getSVar().getTypeInfo().getBounds());
+			}
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

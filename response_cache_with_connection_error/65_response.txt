@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void fillImplementsCache() {
+		if (nameMap == null) {
+			throw new JadxRuntimeException("Classpath must be loaded first");
+		}
+		Map<String, List<String>> map = new HashMap<>(nameMap.size());
+		List<String> classes = new ArrayList<>(nameMap.keySet());
+		Collections.sort(classes);
+		for (String cls : classes) {
+			for (String st : getSuperTypes(cls)) {
+				map.computeIfAbsent(st, v -> new ArrayList<>()).add(cls);
+			}
+		}
+		implementsCache = map;
+  }
+  ```
+    ]]>
+  </code>
+</response>

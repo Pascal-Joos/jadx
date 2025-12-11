@@ -1,0 +1,35 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static boolean isEqualReturnBlocks(BlockNode b1, BlockNode b2) {
+ 		if (!Nullability.castToNonnull(b1).isReturnBlock() || !Nullability.castToNonnull(b2).isReturnBlock()) {
+ 			return false;
+ 		}
+ 		List<InsnNode> b1Insns = b1.getInstructions();
+ 		List<InsnNode> b2Insns = b2.getInstructions();
+ 		if (b1Insns.size() != 1 || b2Insns.size() != 1) {
+ 			return false;
+ 		}
+ 		InsnNode i1 = b1Insns.get(0);
+ 		InsnNode i2 = b2Insns.get(0);
+ 		if (i1.getArgsCount() != i2.getArgsCount()) {
+ 			return false;
+ 		}
+ 		if (i1.getArgsCount() == 0) {
+ 			return true;
+ 		}
+ 		InsnArg firstArg = i1.getArg(0);
+ 		InsnArg secondArg = i2.getArg(0);
+ 		if (firstArg.isSameConst(secondArg)) {
+ 			return true;
+ 		}
+ 		if (i1.getSourceLine() != i2.getSourceLine()) {
+ 			return false;
+ 		}
+ 		return firstArg.equals(secondArg);
+}
+  ```
+    ]]>
+  </code>
+</response>

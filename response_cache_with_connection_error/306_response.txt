@@ -1,0 +1,34 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to know whether `secondGenericTypes` can be null at the line:
+
+    if (len == secondGenericTypes.size()) {
+
+Relevant part of the method:
+
+    List<ArgType> firstGenericTypes = first.getGenericTypes();
+    List<ArgType> secondGenericTypes = second.getGenericTypes();
+    if (firstGenericTypes == null || secondGenericTypes == null
+            || isEmpty(firstGenericTypes) || isEmpty(secondGenericTypes)) {
+        // ...
+    } else {
+        // compare generics arrays
+        int len = Nullability.castToNonnull(firstGenericTypes).size();
+        if (len == secondGenericTypes.size()) {
+            ...
+
+Inside the `else` block, the condition of the preceding `if` has been negated. Therefore, on entry to the `else` block, it is guaranteed that:
+
+- `firstGenericTypes != null`
+- `secondGenericTypes != null`
+- `!isEmpty(firstGenericTypes)`
+- `!isEmpty(secondGenericTypes)`
+
+Thus, at the point where `secondGenericTypes.size()` is called, `secondGenericTypes` is provably non-null along all code paths that reach this line.
+
+Note: This reasoning assumes there are no side effects that could change `secondGenericTypes` between assignment and use (there are none in the shown snippet), and that `secondGenericTypes` is a local variable (it is), so no aliasing or re-assignment from another thread is involved in this method body. Under normal Java semantics this is sufficient to prove non-nullness here.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

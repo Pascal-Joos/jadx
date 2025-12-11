@@ -1,0 +1,28 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method body alone, there is no assignment or initialization of `codeReader`, nor any null check on it before the call to `codeReader.getRegistersCount()`.
+
+Control flow to the line:
+- If `loaded` is true, the method returns before reaching the line.
+- If `loaded` is false:
+  - `loaded` is set to true.
+  - If `noCode` is true, the method returns before the line.
+  - If `noCode` is false, execution proceeds directly to:
+    this.regsCount = codeReader.getRegistersCount();
+
+At this point, the method assumes `codeReader` is already non-null. Whether it can actually be null depends entirely on:
+- How and where `codeReader` is declared (field vs. local).
+- How and where `codeReader` is set prior to `load()` being called.
+- Any class invariants or contracts that guarantee `codeReader` is initialized for methods with code (i.e., when `noCode == false`).
+
+Because that information is not present, we cannot prove from this snippet alone that `codeReader` is always non-null, nor can we prove that it may be assigned null elsewhere. The possibility of null depends on external code and invariants not shown here.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the declaration of `codeReader` (its type, whether it is a field or parameter, and any annotations such as @NonNull/@Nullable).]]></request>
+        <request><![CDATA[Show where and how `codeReader` is initialized or assigned before `load()` is invoked (e.g., constructor(s), setters, factory methods).]]></request>
+        <request><![CDATA[If there is a design/contract statement that guarantees `codeReader` is non-null whenever `noCode == false`, please provide it.]]></request>
+    </requests>
+</response>
+```

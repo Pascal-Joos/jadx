@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static void writeArgTypesList(DataOutputStream out, List<ArgType> list, Map<String, ClspClass> names) throws IOException {
+		int size = Nullability.castToNonnull(list).size();
+		writeUnsignedByte(out, size);
+		if (size != 0) {
+			for (ArgType type : list) {
+				writeArgType(out, type, names);
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

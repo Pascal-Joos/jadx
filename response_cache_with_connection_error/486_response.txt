@@ -1,0 +1,50 @@
+<response>
+  <reason><![CDATA[
+`TernaryInsn.getCondition()` is a trivial getter:
+
+```java
+public IfCondition getCondition() {
+    return condition;
+}
+```
+
+There is no initialization or invariant shown that guarantees `condition` is non‑null. Several call sites in the provided code explicitly treat the condition as potentially null:
+
+- In `SimplifyVisitor.simplifyTernary`:
+  ```java
+  IfCondition condition = insn.getCondition();
+  if (condition != null && condition.isCompare()) {
+      ...
+  } else {
+      insn.simplifyCondition();
+  }
+  ```
+  The `condition != null` check shows that `insn.getCondition()` is expected to sometimes be null.
+
+- In `BlockUtils.foundWrappedInsnInCondition`:
+  ```java
+  private static InsnArg foundWrappedInsnInCondition(IfCondition cond, InsnNode insn) {
+      if (cond == null) {
+          return null;
+      }
+      ...
+  }
+  ```
+  This method is called from:
+  ```java
+  if (container instanceof TernaryInsn) {
+      return foundWrappedInsnInCondition(((TernaryInsn) container).getCondition(), insn);
+  }
+  ```
+  and similarly from `searchWrappedInsnParent` and `getBlockByWrappedInsn`. Again, these paths explicitly handle `cond` being null, meaning `((TernaryInsn) container).getCondition()` can be null.
+
+Other call sites (e.g., `ArgsInfo.addArgs`, `DebugChecks.checkInsn`, `PrepareForCodeGen.removeParenthesis`, `InsnGen.makeTernary`) do not null‑check the condition, but that only indicates they assume it is non‑null in their contexts; it does not establish a global invariant for all `TernaryInsn` instances. No constructor or setter for `condition` is provided that would prove it is always initialized to a non‑null value before use.
+
+Since:
+- `getCondition()` just returns the field,
+- There is no shown guarantee that `condition` is always set,
+- And other parts of the codebase *explicitly* guard against `null` conditions,
+
+the invocation `ternaryInsn.getCondition()` at the examined call sites must be considered capable of returning null.]]></reason>
+  <value>YES</value>
+</response>

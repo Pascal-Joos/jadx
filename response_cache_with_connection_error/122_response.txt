@@ -1,0 +1,65 @@
+<response>
+    <reason><![CDATA[
+The parameter `pkg` in `processPackageFull(PackageNode pkg, String fullName)` is always obtained from `getPackageNode(..., true)` or from stored `DeobfClsInfo` objects which themselves are created from non-null `getPackageNode(..., true)` results.
+
+1. **Direct callers of `processPackageFull`:**
+   - In `preProcessClass`:
+     ```java
+     String pkgFullName = classInfo.getPackage();
+     PackageNode pkg = getPackageNode(pkgFullName, true);
+     processPackageFull(pkg, pkgFullName);
+     ```
+     Here `processPackageFull` is called with `pkg` returned from `getPackageNode(pkgFullName, true)`.
+
+   - In `getPkgAlias`:
+     ```java
+     String fullPkgName = classInfo.getPackage();
+     pkg = getPackageNode(fullPkgName, true);
+     processPackageFull(pkg, fullPkgName);
+     ```
+     Again, `pkg` is from `getPackageNode(fullPkgName, true)`.
+
+2. **Behavior of `getPackageNode(String fullPkgName, boolean create)`:**
+   ```java
+   if (fullPkgName.isEmpty() || fullPkgName.equals(CLASS_NAME_SEPARATOR)) {
+       return rootPackage;
+   }
+   PackageNode result = rootPackage;
+   PackageNode parentNode;
+   do {
+       ...
+       parentNode = result;
+       result = result.getInnerPackageByName(pkgName);
+       if (result == null && create) {
+           result = new PackageNode(pkgName);
+           parentNode.addInnerPackage(result);
+       }
+   } while (!fullPkgName.isEmpty() && result != null);
+
+   return result;
+   ```
+   - When `create` is `true` (the only way it is called in the provided code), each time `result` would become `null`, a new `PackageNode` is created and assigned to `result`.
+   - The loop condition also stops if `result` somehow became `null`, but with `create == true` a new node is always created, so `result` never becomes `null` inside the loop.
+   - The method returns:
+     - `rootPackage` for empty/root-like names, or
+     - a non-null `PackageNode` for any other `fullPkgName`.
+
+   This guarantees a non-null return when called with `create == true`.
+
+3. **No other callers:**
+   The call chain data shows only these usages; there is no call passing `null` directly as `pkg`, and no path where `pkg` is reassigned to `null` before being passed to `processPackageFull`.
+
+4. **Use of `pkg` inside `processPackageFull`:**
+   The method immediately dereferences `pkg`:
+   ```java
+   PackageNode parentPkg = pkg.getParentPackage();
+   while (!parentPkg.getName().isEmpty()) {
+       ...
+   }
+   ```
+   With no defensive null checks, a `null` `pkg` would cause an immediate `NullPointerException`. Combined with the construction logic above, this strongly indicates it is assumed non-null in practice.
+
+Given the creation logic in `getPackageNode(..., true)` and how `processPackageFull` is called, `pkg` is never `null` in actual usage.
+    ]]></reason>
+    <value>NO</value>
+</response>
