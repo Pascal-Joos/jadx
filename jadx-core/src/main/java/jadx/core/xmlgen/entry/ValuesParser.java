@@ -17,14 +17,7 @@ import jadx.core.xmlgen.XmlGenUtils;
 public class ValuesParser extends ParserConstants {
 	private static final Logger LOG = LoggerFactory.getLogger(ValuesParser.class);
 
-	public static Map<Integer, String> getAndroidResMap() {
-		Map<Integer, String> localMap = androidResMap;
-		if (localMap == null) {
-			localMap = loadAndroidResMap();
-			androidResMap = localMap;
-		}
-		return localMap;
-	}
+	private static Map<Integer, String> androidResMap;
 
 	@Nullable
 	private final String[] strings;
