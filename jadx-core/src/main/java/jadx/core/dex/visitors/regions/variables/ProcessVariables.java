@@ -249,6 +249,9 @@ public class ProcessVariables extends AbstractVisitor {
 
 	private static boolean checkDeclareAtAssign(@Nullable SSAVar var) {
 		RegisterArg arg = var.getAssign();
+		if (arg == null) {
+			return false;
+		}
 		InsnNode parentInsn = arg.getParentInsn();
 		if (parentInsn == null
 				|| parentInsn.contains(AFlag.WRAPPED)
