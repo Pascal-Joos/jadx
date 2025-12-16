@@ -21,7 +21,10 @@ import jadx.core.utils.exceptions.JadxException;
 
 public class SignatureProcessor extends AbstractVisitor {
 
-	private RootNode root;
+	@Override
+	public void init(RootNode root) {
+		this.root = Objects.requireNonNull(root);
+	}
 
 	@Override
 	public void init(RootNode root) {
