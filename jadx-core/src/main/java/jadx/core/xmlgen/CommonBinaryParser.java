@@ -6,6 +6,10 @@ import java.util.Arrays;
 public class CommonBinaryParser extends ParserConstants {
 	protected ParserStream is;
 
+	protected CommonBinaryParser(ParserStream is) {
+		this.is = is;
+	}
+
 	protected String[] parseStringPool() throws IOException {
 		is.checkInt16(RES_STRING_POOL_TYPE, "String pool expected");
 		return parseStringPoolNoType();
