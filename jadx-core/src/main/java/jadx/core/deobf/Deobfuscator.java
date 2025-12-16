@@ -301,8 +301,14 @@ public class Deobfuscator {
 				result = new PackageNode(pkgName);
 				parentNode.addInnerPackage(result);
 			}
-		} while (!fullPkgName.isEmpty() && result != null);
+			if (result == null && !create) {
+				break;
+			}
+		} while (!fullPkgName.isEmpty());
 
+		if (result == null) {
+			return rootPackage;
+		}
 		return result;
 	}
 
