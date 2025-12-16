@@ -181,10 +181,8 @@ public class ClassModifier extends AbstractVisitor {
 			if (argCls == null) {
 				// check if missing class from current top class
 				ClassInfo argClsInfo = ClassInfo.fromType(cls.root(), argType);
-				ClassInfo parentClass = argClsInfo.getParentClass();
 				if (argClsInfo.isInner()
-						&& parentClass != null
-						&& cls.getFullName().startsWith(parentClass.getFullName())) {
+						&& cls.getFullName().startsWith(argClsInfo.getParentClass().getFullName())) {
 					return true;
 				}
 			} else {
