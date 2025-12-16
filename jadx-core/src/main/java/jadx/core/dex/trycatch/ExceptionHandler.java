@@ -42,9 +42,6 @@ public class ExceptionHandler {
 
 	private ExceptionHandler(int addr) {
 		this.handlerOffset = addr;
-		this.handlerBlock = null;
-		this.handlerRegion = null;
-		this.tryBlock = null;
 	}
 
 	/**
