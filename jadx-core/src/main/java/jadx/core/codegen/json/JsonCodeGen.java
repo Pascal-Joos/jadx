@@ -106,14 +106,17 @@ public class JsonCodeGen {
 		if (innerClasses.isEmpty()) {
 			return;
 		}
-		jsonCls.setInnerClasses(new ArrayList<>(innerClasses.size()));
+		List<JsonClass> jsonInnerClasses = new ArrayList<>(innerClasses.size());
 		for (ClassNode innerCls : innerClasses) {
 			if (innerCls.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
 			JsonClass innerJsonCls = processCls(innerCls, classGen);
-			jsonCls.getInnerClasses().add(innerJsonCls);
+			if (innerJsonCls != null) {
+				jsonInnerClasses.add(innerJsonCls);
+			}
 		}
+		jsonCls.setInnerClasses(jsonInnerClasses);
 	}
 
 	private void addFields(ClassNode cls, JsonClass jsonCls, ClassGen classGen) {
