@@ -81,6 +81,9 @@ public final class IfInfo {
 	}
 
 	public BlockNode getThenBlock() {
+		if (thenBlock == null) {
+			throw new IllegalStateException("thenBlock is not initialized");
+		}
 		return thenBlock;
 	}
 
