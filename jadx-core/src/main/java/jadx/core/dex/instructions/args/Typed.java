@@ -4,7 +4,7 @@ import jadx.core.dex.attributes.AttrNode;
 
 public abstract class Typed extends AttrNode {
 
-	protected ArgType type = ArgType.UNKNOWN;
+	protected ArgType type;
 
 	public ArgType getType() {
 		return type;
