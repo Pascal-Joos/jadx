@@ -47,6 +47,9 @@ public final class IfCondition extends AttrNode {
 	private IfCondition(Mode mode, List<IfCondition> args) {
 		this.mode = mode;
 		this.args = args;
+		if (mode == Mode.COMPARE) {
+			throw new IllegalArgumentException();
+		}
 		this.compare = null;
 	}
 
