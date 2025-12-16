@@ -35,6 +35,7 @@ public final class TernaryInsn extends InsnNode {
 
 	private TernaryInsn() {
 		super(InsnType.TERNARY, 2);
+		this.condition = IfCondition.FALSE;
 	}
 
 	public IfCondition getCondition() {
