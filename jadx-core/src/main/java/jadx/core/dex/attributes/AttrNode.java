@@ -91,11 +91,7 @@ public abstract class AttrNode implements IAttributeNode {
 
 	@Override
 	public <T extends IJadxAttribute> T get(IJadxAttrType<T> type) {
-		T value = storage.get(type);
-		if (value == null) {
-			throw new IllegalStateException("Attribute not found for type: " + type);
-		}
-		return value;
+		return storage.get(type);
 	}
 
 	@Nullable
