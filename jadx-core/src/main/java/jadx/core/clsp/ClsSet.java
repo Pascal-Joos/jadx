@@ -60,6 +60,7 @@ public class ClsSet {
 
 	public ClsSet(RootNode root) {
 		this.root = root;
+		this.classes = new ClspClass[0];
 	}
 
 	private enum TypeEnum {
