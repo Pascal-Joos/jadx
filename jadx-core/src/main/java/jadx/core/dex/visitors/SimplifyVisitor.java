@@ -49,18 +49,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SimplifyVisitor.class);
 
-	@Override
-	public void init(RootNode root) {
-		stringGetBytesMth = MethodInfo.fromDetails(
-				root,
-				ClassInfo.fromType(root, ArgType.STRING),
-				"getBytes",
-				Collections.emptyList(),
-				ArgType.array(ArgType.BYTE));
-		if (stringGetBytesMth == null) {
-			throw new JadxRuntimeException("Failed to init stringGetBytesMth");
-		}
-	}
+	private MethodInfo stringGetBytesMth;
 
 	@Override
 	public void init(RootNode root) {
