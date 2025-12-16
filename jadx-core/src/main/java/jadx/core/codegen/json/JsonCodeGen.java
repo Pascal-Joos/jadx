@@ -137,8 +137,7 @@ public class JsonCodeGen {
 	}
 
 	private void addMethods(ClassNode cls, JsonClass jsonCls, ClassGen classGen) {
-		List<JsonMethod> methods = new ArrayList<>();
-		jsonCls.setMethods(methods);
+		jsonCls.setMethods(new ArrayList<>());
 		for (MethodNode mth : cls.getMethods()) {
 			if (mth.contains(AFlag.DONT_GENERATE)) {
 				continue;
@@ -159,7 +158,7 @@ public class JsonCodeGen {
 			jsonMth.setAccessFlags(mth.getAccessFlags().rawValue());
 			jsonMth.setLines(fillMthCode(mth, mthGen));
 			jsonMth.setOffset("0x" + Long.toHexString(mth.getMethodCodeOffset()));
-			methods.add(jsonMth);
+			jsonCls.getMethods().add(jsonMth);
 		}
 	}
 
