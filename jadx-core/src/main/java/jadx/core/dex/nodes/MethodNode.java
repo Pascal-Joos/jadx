@@ -91,7 +91,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		ICodeReader codeReader = mthData.getCodeReader();
 		this.noCode = codeReader == null;
 		if (noCode) {
-			this.codeReader = ICodeReader.EMPTY;
+			this.codeReader = null;
 			this.insnsCount = 0;
 		} else {
 			this.codeReader = codeReader.copy();
