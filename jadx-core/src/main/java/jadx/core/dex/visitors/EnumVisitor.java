@@ -665,6 +665,8 @@ public class EnumVisitor extends AbstractVisitor {
 			this.cls = cls;
 			this.classInitMth = classInitMth;
 			this.staticBlocks = staticBlocks;
+			this.valuesField = null;
+			this.valuesInitInsn = null;
 		}
 	}
 }
