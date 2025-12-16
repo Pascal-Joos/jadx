@@ -58,7 +58,11 @@ public class ManifestAttributes {
 
 	public static ManifestAttributes getInstance() {
 		if (instance == null) {
-			instance = new ManifestAttributes();
+			try {
+				instance = new ManifestAttributes();
+			} catch (Exception e) {
+				LOG.error("Failed to create ManifestAttributes", e);
+			}
 		}
 		return instance;
 	}
