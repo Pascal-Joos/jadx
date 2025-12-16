@@ -144,7 +144,7 @@ public class ShadowFieldVisitor extends AbstractVisitor {
 			return;
 		}
 		FieldFixInfo fieldFixInfo = fixInfoMap.get(type.getObject());
-		if (fieldFixInfo == null || fieldFixInfo.fieldFixMap == null) {
+		if (fieldFixInfo == null) {
 			return;
 		}
 		FieldFixType fieldFixType = fieldFixInfo.fieldFixMap.get(fieldInfo);
