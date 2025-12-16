@@ -78,12 +78,12 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			return ResourcesLoader.loadToCodeWriter(inputStream);
 		}
 		nsMapGenerated = new HashSet<>();
-		nsMap = new HashMap<>();
+		HashMap<String, String> localNsMap = new HashMap<>();
+		nsMap = localNsMap;
 		writer = rootNode.makeCodeWriter();
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		firstElement = true;
 		decode();
-		nsMap = null;
 		ICodeInfo codeInfo = writer.finish();
 		this.classNameCache = null; // reset class name cache
 		return codeInfo;
