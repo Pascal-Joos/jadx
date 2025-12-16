@@ -616,9 +616,6 @@ public class ClassGen {
 	}
 
 	private String useClassInternal(ClassInfo useCls, @Nullable ClassInfo extClsInfo) {
-		if (extClsInfo == null) {
-			return "";
-		}
 		String fullName = extClsInfo.getAliasFullName();
 		if (fallback || !useImports) {
 			return fullName;
@@ -659,8 +656,7 @@ public class ClassGen {
 			if (!importCls.equals(extClsInfo)
 					&& importCls.getAliasShortName().equals(shortName)) {
 				if (extClsInfo.isInner()) {
-					ClassInfo parentClass = extClsInfo.getParentClass();
-					String parent = parentClass != null ? useClassInternal(useCls, parentClass) : fullName;
+					String parent = useClassInternal(useCls, extClsInfo.getParentClass());
 					return parent + '.' + shortName;
 				} else {
 					return fullName;
