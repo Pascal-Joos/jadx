@@ -78,16 +78,11 @@ public class InlineMethods extends AbstractVisitor {
 	}
 
 	private void inlineMethod(MethodNode mth, MethodNode callMth, MethodInlineAttr mia, BlockNode block, InvokeNode insn) {
-		InsnNode insnTemplate = mia.getInsn();
-		if (insnTemplate == null) {
-			mth.addWarnComment("Failed to inline method (no insn template): " + callMth);
-			return;
-		}
-		InsnNode inlCopy = insnTemplate.copyWithoutResult();
+		InsnNode inlCopy = mia.getInsn().copyWithoutResult();
 		RegisterArg resultArg = insn.getResult();
 		if (resultArg != null) {
 			inlCopy.setResult(resultArg.duplicate());
-		} else if (isAssignNeeded(insnTemplate, insn, callMth)) {
+		} else if (isAssignNeeded(mia.getInsn(), insn, callMth)) {
 			// add fake result to make correct java expression (see test TestGetterInlineNegative)
 			inlCopy.setResult(makeFakeArg(mth, callMth.getReturnType(), "unused"));
 		}
@@ -124,7 +119,7 @@ public class InlineMethods extends AbstractVisitor {
 		if (methodDetailsAttr != null) {
 			inlCopy.addAttr(methodDetailsAttr);
 		}
-		updateUsageInfo(mth, callMth, insnTemplate);
+		updateUsageInfo(mth, callMth, mia.getInsn());
 	}
 
 	private boolean isAssignNeeded(InsnNode inlineInsn, InvokeNode parentInsn, MethodNode callMthNode) {
