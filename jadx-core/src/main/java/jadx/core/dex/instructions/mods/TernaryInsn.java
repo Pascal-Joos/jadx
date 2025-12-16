@@ -20,14 +20,13 @@ public final class TernaryInsn extends InsnNode {
 		this();
 		setResult(result);
 
-		IfCondition notNullCondition = condition;
 		if (th.isFalse() && els.isTrue()) {
 			// inverted
-			this.condition = IfCondition.invert(notNullCondition);
+			this.condition = IfCondition.invert(condition);
 			addArg(els);
 			addArg(th);
 		} else {
-			this.condition = notNullCondition;
+			this.condition = condition;
 			addArg(th);
 			addArg(els);
 		}
