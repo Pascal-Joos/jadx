@@ -53,7 +53,7 @@ public class IfMakerHelper {
 		if (next != null) {
 			return next;
 		}
-		return info;
+		return new IfInfo(info, info.getThenBlock(), info.getElseBlock());
 	}
 
 	@Nullable
