@@ -57,6 +57,9 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		}
 
 		public String[] getTypeStrings() {
+			if (typeStrings == null) {
+				return new String[0];
+			}
 			return typeStrings;
 		}
 
