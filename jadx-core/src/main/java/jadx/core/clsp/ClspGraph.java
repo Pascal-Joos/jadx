@@ -36,9 +36,6 @@ public class ClspGraph {
 
 	public ClspGraph(RootNode rootNode) {
 		this.root = rootNode;
-		this.nameMap = new HashMap<>();
-		this.superTypesCache = new HashMap<>();
-		this.implementsCache = new HashMap<>();
 	}
 
 	public void load() throws IOException, DecodeException {
