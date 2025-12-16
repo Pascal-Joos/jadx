@@ -576,7 +576,7 @@ public abstract class ArgType {
 	}
 
 	public PrimitiveType getPrimitiveType() {
-		return null;
+		throw new UnsupportedOperationException("Primitive type is not known for: " + this.getClass());
 	}
 
 	public boolean isPrimitive() {
