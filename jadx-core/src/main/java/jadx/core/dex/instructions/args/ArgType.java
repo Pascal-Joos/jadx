@@ -640,7 +640,7 @@ public abstract class ArgType {
 	}
 
 	public ArgType getArrayElement() {
-		return this;
+		return null;
 	}
 
 	public ArgType getArrayRootElement() {
