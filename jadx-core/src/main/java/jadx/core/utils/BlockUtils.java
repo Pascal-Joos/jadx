@@ -1161,10 +1161,6 @@ public class BlockUtils {
 			map.put(block, postDoms);
 		}
 		BitSet exitBitSet = map.get(exitBlock);
-		if (exitBitSet == null) {
-			exitBitSet = new BitSet(blocksCount);
-			map.put(exitBlock, exitBitSet);
-		}
 		exitBitSet.clear();
 		exitBitSet.set(exitBlock.getId());
 
@@ -1177,10 +1173,6 @@ public class BlockUtils {
 					continue;
 				}
 				BitSet d = map.get(block);
-				if (d == null) {
-					d = new BitSet(blocksCount);
-					map.put(block, d);
-				}
 				if (!changed) {
 					domSet.clear();
 					domSet.or(d);
@@ -1201,11 +1193,9 @@ public class BlockUtils {
 
 		blockNodes.forEach(block -> {
 			BitSet postDoms = map.get(block);
-			if (postDoms != null) {
-				postDoms.clear(block.getId());
-				if (postDoms.isEmpty()) {
-					map.put(block, EmptyBitSet.EMPTY);
-				}
+			postDoms.clear(block.getId());
+			if (postDoms.isEmpty()) {
+				map.put(block, EmptyBitSet.EMPTY);
 			}
 		});
 		return map;
