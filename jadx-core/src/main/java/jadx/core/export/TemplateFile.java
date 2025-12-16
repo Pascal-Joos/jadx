@@ -28,14 +28,7 @@ public class TemplateFile {
 
 	private static class ParserState {
 		private State state = State.NONE;
-
-		private static class ParserState {
-			private State state = State.NONE;
-			@NotNull
-			private StringBuilder curVariable = new StringBuilder();
-			private boolean skip;
-		}
-
+		private StringBuilder curVariable;
 		private boolean skip;
 	}
 
