@@ -62,6 +62,9 @@ public class ProtoValue {
 	}
 
 	public List<ProtoValue> getNamedValues() {
+		if (namedValues == null) {
+			namedValues = new ArrayList<>();
+		}
 		return namedValues;
 	}
 }
