@@ -76,9 +76,6 @@ public class FinallyExtractInfo {
 	}
 
 	public List<InsnNode> getCurDupInsns() {
-		if (curDupInsns == null) {
-			return java.util.Collections.emptyList();
-		}
 		return curDupInsns;
 	}
 
