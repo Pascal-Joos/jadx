@@ -304,7 +304,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	public InsnNode[] getInstructions() {
-		return instructions == null ? new InsnNode[0] : instructions;
+		return instructions;
 	}
 
 	public void unloadInsnArr() {
