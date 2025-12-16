@@ -45,6 +45,9 @@ public class CodeVar {
 	}
 
 	public ArgType getType() {
+		if (type == null) {
+			throw new IllegalStateException("type is not initialized");
+		}
 		return type;
 	}
 
