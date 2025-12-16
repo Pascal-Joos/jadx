@@ -107,7 +107,6 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		this.root = root;
 		this.clsInfo = ClassInfo.fromType(root, ArgType.object(cls.getType()));
 		this.clsData = cls.copy();
-		this.parentClass = null;
 		initialLoad(clsData);
 	}
 
