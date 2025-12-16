@@ -93,14 +93,13 @@ public class JsonMappingGen {
 		if (fields.isEmpty()) {
 			return;
 		}
-		List<JsonFieldMapping> jsonFields = new ArrayList<>(fields.size());
+		jsonCls.setFields(new ArrayList<>(fields.size()));
 		for (FieldNode field : fields) {
 			JsonFieldMapping jsonField = new JsonFieldMapping();
 			jsonField.setName(field.getName());
 			jsonField.setAlias(field.getAlias());
-			jsonFields.add(jsonField);
+			jsonCls.getFields().add(jsonField);
 		}
-		jsonCls.setFields(jsonFields);
 	}
 
 	private JsonMappingGen() {
