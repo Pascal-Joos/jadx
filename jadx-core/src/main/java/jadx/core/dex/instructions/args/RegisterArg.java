@@ -76,11 +76,7 @@ public class RegisterArg extends InsnArg implements Named {
 		return contains(AFlag.IMMUTABLE_TYPE);
 	}
 
-	@NotNull
 	public SSAVar getSVar() {
-		if (sVar == null) {
-			throw new IllegalStateException("sVar is not initialized");
-		}
 		return sVar;
 	}
 
