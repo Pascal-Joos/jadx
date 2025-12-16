@@ -78,9 +78,6 @@ public final class LoopRegion extends ConditionRegion {
 	 * Check if pre-conditions can be inlined into loop condition
 	 */
 	public boolean checkPreCondition() {
-		if (preCondition == null) {
-			return false;
-		}
 		List<InsnNode> insns = preCondition.getInstructions();
 		if (insns.isEmpty()) {
 			return true;
