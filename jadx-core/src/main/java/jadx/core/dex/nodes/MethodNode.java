@@ -536,9 +536,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	public Region getRegion() {
-		if (region == null) {
-			throw new IllegalStateException("Region is not initialized");
-		}
 		return region;
 	}
 
