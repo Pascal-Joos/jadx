@@ -89,7 +89,7 @@ public class InsnNode extends LineAttrNode {
 		return insnType;
 	}
 
-	public RegisterArg getResult() {
+	public RegisterArg /* @Nullable */ getResult() {
 		return result;
 	}
 
