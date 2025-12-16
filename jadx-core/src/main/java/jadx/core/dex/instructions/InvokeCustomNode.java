@@ -23,6 +23,8 @@ public class InvokeCustomNode extends InvokeNode {
 
 	private InvokeCustomNode(MethodInfo mth, InvokeType invokeType, int argsCount) {
 		super(mth, invokeType, argsCount);
+		this.implMthInfo = mth;
+		this.callInsn = null;
 	}
 
 	@Override
