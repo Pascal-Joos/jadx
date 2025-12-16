@@ -84,6 +84,7 @@ public final class IfInfo {
 		return thenBlock;
 	}
 
+	@Nullable
 	public BlockNode getElseBlock() {
 		return elseBlock;
 	}
