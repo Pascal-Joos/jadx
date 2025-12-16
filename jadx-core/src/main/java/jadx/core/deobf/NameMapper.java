@@ -131,9 +131,6 @@ public class NameMapper {
 	}
 
 	public static boolean isAllCharsPrintable(@Nullable String str) {
-		if (str == null) {
-			return false;
-		}
 		int len = str.length();
 		int offset = 0;
 		while (offset < len) {
