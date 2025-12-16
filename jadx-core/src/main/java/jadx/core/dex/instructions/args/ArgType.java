@@ -182,7 +182,7 @@ public abstract class ArgType {
 		@Nullable
 		@Override
 		public ArgType selectFirst() {
-			return this;
+			return null;
 		}
 
 		@Override
