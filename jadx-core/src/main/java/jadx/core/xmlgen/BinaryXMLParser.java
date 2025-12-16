@@ -64,12 +64,6 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 	public BinaryXMLParser(RootNode rootNode) {
 		this.rootNode = rootNode;
-		this.nsMap = new HashMap<>();
-		this.nsMapGenerated = new HashSet<>();
-		this.writer = rootNode.makeCodeWriter();
-		this.strings = new String[0];
-		this.valuesParser = new ValuesParser(rootNode);
-		this.resourceIds = new int[0];
 		try {
 			ConstStorage constStorage = rootNode.getConstValues();
 			resNames = constStorage.getResourcesNames();
