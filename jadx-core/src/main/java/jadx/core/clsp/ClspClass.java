@@ -41,7 +41,7 @@ public class ClspClass {
 	}
 
 	public ArgType[] getParents() {
-		return parents;
+		return parents == null ? new ArgType[0] : parents;
 	}
 
 	public void setParents(@Nullable ArgType[] parents) {
