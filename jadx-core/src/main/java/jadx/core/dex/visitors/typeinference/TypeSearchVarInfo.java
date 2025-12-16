@@ -82,9 +82,6 @@ public class TypeSearchVarInfo {
 	}
 
 	public List<ITypeConstraint> getConstraints() {
-		if (constraints == null) {
-			return new ArrayList<>();
-		}
 		return constraints;
 	}
 
