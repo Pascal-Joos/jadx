@@ -92,6 +92,9 @@ public final class ResourceEntry {
 	}
 
 	public List<RawNamedValue> getNamedValues() {
+		if (namedValues == null) {
+			return Collections.emptyList();
+		}
 		return namedValues;
 	}
 
