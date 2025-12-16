@@ -34,7 +34,7 @@ public final class IfRegion extends ConditionRegion implements IBranchRegion {
 		this.thenRegion = thenRegion;
 	}
 
-	public @Nullable IContainer getElseRegion() {
+	public IContainer getElseRegion() {
 		return elseRegion;
 	}
 
