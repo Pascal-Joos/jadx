@@ -226,13 +226,17 @@ public class BlockUtils {
 	}
 
 	public static boolean isExitBlock(@Nullable BlockNode block) {
+		if (block == null) {
+			return false;
+		}
 		List<BlockNode> successors = block.getSuccessors();
-		if (successors.isEmpty()) {
+		if (successors == null || successors.isEmpty()) {
 			return true;
 		}
 		if (successors.size() == 1) {
 			BlockNode next = successors.get(0);
-			return next.getSuccessors().isEmpty();
+			List<BlockNode> nextSuccessors = next.getSuccessors();
+			return nextSuccessors == null || nextSuccessors.isEmpty();
 		}
 		return false;
 	}
