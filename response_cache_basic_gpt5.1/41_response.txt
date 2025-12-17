@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public BlockNode(int cid, int id, int offset) {
+		this.cid = cid;
+		this.id = id;
+		this.startOffset = offset;
+		this.cleanSuccessors = new ArrayList<>(3);
+	}
+  ```
+    ]]>
+  </code>
+</response>

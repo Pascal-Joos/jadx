@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+		@Override
+		public ArgType selectFirst() {
+			return this;
+		}
+  ```
+    ]]>
+  </code>
+</response>

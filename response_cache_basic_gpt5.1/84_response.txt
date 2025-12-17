@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private static boolean searchDuplicateInsns(BlockNode checkBlock, FinallyExtractInfo extractInfo) {
+		boolean isNew = extractInfo.getCheckedBlocks().add(checkBlock);
+		if (!isNew) {
+			return false;
+		}
+		BlockNode startBlock = extractInfo.getStartBlock();
+		if (startBlock == null) {
+			return false;
+		}
+		InsnsSlice dupSlice = searchFromFirstBlock(checkBlock, startBlock, extractInfo);
+		if (dupSlice == null) {
+			return false;
+		}
+		extractInfo.getDuplicateSlices().add(dupSlice);
+		return true;
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public BlockNode getIDom() {
+		if (idom == null) {
+			throw new IllegalStateException("Immediate dominator is not set");
+		}
+		return idom;
+	}
+  ```
+    ]]>
+  </code>
+</response>

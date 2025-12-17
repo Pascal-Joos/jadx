@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public IContainer getThenRegion() {
+		if (thenRegion == null) {
+			throw new IllegalStateException("thenRegion is not initialized");
+		}
+		return thenRegion;
+	}
+  ```
+    ]]>
+  </code>
+</response>

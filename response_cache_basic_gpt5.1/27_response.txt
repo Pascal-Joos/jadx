@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private InvokeCustomNode(MethodInfo mth, InvokeType invokeType, int argsCount) {
+		super(mth, invokeType, argsCount);
+		this.implMthInfo = mth;
+		this.callInsn = null;
+	}
+  ```
+    ]]>
+  </code>
+</response>

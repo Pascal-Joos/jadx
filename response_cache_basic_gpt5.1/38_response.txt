@@ -1,0 +1,9 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	protected ArgType type = ArgType.UNKNOWN;
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public Region getRegion() {
+      if (region == null) {
+          throw new IllegalStateException("Region is not initialized");
+      }
+      return region;
+  }
+  ```
+    ]]>
+  </code>
+</response>

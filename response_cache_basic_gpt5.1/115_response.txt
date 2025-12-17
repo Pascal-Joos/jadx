@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public List<RawNamedValue> getNamedValues() {
+      if (namedValues == null) {
+          return Collections.emptyList();
+      }
+      return namedValues;
+  }
+  ```
+    ]]>
+  </code>
+</response>

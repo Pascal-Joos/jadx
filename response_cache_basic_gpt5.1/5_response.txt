@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public ClspGraph(RootNode rootNode) {
+		this.root = rootNode;
+		this.nameMap = new HashMap<>();
+		this.superTypesCache = new HashMap<>();
+		this.implementsCache = new HashMap<>();
+	}
+  ```
+    ]]>
+  </code>
+</response>

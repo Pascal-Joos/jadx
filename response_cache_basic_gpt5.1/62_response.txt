@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Nullable
+  public BlockNode getElseBlock() {
+      return elseBlock;
+  }
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public InvokeCustomNode(MethodInfo lambdaInfo, InsnData insn, boolean instanceCall, boolean isRange) {
+		super(lambdaInfo, insn, InvokeType.CUSTOM, instanceCall, isRange);
+		this.implMthInfo = lambdaInfo;
+		this.callInsn = null;
+	}
+  ```
+    ]]>
+  </code>
+</response>

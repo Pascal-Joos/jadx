@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static Path getPathDeobfMapPath(RootNode root) {
+      JadxArgs jadxArgs = root.getArgs();
+      File deobfMapFile = jadxArgs.getDeobfuscationMapFile();
+      if (deobfMapFile != null) {
+          return deobfMapFile.toPath();
+      }
+      Path inputFilePath = jadxArgs.getInputFiles().get(0).toPath().toAbsolutePath();
+      String baseName = FileUtils.getPathBaseName(inputFilePath);
+      Path parent = inputFilePath.getParent();
+      if (parent == null) {
+          return inputFilePath.getFileSystem().getPath(baseName + ".jobf");
+      }
+      return parent.resolve(baseName + ".jobf");
+  }
+  ```
+    ]]>
+  </code>
+</response>

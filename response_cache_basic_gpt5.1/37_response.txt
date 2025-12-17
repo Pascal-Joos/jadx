@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @NotNull
+  public SSAVar getSVar() {
+      if (sVar == null) {
+          throw new IllegalStateException("sVar is not initialized");
+      }
+      return sVar;
+  }
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public List<ITypeConstraint> getConstraints() {
+		if (constraints == null) {
+			return new ArrayList<>();
+		}
+		return constraints;
+	}
+  ```
+    ]]>
+  </code>
+</response>

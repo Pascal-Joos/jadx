@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public InsnNode[] getInstructions() {
+      return instructions == null ? new InsnNode[0] : instructions;
+  }
+  ```
+    ]]>
+  </code>
+</response>

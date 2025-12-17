@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private InsnGen makeInsnGen( MethodNode mth) {
+		MethodNode safeMth = mth != null ? mth : this.mth;
+		MethodGen mthGen = new MethodGen(this, safeMth);
+		return new InsnGen(mthGen, false);
+	}
+  ```
+    ]]>
+  </code>
+</response>

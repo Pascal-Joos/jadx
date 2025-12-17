@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public BlockNode getTopSplitter() {
+		if (topSplitter == null) {
+			throw new IllegalStateException("topSplitter is not initialized");
+		}
+		return topSplitter;
+	}
+  ```
+    ]]>
+  </code>
+</response>

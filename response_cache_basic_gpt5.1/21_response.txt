@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public static void addEdgeInsn(Edge edge, InsnNode insn) {
+		if (edge == null || insn == null) {
+			return;
+		}
+		BlockNode source = edge.getSource();
+		BlockNode target = edge.getTarget();
+		if (source == null || target == null) {
+			return;
+		}
+		addEdgeInsn(source, target, insn);
+	}
+  ```
+    ]]>
+  </code>
+</response>

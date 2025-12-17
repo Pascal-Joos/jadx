@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public static Map<Integer, String> getAndroidResMap() {
+		Map<Integer, String> localMap = androidResMap;
+		if (localMap == null) {
+			localMap = loadAndroidResMap();
+			androidResMap = localMap;
+		}
+		return localMap;
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public ArgType getType(InsnArg arg) {
+		if (arg == null) {
+			return null;
+		}
+		for (TypeUpdateEntry update : updates) {
+			if (update.getArg() == arg) {
+				return update.getType();
+			}
+		}
+		return arg.getType();
+	}
+  ```
+    ]]>
+  </code>
+</response>

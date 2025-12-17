@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public ArgType getType() {
+		if (type == null) {
+			throw new IllegalStateException("type is not initialized");
+		}
+		return type;
+	}
+  ```
+    ]]>
+  </code>
+</response>

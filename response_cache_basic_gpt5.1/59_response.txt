@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public TryCatchBlockAttr getTryCatchBlock() {
+    if (tryCatchBlock == null) {
+      throw new IllegalStateException("tryCatchBlock is not initialized");
+    }
+    return tryCatchBlock;
+  }
+  ```
+    ]]>
+  </code>
+</response>

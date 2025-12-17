@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public BlockNode getThenBlock() {
+		if (thenBlock == null) {
+			throw new IllegalStateException("thenBlock is not initialized");
+		}
+		return thenBlock;
+	}
+  ```
+    ]]>
+  </code>
+</response>

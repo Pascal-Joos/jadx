@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public ProtoXMLParser(RootNode rootNode) {
+		this.rootNode = rootNode;
+		this.nsMap = new HashMap<>();
+		this.writer = rootNode.makeCodeWriter();
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public ArgType[] getParents() {
+		return parents == null ? new ArgType[0] : parents;
+	}
+  ```
+    ]]>
+  </code>
+</response>

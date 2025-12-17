@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public RegisterArg /*@Nullable*/ getResult() {
+		return result;
+	}
+  ```
+    ]]>
+  </code>
+</response>

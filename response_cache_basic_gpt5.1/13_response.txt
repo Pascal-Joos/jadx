@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private String getTypeAlias(ArgType clsType) {
+		if (clsType == null) {
+			return "null";
+		}
+		if (Objects.equals(clsType, ArgType.OBJECT)) {
+			return ArgType.OBJECT.getObject();
+		}
+		if (clsType.isObject()) {
+			ClassInfo classInfo = ClassInfo.fromType(root, clsType);
+			return classInfo.getAliasFullName();
+		}
+		return clsType.toString();
+	}
+  ```
+    ]]>
+  </code>
+</response>

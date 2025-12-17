@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  protected ParserStream is;
+
+  protected CommonBinaryParser(ParserStream is) {
+      this.is = is;
+  }
+  ```
+    ]]>
+  </code>
+</response>

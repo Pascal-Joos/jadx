@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Override
+	public ArgType getType() {
+		RegisterArg instanceArg = invokeNode.getInstanceArg();
+		ArgType instanceType = instanceArg == null ? null : instanceArg.getType();
+		return getArgType(instanceType, arg.getType());
+	}
+  ```
+    ]]>
+  </code>
+</response>

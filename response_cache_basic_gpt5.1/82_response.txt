@@ -1,0 +1,20 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Override
+	public void init(RootNode root) {
+		stringGetBytesMth = MethodInfo.fromDetails(
+				root,
+				ClassInfo.fromType(root, ArgType.STRING),
+				"getBytes",
+				Collections.emptyList(),
+				ArgType.array(ArgType.BYTE));
+		if (stringGetBytesMth == null) {
+			throw new JadxRuntimeException("Failed to init stringGetBytesMth");
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

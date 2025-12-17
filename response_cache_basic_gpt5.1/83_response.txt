@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public List<InsnNode> getCurDupInsns() {
+		if (curDupInsns == null) {
+			return java.util.Collections.emptyList();
+		}
+		return curDupInsns;
+	}
+  ```
+    ]]>
+  </code>
+</response>

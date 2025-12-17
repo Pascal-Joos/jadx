@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public ArgType getInnerType() {
+		return this;
+	}
+  ```
+    ]]>
+  </code>
+</response>

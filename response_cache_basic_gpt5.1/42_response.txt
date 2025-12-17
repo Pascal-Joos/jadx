@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public BitSet getDomFrontier() {
+		if (domFrontier == null) {
+			domFrontier = new BitSet();
+		}
+		return domFrontier;
+	}
+  ```
+    ]]>
+  </code>
+</response>

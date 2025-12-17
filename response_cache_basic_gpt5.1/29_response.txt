@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public List<ArgType> getGenericTypes() {
+      return Collections.emptyList();
+  }
+  ```
+    ]]>
+  </code>
+</response>

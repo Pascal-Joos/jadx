@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Override
+	public IRegion getParent() {
+		if (parent == null) {
+			throw new IllegalStateException("Parent region is not set");
+		}
+		return parent;
+	}
+  ```
+    ]]>
+  </code>
+</response>

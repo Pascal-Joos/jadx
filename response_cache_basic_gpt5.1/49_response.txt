@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public BlockNode getEnterBlock() {
+		if (enterBlock == null) {
+			throw new IllegalStateException("enterBlock is not initialized");
+		}
+		return enterBlock;
+	}
+  ```
+    ]]>
+  </code>
+</response>

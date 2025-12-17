@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Override
+	public void init(RootNode root) {
+		this.root = Objects.requireNonNull(root);
+	}
+  ```
+    ]]>
+  </code>
+</response>

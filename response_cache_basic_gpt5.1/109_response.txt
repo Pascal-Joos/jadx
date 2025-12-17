@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public static ManifestAttributes getInstance() {
+		if (instance == null) {
+			instance = new ManifestAttributes();
+		}
+		return instance;
+	}
+  ```
+    ]]>
+  </code>
+</response>

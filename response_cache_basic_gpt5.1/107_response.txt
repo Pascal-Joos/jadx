@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public synchronized ICodeInfo parse(InputStream inputStream) throws IOException {
+		is = new ParserStream(inputStream);
+		if (!isBinaryXml()) {
+			return ResourcesLoader.loadToCodeWriter(inputStream);
+		}
+		nsMapGenerated = new HashSet<>();
+		HashMap<String, String> localNsMap = new HashMap<>();
+		nsMap = localNsMap;
+		writer = rootNode.makeCodeWriter();
+		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+		firstElement = true;
+		decode();
+		ICodeInfo codeInfo = writer.finish();
+		this.classNameCache = null; // reset class name cache
+		return codeInfo;
+	}
+  ```
+    ]]>
+  </code>
+</response>

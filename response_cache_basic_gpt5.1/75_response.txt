@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+		public EnumData(ClassNode cls, MethodNode classInitMth, List<BlockNode> staticBlocks) {
+			this.cls = cls;
+			this.classInitMth = classInitMth;
+			this.staticBlocks = staticBlocks;
+			this.valuesField = null;
+			this.valuesInitInsn = null;
+		}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public String getAliasPkg() {
+		if (isInner()) {
+			String parentAliasPkg = parentClass.getAliasPkg();
+			return parentAliasPkg != null ? parentAliasPkg : "";
+		}
+		String pkg = alias == null ? getPackage() : alias.getPkg();
+		return pkg != null ? pkg : "";
+	}
+  ```
+    ]]>
+  </code>
+</response>

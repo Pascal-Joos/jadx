@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public static void makeDirsForFile(Path path) {
+		if (path != null) {
+			Path parent = path.toAbsolutePath().getParent();
+			if (parent != null) {
+				makeDirs(parent.toFile());
+			}
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

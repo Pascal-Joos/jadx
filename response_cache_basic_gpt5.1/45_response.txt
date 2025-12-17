@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public ClassNode(RootNode root, IClassData cls) {
+		this.root = root;
+		this.clsInfo = ClassInfo.fromType(root, ArgType.object(cls.getType()));
+		this.clsData = cls.copy();
+		this.parentClass = null;
+		initialLoad(clsData);
+	}
+  ```
+    ]]>
+  </code>
+</response>

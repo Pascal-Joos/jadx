@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private void attachMethodDetails(BaseInvokeNode insn) {
+		if (methodUtils == null) {
+			return;
+		}
+		IMethodDetails methodDetails = methodUtils.getMethodDetails(insn.getCallMth());
+		if (methodDetails != null) {
+			insn.addAttr(methodDetails);
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

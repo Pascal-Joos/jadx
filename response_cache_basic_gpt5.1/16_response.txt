@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private static void fillMapping(JsonMapping mapping, RootNode root) {
+		List<ClassNode> classes = root.getClasses(true);
+		List<JsonClsMapping> jsonClasses = new ArrayList<>(classes.size());
+		mapping.setClasses(jsonClasses);
+		for (ClassNode cls : classes) {
+			ClassInfo classInfo = cls.getClassInfo();
+			JsonClsMapping jsonCls = new JsonClsMapping();
+			jsonCls.setName(classInfo.getRawName());
+			jsonCls.setAlias(classInfo.getAliasFullName());
+			jsonCls.setInner(classInfo.isInner());
+			jsonCls.setJson(cls.getTopParentClass().getClassInfo().getAliasFullPath() + ".json");
+			if (classInfo.isInner()) {
+				jsonCls.setTopClass(cls.getTopParentClass().getClassInfo().getFullName());
+			}
+			addFields(cls, jsonCls);
+			addMethods(cls, jsonCls);
+			jsonClasses.add(jsonCls);
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

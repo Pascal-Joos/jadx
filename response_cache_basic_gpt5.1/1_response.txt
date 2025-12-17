@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public ClsSet(RootNode root) {
+		this.root = root;
+		this.classes = new ClspClass[0];
+	}
+  ```
+    ]]>
+  </code>
+</response>

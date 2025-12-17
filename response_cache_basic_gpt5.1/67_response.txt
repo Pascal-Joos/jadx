@@ -1,0 +1,51 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public boolean checkPreCondition() {
+		if (preCondition == null) {
+			return false;
+		}
+		List<InsnNode> insns = preCondition.getInstructions();
+		if (insns.isEmpty()) {
+			return true;
+		}
+		IfCondition condition = getCondition();
+		if (condition == null) {
+			return false;
+		}
+		List<RegisterArg> conditionArgs = condition.getRegisterArgs();
+		if (conditionArgs.isEmpty()) {
+			return false;
+		}
+		int size = insns.size();
+		for (int i = 0; i < size; i++) {
+			InsnNode insn = insns.get(i);
+			if (insn.getResult() == null) {
+				return false;
+			}
+			RegisterArg res = insn.getResult();
+			if (res.getSVar().getUseCount() > 1) {
+				return false;
+			}
+			boolean found = false;
+			// search result arg in other insns
+			for (int j = i + 1; j < size; j++) {
+				if (insns.get(i).containsVar(res)) {
+					found = true;
+				}
+			}
+			// or in if insn
+			if (!found && InsnUtils.containsVar(conditionArgs, res)) {
+				found = true;
+			}
+			if (!found) {
+				return false;
+			}
+		}
+		return true;
+	}
+  ```
+    ]]>
+  </code>
+</response>

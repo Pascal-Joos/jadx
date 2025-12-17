@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	static IfInfo searchNestedIf( IfInfo info) {
+		IfInfo next = mergeNestedIfNodes(info);
+		if (next != null) {
+			return next;
+		}
+		return new IfInfo(info, info.getThenBlock(), info.getElseBlock());
+	}
+  ```
+    ]]>
+  </code>
+</response>

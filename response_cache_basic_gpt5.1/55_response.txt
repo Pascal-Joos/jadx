@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public ClspGraph getClsp() {
+		if (clsp == null) {
+			throw new IllegalStateException("clsp is not initialized");
+		}
+		return clsp;
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+		public String[] getTypeStrings() {
+			if (typeStrings == null) {
+				return new String[0];
+			}
+			return typeStrings;
+		}
+  ```
+    ]]>
+  </code>
+</response>

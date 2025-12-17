@@ -1,0 +1,31 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public static IfCondition invert(IfCondition cond) {
+		if (cond == null) {
+			throw new JadxRuntimeException("Cannot invert null IfCondition");
+		}
+		Mode mode = cond.getMode();
+		switch (mode) {
+			case COMPARE:
+				return new IfCondition(cond.getCompare().invert());
+			case TERNARY:
+				return ternary(cond.first(), not(cond.second()), not(cond.third()));
+			case NOT:
+				return cond.first();
+			case AND:
+			case OR:
+				List<IfCondition> args = cond.getArgs();
+				List<IfCondition> newArgs = new ArrayList<>(args.size());
+				for (IfCondition arg : args) {
+					newArgs.add(invert(arg));
+				}
+				return new IfCondition(mode == Mode.AND ? Mode.OR : Mode.AND, newArgs);
+		}
+		throw new JadxRuntimeException("Unknown mode for invert: " + mode);
+	}
+  ```
+    ]]>
+  </code>
+</response>

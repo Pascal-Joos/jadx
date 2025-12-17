@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private void addInnerClasses(ClassNode cls, JsonClass jsonCls, ClassGen classGen) {
+		List<ClassNode> innerClasses = cls.getInnerClasses();
+		if (innerClasses.isEmpty()) {
+			return;
+		}
+		List<JsonClass> jsonInnerClasses = new ArrayList<>(innerClasses.size());
+		for (ClassNode innerCls : innerClasses) {
+			if (innerCls.contains(AFlag.DONT_GENERATE)) {
+				continue;
+			}
+			JsonClass innerJsonCls = processCls(innerCls, classGen);
+			if (innerJsonCls != null) {
+				jsonInnerClasses.add(innerJsonCls);
+			}
+		}
+		jsonCls.setInnerClasses(jsonInnerClasses);
+	}
+  ```
+    ]]>
+  </code>
+</response>

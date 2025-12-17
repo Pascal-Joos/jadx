@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Initializer
+	@Override
+	public void unload() {
+		loaded = false;
+		// don't unload retType, argTypes, typeParameters
+		thisArg = null;
+		argsList = null;
+		sVars = Collections.emptyList();
+		instructions = Collections.emptyList();
+		blocks = Collections.emptyList();
+		enterBlock = null;
+		exitBlock = null;
+		region = null;
+		exceptionHandlers = Collections.emptyList();
+		loops = Collections.emptyList();
+		unloadAttributes();
+	}
+  ```
+    ]]>
+  </code>
+</response>

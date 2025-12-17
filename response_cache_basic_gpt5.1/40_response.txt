@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public TernaryInsn(IfCondition condition, RegisterArg result, InsnArg th, InsnArg els) {
+		this();
+		setResult(result);
+
+		IfCondition notNullCondition = condition;
+		if (th.isFalse() && els.isTrue()) {
+			// inverted
+			this.condition = IfCondition.invert(notNullCondition);
+			addArg(els);
+			addArg(th);
+		} else {
+			this.condition = notNullCondition;
+			addArg(th);
+			addArg(els);
+		}
+		visitInsns(this::inheritMetadata);
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private static class ParserState {
+		private State state = State.NONE;
+		@NotNull
+		private StringBuilder curVariable = new StringBuilder();
+		private boolean skip;
+	}
+  ```
+    ]]>
+  </code>
+</response>
