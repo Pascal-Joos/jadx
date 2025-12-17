@@ -615,7 +615,7 @@ public abstract class ArgType {
 	}
 
 	public WildcardBound getWildcardBound() {
-		return null;
+		return WildcardBound.UNBOUND;
 	}
 
 	public boolean isWildcard() {
