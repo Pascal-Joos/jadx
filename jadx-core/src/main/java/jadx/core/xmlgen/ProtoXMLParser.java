@@ -42,7 +42,6 @@ public class ProtoXMLParser {
 		writer = rootNode.makeCodeWriter();
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		decode(decodeProto(inputStream));
-		nsMap = null;
 		return writer.finish();
 	}
 
