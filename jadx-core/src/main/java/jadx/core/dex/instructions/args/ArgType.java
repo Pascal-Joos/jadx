@@ -768,9 +768,8 @@ public abstract class ArgType {
 				return DOUBLE;
 			case 'V':
 				return VOID;
-
 			default:
-				return null;
+				throw new IllegalArgumentException("Unknown ArgType char: " + f);
 		}
 	}
 
