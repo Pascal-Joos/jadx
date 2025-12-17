@@ -56,6 +56,9 @@ public final class LoopRegion extends ConditionRegion {
 	}
 
 	public IRegion getBody() {
+		if (body == null) {
+			throw new IllegalStateException("body is not initialized");
+		}
 		return body;
 	}
 
