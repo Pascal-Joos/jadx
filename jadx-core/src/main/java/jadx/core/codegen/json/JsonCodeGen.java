@@ -117,7 +117,8 @@ public class JsonCodeGen {
 	}
 
 	private void addFields(ClassNode cls, JsonClass jsonCls, ClassGen classGen) {
-		jsonCls.setFields(new ArrayList<>());
+		List<JsonField> fields = new ArrayList<>();
+		jsonCls.setFields(fields);
 		for (FieldNode field : cls.getFields()) {
 			if (field.contains(AFlag.DONT_GENERATE)) {
 				continue;
@@ -132,7 +133,7 @@ public class JsonCodeGen {
 			classGen.addField(cw, field);
 			jsonField.setDeclaration(cw.getCodeStr());
 			jsonField.setAccessFlags(field.getAccessFlags().rawValue());
-			jsonCls.getFields().add(jsonField);
+			fields.add(jsonField);
 		}
 	}
 
