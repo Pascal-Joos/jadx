@@ -95,6 +95,10 @@ public class InlineMethods extends AbstractVisitor {
 			// remap args
 			InsnArg[] regs = new InsnArg[callMth.getRegsCount()];
 			int[] regNums = mia.getArgsRegNums();
+			if (regNums == null) {
+				mth.addWarnComment("Failed to inline method (no args reg nums): " + callMth);
+				return;
+			}
 			for (int i = 0; i < regNums.length; i++) {
 				InsnArg arg = insn.getArg(i);
 				regs[regNums[i]] = arg;
