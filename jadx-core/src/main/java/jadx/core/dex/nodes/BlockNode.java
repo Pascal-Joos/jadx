@@ -185,6 +185,9 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	 * Immediate dominator
 	 */
 	public BlockNode getIDom() {
+		if (idom == null) {
+			throw new IllegalStateException("idom is not initialized");
+		}
 		return idom;
 	}
 
