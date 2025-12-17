@@ -166,7 +166,7 @@ public class ClsSet {
 	private static ClspClass getCls(String fullName, Map<String, ClspClass> names) {
 		ClspClass cls = names.get(fullName);
 		if (cls == null) {
-			LOG.debug("Class not found: {}", fullName);
+			throw new IllegalStateException("Class not found: " + fullName);
 		}
 		return cls;
 	}
