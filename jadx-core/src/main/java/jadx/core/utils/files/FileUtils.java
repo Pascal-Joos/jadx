@@ -79,7 +79,10 @@ public class FileUtils {
 
 	public static void makeDirsForFile(Path path) {
 		if (path != null) {
-			makeDirs(path.toAbsolutePath().getParent().toFile());
+			Path parent = path.toAbsolutePath().getParent();
+			if (parent != null) {
+				makeDirs(parent.toFile());
+			}
 		}
 	}
 
