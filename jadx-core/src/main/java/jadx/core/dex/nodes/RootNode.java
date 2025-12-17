@@ -323,6 +323,9 @@ public class RootNode {
 
 	@Nullable
 	public ClassNode resolveClass(@Nullable ArgType clsType) {
+		if (clsType == null) {
+			return null;
+		}
 		if (!clsType.isTypeKnown() || clsType.isGenericType()) {
 			return null;
 		}
