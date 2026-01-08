@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
@@ -83,7 +81,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		Region tryRegion = new Region(replaceRegion);
 		List<IContainer> subBlocks = replaceRegion.getSubBlocks();
 		for (IContainer cont : subBlocks) {
-			if (RegionUtils.hasPathThroughBlock(Nullability.castToNonnull(dominator), cont)) {
+			if (RegionUtils.hasPathThroughBlock(dominator, cont)) {
 				if (isHandlerPath(tb, cont)) {
 					break;
 				}

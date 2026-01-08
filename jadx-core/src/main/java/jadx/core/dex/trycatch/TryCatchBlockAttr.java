@@ -119,7 +119,6 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 		this.outerTryBlock = outerTryBlock;
 	}
 
-	@Nullable
 	public BlockNode getTopSplitter() {
 		return topSplitter;
 	}
