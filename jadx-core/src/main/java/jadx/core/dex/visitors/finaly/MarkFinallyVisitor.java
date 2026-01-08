@@ -9,8 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -340,7 +338,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 			return false;
 		}
 		BlockNode startBlock = extractInfo.getStartBlock();
-		InsnsSlice dupSlice = searchFromFirstBlock(checkBlock, Nullability.castToNonnull(startBlock), extractInfo);
+		InsnsSlice dupSlice = searchFromFirstBlock(checkBlock, startBlock, extractInfo);
 		if (dupSlice == null) {
 			return false;
 		}
