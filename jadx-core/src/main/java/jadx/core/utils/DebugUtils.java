@@ -13,8 +13,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -249,7 +247,6 @@ public class DebugUtils {
 		return t -> seen.add(keyExtractor.apply(t));
 	}
 
-	@Nullable
 	private static Map<String, Long> execTimes;
 
 	public static void initExecTimes() {
@@ -261,24 +258,15 @@ public class DebugUtils {
 	}
 
 	public static void mergeExecTime(String tag, long execTimeMillis) {
-		if (execTimes == null) {
-			initExecTimes();
-		}
 		execTimes.merge(tag, execTimeMillis, Long::sum);
 	}
 
 	public static void printExecTimes() {
 		System.out.println("Exec times:");
-		if (execTimes == null) {
-			initExecTimes();
-		}
 		execTimes.forEach((tag, time) -> System.out.println(" " + tag + ": " + time + "ms"));
 	}
 
 	public static void printExecTimesWithTotal(long totalMillis) {
-		if (execTimes == null) {
-			initExecTimes();
-		}
 		System.out.println("Exec times: total " + totalMillis + "ms");
 		execTimes.forEach((tag, time) -> System.out.println(" " + tag + ": " + time + "ms"
 				+ String.format(" (%.2f%%)", time * 100. / (double) totalMillis)));
