@@ -7,6 +7,8 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -65,9 +67,9 @@ public class SignatureProcessor extends AbstractVisitor {
 
 	@Nullable
 	private ArgType validateClsType(ClassNode cls, ArgType candidateType, @Nullable ArgType currentType) {
-		if (!candidateType.isObject()) {
+		if (candidateType == null || !candidateType.isObject()) {
 			cls.addWarnComment("Incorrect class signature, class is not object: " + SignatureParser.getSignature(cls));
-			return currentType;
+			return null;
 		}
 		if (Objects.equals(candidateType.getObject(), cls.getClassInfo().getType().getObject())) {
 			cls.addWarnComment("Incorrect class signature, class is equals to this class: " + SignatureParser.getSignature(cls));
@@ -119,7 +121,7 @@ public class SignatureProcessor extends AbstractVisitor {
 
 			mth.updateTypeParameters(typeParameters); // apply before expand args
 			TypeUtils typeUtils = root.getTypeUtils();
-			ArgType retType = typeUtils.expandTypeVariables(mth, parsedRetType);
+			ArgType retType = typeUtils.expandTypeVariables(mth, Nullability.castToNonnull(parsedRetType));
 			List<ArgType> argTypes = Utils.collectionMap(parsedArgTypes, t -> typeUtils.expandTypeVariables(mth, t));
 
 			if (!validateAndApplyTypes(mth, sp, retType, argTypes)) {
@@ -196,12 +198,12 @@ public class SignatureProcessor extends AbstractVisitor {
 	}
 
 	private boolean validateInnerType(ArgType type) {
-		ArgType innerType = type.getInnerType();
+		ArgType innerType = Nullability.castToNonnull(type).getInnerType();
 		if (innerType == null) {
 			return true;
 		}
 		// check in outer type has inner type as inner class
-		ArgType outerType = type.getOuterType();
+		ArgType outerType = Nullability.castToNonnull(type).getOuterType();
 		ClassNode outerCls = root.resolveClass(outerType);
 		if (outerCls == null) {
 			// can't check class not found
