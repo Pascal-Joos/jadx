@@ -249,7 +249,7 @@ public class Utils {
 		return -1;
 	}
 
-	public static <T> List<T> lockList(List<T> list) {
+	public static <T> List<T> lockList(@Nullable List<T> list) {
 		if (list.isEmpty()) {
 			return Collections.emptyList();
 		}
