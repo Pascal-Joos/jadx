@@ -12,8 +12,6 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
@@ -211,7 +209,7 @@ public class JsonCodeGen {
 		if (Objects.equals(clsType, ArgType.OBJECT)) {
 			return ArgType.OBJECT.getObject();
 		}
-		if (Nullability.castToNonnull(clsType).isObject()) {
+		if (clsType.isObject()) {
 			ClassInfo classInfo = ClassInfo.fromType(root, clsType);
 			return classInfo.getAliasFullName();
 		}
