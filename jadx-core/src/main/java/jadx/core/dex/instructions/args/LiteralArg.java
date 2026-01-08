@@ -2,6 +2,8 @@ package jadx.core.dex.instructions.args;
 
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.codegen.TypeGen;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -59,7 +61,7 @@ public final class LiteralArg extends InsnArg {
 	}
 
 	public boolean isInteger() {
-		switch (type.getPrimitiveType()) {
+		switch (Nullability.castToNonnull(type.getPrimitiveType())) {
 			case INT:
 			case BYTE:
 			case CHAR:

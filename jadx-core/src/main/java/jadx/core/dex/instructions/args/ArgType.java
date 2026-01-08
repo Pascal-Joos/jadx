@@ -575,6 +575,7 @@ public abstract class ArgType {
 		return false;
 	}
 
+	@Nullable
 	public PrimitiveType getPrimitiveType() {
 		return null;
 	}
@@ -693,7 +694,8 @@ public abstract class ArgType {
 
 	public boolean canBeAnyNumber() {
 		if (isPrimitive()) {
-			return !getPrimitiveType().isObjectOrArray();
+			PrimitiveType type = getPrimitiveType();
+			return type != null && !type.isObjectOrArray();
 		}
 		for (PrimitiveType primitiveType : getPossibleTypes()) {
 			if (!primitiveType.isObjectOrArray()) {

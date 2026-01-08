@@ -4,6 +4,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -21,6 +23,9 @@ public class TypeGen {
 
 	public static String signature(ArgType type) {
 		PrimitiveType stype = type.getPrimitiveType();
+		if (stype == null) {
+			return type.toString();
+		}
 		if (stype == PrimitiveType.OBJECT) {
 			return Utils.makeQualifiedObjectName(type.getObject());
 		}
@@ -67,7 +72,7 @@ public class TypeGen {
 			return n;
 		}
 
-		switch (type.getPrimitiveType()) {
+		switch (Nullability.castToNonnull(type.getPrimitiveType())) {
 			case BOOLEAN:
 				return lit == 0 ? "false" : "true";
 			case CHAR:
@@ -105,7 +110,7 @@ public class TypeGen {
 			return null;
 		}
 		long lit = arg.getLiteral();
-		switch (type.getPrimitiveType()) {
+		switch (Nullability.castToNonnull(type.getPrimitiveType())) {
 			case BOOLEAN:
 				return lit == 0 ? "false" : "true";
 			case CHAR:
