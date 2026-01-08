@@ -9,8 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.metadata.annotations.InsnCodeOffset;
@@ -257,7 +255,7 @@ public class InsnGen {
 	private static final Set<Flags> BODY_ONLY_NOWRAP_FLAGS = EnumSet.of(Flags.BODY_ONLY_NOWRAP);
 
 	protected void makeInsn(InsnNode insn, ICodeWriter code, @Nullable Flags flag) throws CodegenException {
-		if (Nullability.castToNonnull(insn).getType() == InsnType.REGION_ARG) {
+		if (insn.getType() == InsnType.REGION_ARG) {
 			return;
 		}
 		try {
@@ -862,7 +860,7 @@ public class InsnGen {
 			makeSimpleLambda(code, customNode);
 			return;
 		}
-		MethodNode callMth = (MethodNode) Nullability.castToNonnull(customNode.getCallInsn()).get(AType.METHOD_DETAILS);
+		MethodNode callMth = (MethodNode) customNode.getCallInsn().get(AType.METHOD_DETAILS);
 		makeInlinedLambdaMethod(code, customNode, callMth);
 	}
 
@@ -890,27 +888,24 @@ public class InsnGen {
 		try {
 			InsnNode callInsn = customNode.getCallInsn();
 			MethodInfo implMthInfo = customNode.getImplMthInfo();
-			if (implMthInfo == null) {
-				throw new JadxRuntimeException("Missing impl method info for invoke-custom");
-			}
 			int implArgsCount = implMthInfo.getArgsCount();
 			if (implArgsCount == 0) {
 				code.add("()");
 			} else {
 				code.add('(');
-				int callArgsCount = Nullability.castToNonnull(callInsn).getArgsCount();
+				int callArgsCount = callInsn.getArgsCount();
 				int startArg = callArgsCount - implArgsCount;
 				if (customNode.getHandleType() != MethodHandleType.INVOKE_STATIC
 						&& customNode.getArgsCount() > 0
 						&& customNode.getArg(0).isThis()) {
-					Nullability.castToNonnull(callInsn).getArg(0).add(AFlag.THIS);
+					callInsn.getArg(0).add(AFlag.THIS);
 				}
 				if (startArg >= 0) {
 					for (int i = startArg; i < callArgsCount; i++) {
 						if (i != startArg) {
 							code.add(", ");
 						}
-						addArg(code, Nullability.castToNonnull(callInsn).getArg(i));
+						addArg(code, callInsn.getArg(i));
 					}
 				} else {
 					code.add("/* ERROR: " + startArg + " */");
@@ -926,7 +921,7 @@ public class InsnGen {
 			if (!implMthInfo.getReturnType().isVoid()) {
 				code.add("return ");
 			}
-			makeInsn(Nullability.castToNonnull(callInsn), code, Flags.INLINE);
+			makeInsn(callInsn, code, Flags.INLINE);
 			code.add(";");
 
 			code.decIndent();
@@ -941,11 +936,7 @@ public class InsnGen {
 		NameGen nameGen = callMthGen.getNameGen();
 		nameGen.inheritUsedNames(this.mgen.getNameGen());
 
-		MethodInfo implMthInfo = customNode.getImplMthInfo();
-		if (implMthInfo == null) {
-			throw new CodegenException("Missing impl method info for invoke-custom");
-		}
-		List<ArgType> implArgs = implMthInfo.getArgumentsTypes();
+		List<ArgType> implArgs = customNode.getImplMthInfo().getArgumentsTypes();
 		List<RegisterArg> callArgs = callMth.getArgRegs();
 		if (implArgs.isEmpty()) {
 			code.add("()");
