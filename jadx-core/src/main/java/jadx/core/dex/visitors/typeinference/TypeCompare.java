@@ -9,6 +9,8 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.ArgType.WildcardBound;
@@ -61,39 +63,40 @@ public class TypeCompare {
 		if (first == second || Objects.equals(first, second)) {
 			return TypeCompareEnum.EQUAL;
 		}
-		boolean firstKnown = first.isTypeKnown();
-		boolean secondKnown = second.isTypeKnown();
+		boolean firstKnown = Nullability.castToNonnull(first).isTypeKnown();
+		boolean secondKnown = Nullability.castToNonnull(second).isTypeKnown();
 		if (firstKnown != secondKnown) {
 			if (firstKnown) {
-				return compareWithUnknown(first, second);
+				return compareWithUnknown(Nullability.castToNonnull(first), Nullability.castToNonnull(second));
 			} else {
-				return compareWithUnknown(second, first).invert();
+				return compareWithUnknown(Nullability.castToNonnull(second), Nullability.castToNonnull(first)).invert();
 			}
 		}
-		boolean firstArray = first.isArray();
-		boolean secondArray = second.isArray();
+		boolean firstArray = Nullability.castToNonnull(first).isArray();
+		boolean secondArray = Nullability.castToNonnull(second).isArray();
 		if (firstArray != secondArray) {
 			if (firstArray) {
-				return compareArrayWithOtherType(first, second);
+				return compareArrayWithOtherType(Nullability.castToNonnull(first), Nullability.castToNonnull(second));
 			} else {
-				return compareArrayWithOtherType(second, first).invert();
+				return compareArrayWithOtherType(Nullability.castToNonnull(second), Nullability.castToNonnull(first)).invert();
 			}
 		}
 		if (firstArray /* && secondArray */) {
 			// both arrays
-			return compareTypes(first.getArrayElement(), second.getArrayElement());
+			return compareTypes(Nullability.castToNonnull(first).getArrayElement(), Nullability.castToNonnull(second).getArrayElement());
 		}
 		if (!firstKnown /* && !secondKnown */) {
-			int variantLen = Integer.compare(first.getPossibleTypes().length, second.getPossibleTypes().length);
+			int variantLen = Integer.compare(Nullability.castToNonnull(first).getPossibleTypes().length,
+					Nullability.castToNonnull(second).getPossibleTypes().length);
 			return variantLen > 0 ? WIDER : NARROW;
 		}
-		boolean firstPrimitive = first.isPrimitive();
-		boolean secondPrimitive = second.isPrimitive();
+		boolean firstPrimitive = Nullability.castToNonnull(first).isPrimitive();
+		boolean secondPrimitive = Nullability.castToNonnull(second).isPrimitive();
 
-		boolean firstObj = first.isObject();
-		boolean secondObj = second.isObject();
+		boolean firstObj = Nullability.castToNonnull(first).isObject();
+		boolean secondObj = Nullability.castToNonnull(second).isObject();
 		if (firstObj && secondObj) {
-			return compareObjectsNoPreCheck(first, second);
+			return compareObjectsNoPreCheck(Nullability.castToNonnull(first), Nullability.castToNonnull(second));
 		} else {
 			// primitive types conflicts with objects
 			if (firstObj && secondPrimitive) {
@@ -104,8 +107,8 @@ public class TypeCompare {
 			}
 		}
 		if (firstPrimitive && secondPrimitive) {
-			PrimitiveType firstPrimitiveType = first.getPrimitiveType();
-			PrimitiveType secondPrimitiveType = second.getPrimitiveType();
+			PrimitiveType firstPrimitiveType = Nullability.castToNonnull(first).getPrimitiveType();
+			PrimitiveType secondPrimitiveType = Nullability.castToNonnull(second).getPrimitiveType();
 			if (firstPrimitiveType == PrimitiveType.BOOLEAN
 					|| secondPrimitiveType == PrimitiveType.BOOLEAN) {
 				return CONFLICT;
@@ -254,7 +257,7 @@ public class TypeCompare {
 		if (secondWildcardBound == WildcardBound.UNBOUND) {
 			return NARROW;
 		}
-		TypeCompareEnum wildcardCompare = compareTypes(first.getWildcardType(), second.getWildcardType());
+		TypeCompareEnum wildcardCompare = compareTypes(first.getWildcardType(), Nullability.castToNonnull(second.getWildcardType()));
 		if (firstWildcardBound == secondWildcardBound) {
 			return wildcardCompare;
 		}
