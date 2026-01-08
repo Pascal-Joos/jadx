@@ -91,7 +91,6 @@ public final class ResourceEntry {
 		this.namedValues = namedValues;
 	}
 
-	@Nullable
 	public List<RawNamedValue> getNamedValues() {
 		return namedValues;
 	}

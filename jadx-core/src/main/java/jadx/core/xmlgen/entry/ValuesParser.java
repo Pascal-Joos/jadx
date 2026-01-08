@@ -80,9 +80,6 @@ public class ValuesParser extends ParserConstants {
 			return decodeValue(simpleValue);
 		}
 		List<RawNamedValue> namedValues = ri.getNamedValues();
-		if (namedValues == null) {
-			return null;
-		}
 		List<String> strList = new ArrayList<>(namedValues.size());
 		for (RawNamedValue value : namedValues) {
 			String nameStr = decodeNameRef(value.getNameRef());
