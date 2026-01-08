@@ -228,7 +228,8 @@ public class SignatureProcessor extends AbstractVisitor {
 		if (innerCls == null) {
 			return false;
 		}
-		if (!innerCls.getParentClass().equals(outerCls)) {
+		ClassNode parentClass = innerCls.getParentClass();
+		if (parentClass == null || !parentClass.equals(outerCls)) {
 			// not inner => fixing
 			outerCls.addInnerClass(innerCls);
 			innerCls.getClassInfo().convertToInner(outerCls);

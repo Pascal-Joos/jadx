@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import com.uber.nullaway.annotations.Initializer;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.IMethodData;
@@ -470,7 +472,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 					&& !parentClass.getAccessFlags().isStatic()) {
 				ClassNode outerCls = parentClass.getParentClass();
 				if (argsList != null && !argsList.isEmpty()
-						&& argsList.get(0).getInitType().equals(outerCls.getClassInfo().getType())) {
+						&& argsList.get(0).getInitType().equals(Nullability.castToNonnull(outerCls).getClassInfo().getType())) {
 					defaultArgCount = 1;
 				}
 			}

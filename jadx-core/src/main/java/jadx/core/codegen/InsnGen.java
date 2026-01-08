@@ -993,6 +993,9 @@ public class InsnGen {
 		ArgType declClsType = callMth.getDeclClass().getType();
 		ClassNode parentNode = mth.getParentClass();
 		while (true) {
+			if (parentNode == null) {
+				return null;
+			}
 			ClassInfo parentCls = parentNode.getClassInfo();
 			if (ArgType.isInstanceOf(root, parentCls.getType(), declClsType)) {
 				return parentCls;

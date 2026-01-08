@@ -15,6 +15,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
@@ -672,19 +674,19 @@ public class Deobfuscator {
 	}
 
 	private static boolean isR(ClassNode cls) {
-		if (!cls.getClassInfo().getShortName().equals("R")) {
+		if (!Nullability.castToNonnull(cls).getClassInfo().getShortName().equals("R")) {
 			return false;
 		}
-		if (!cls.getMethods().isEmpty() || !cls.getFields().isEmpty()) {
+		if (!Nullability.castToNonnull(cls).getMethods().isEmpty() || !Nullability.castToNonnull(cls).getFields().isEmpty()) {
 			return false;
 		}
-		for (ClassNode inner : cls.getInnerClasses()) {
+		for (ClassNode inner : Nullability.castToNonnull(cls).getInnerClasses()) {
 			for (MethodNode m : inner.getMethods()) {
 				if (!m.getMethodInfo().isConstructor() && !m.getMethodInfo().isClassInit()) {
 					return false;
 				}
 			}
-			for (FieldNode field : cls.getFields()) {
+			for (FieldNode field : Nullability.castToNonnull(cls).getFields()) {
 				ArgType type = field.getType();
 				if (type != ArgType.INT && (!type.isArray() || type.getArrayElement() != ArgType.INT)) {
 					return false;

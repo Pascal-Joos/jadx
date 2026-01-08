@@ -13,6 +13,8 @@ import org.jetbrains.annotations.Nullable;
 
 import com.uber.nullaway.annotations.Initializer;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
@@ -611,7 +613,7 @@ public class EnumVisitor extends AbstractVisitor {
 			}
 		}
 		field.setCls(innerCls);
-		if (!innerCls.getParentClass().equals(cls)) {
+		if (!Nullability.castToNonnull(innerCls.getParentClass()).equals(cls)) {
 			// not inner
 			cls.addInlinedClass(innerCls);
 			innerCls.add(AFlag.DONT_GENERATE);
