@@ -13,6 +13,8 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.JadxArgs;
 import jadx.core.codegen.json.mapping.JsonClsMapping;
 import jadx.core.codegen.json.mapping.JsonFieldMapping;
@@ -98,7 +100,7 @@ public class JsonMappingGen {
 			JsonFieldMapping jsonField = new JsonFieldMapping();
 			jsonField.setName(field.getName());
 			jsonField.setAlias(field.getAlias());
-			jsonCls.getFields().add(jsonField);
+			Nullability.castToNonnull(jsonCls.getFields()).add(jsonField);
 		}
 	}
 
