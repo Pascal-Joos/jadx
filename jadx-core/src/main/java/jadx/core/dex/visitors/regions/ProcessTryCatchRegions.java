@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
@@ -77,7 +75,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			return wrapBlocks(loop.getBody(), tb, dominator);
 		}
 		if (replaceRegion instanceof IBranchRegion) {
-			return wrapBlocks(Nullability.castToNonnull(replaceRegion.getParent()), tb, dominator);
+			return wrapBlocks(replaceRegion.getParent(), tb, dominator);
 		}
 
 		Region tryRegion = new Region(replaceRegion);

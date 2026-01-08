@@ -19,7 +19,6 @@ public abstract class AbstractRegion extends AttrNode implements IRegion {
 		this.parent = parent;
 	}
 
-	@Nullable
 	@Override
 	public IRegion getParent() {
 		return parent;
