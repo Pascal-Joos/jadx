@@ -27,8 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -160,12 +158,10 @@ public class ClsSet {
 		return getCls(cls.getRawName(), names);
 	}
 
-	@Nullable
 	private static ClspClass getCls(ArgType clsType, Map<String, ClspClass> names) {
 		return getCls(clsType.getObject(), names);
 	}
 
-	@Nullable
 	private static ClspClass getCls(String fullName, Map<String, ClspClass> names) {
 		ClspClass cls = names.get(fullName);
 		if (cls == null) {
@@ -296,11 +292,7 @@ public class ClsSet {
 			}
 		} else if (argType.isGeneric()) {
 			out.writeByte(TypeEnum.GENERIC.ordinal());
-			ClspClass cls = getCls(argType, names);
-			if (cls == null) {
-				throw new JadxRuntimeException("Cannot save type, class not found: " + argType);
-			}
-			out.writeInt(Nullability.castToNonnull(getCls(argType, names)).getId());
+			out.writeInt(getCls(argType, names).getId());
 			writeArgTypesList(out, argType.getGenericTypes(), names);
 		} else if (argType.isGenericType()) {
 			out.writeByte(TypeEnum.GENERIC_TYPE_VARIABLE.ordinal());
@@ -308,11 +300,7 @@ public class ClsSet {
 			writeArgTypesList(out, argType.getExtendTypes(), names);
 		} else if (argType.isObject()) {
 			out.writeByte(TypeEnum.OBJECT.ordinal());
-			ClspClass cls = getCls(argType, names);
-			if (cls == null) {
-				throw new JadxRuntimeException("Cannot save type, class not found: " + argType);
-			}
-			out.writeInt(cls.getId());
+			out.writeInt(getCls(argType, names).getId());
 		} else if (argType.isArray()) {
 			out.writeByte(TypeEnum.ARRAY.ordinal());
 			writeArgType(out, argType.getArrayElement(), names);
