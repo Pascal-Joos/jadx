@@ -13,6 +13,8 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
@@ -248,7 +250,7 @@ public class ProcessVariables extends AbstractVisitor {
 	}
 
 	private static boolean checkDeclareAtAssign(@Nullable SSAVar var) {
-		RegisterArg arg = var.getAssign();
+		RegisterArg arg = Nullability.castToNonnull(var).getAssign();
 		InsnNode parentInsn = arg.getParentInsn();
 		if (parentInsn == null
 				|| parentInsn.contains(AFlag.WRAPPED)
