@@ -3,6 +3,8 @@ package jadx.core.clsp;
 import java.util.List;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import org.jetbrains.annotations.NotNull;
 
 import jadx.api.plugins.input.data.AccessFlags;
@@ -39,6 +41,7 @@ public class ClspMethod implements IMethodDetails, Comparable<ClspMethod> {
 		return methodInfo;
 	}
 
+	@Nullable
 	@Override
 	public ArgType getReturnType() {
 		return returnType;

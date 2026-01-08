@@ -5,6 +5,8 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.input.data.IMethodProto;
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.core.codegen.TypeGen;
@@ -58,7 +60,7 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 	}
 
 	public static MethodInfo fromDetails(RootNode root, ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
-		MethodInfo newMth = new MethodInfo(declClass, name, args, retType);
+		MethodInfo newMth = new MethodInfo(declClass, name, args, Nullability.castToNonnull(retType));
 		return root.getInfoStorage().putMethod(newMth);
 	}
 
