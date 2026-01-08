@@ -8,6 +8,8 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
@@ -266,15 +268,15 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		InsnArg iterableArg = assignInsn.getArg(0);
 		InsnNode hasNextCall = itUseList.get(0).getParentInsn();
-		InsnNode nextCall = itUseList.get(1).getParentInsn();
+		InsnNode nextCall = Nullability.castToNonnull(itUseList.get(1).getParentInsn());
 		if (!checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z")
 				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;")) {
 			return false;
 		}
 		List<InsnNode> toSkip = new ArrayList<>();
 		RegisterArg iterVar;
-		if (nextCall.contains(AFlag.WRAPPED)) {
-			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, nextCall);
+		if (Nullability.castToNonnull(nextCall).contains(AFlag.WRAPPED)) {
+			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, Nullability.castToNonnull(nextCall));
 			if (wrapArg != null && wrapArg.getParentInsn() != null) {
 				InsnNode parentInsn = wrapArg.getParentInsn();
 				BlockNode block = BlockUtils.getBlockByInsn(mth, parentInsn);
@@ -297,12 +299,12 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 						toSkip.add(parentInsn);
 					}
 				} else {
-					iterVar = nextCall.getResult();
+					iterVar = Nullability.castToNonnull(nextCall).getResult();
 					if (iterVar == null) {
 						return false;
 					}
 					iterVar.remove(AFlag.REMOVE); // restore variable from inlined insn
-					nextCall.add(AFlag.DONT_GENERATE);
+					Nullability.castToNonnull(nextCall).add(AFlag.DONT_GENERATE);
 					if (!fixIterableType(mth, iterableArg, iterVar)) {
 						return false;
 					}
@@ -313,7 +315,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 				return false;
 			}
 		} else {
-			iterVar = nextCall.getResult();
+			iterVar = Nullability.castToNonnull(nextCall).getResult();
 			if (iterVar == null) {
 				return false;
 			}
