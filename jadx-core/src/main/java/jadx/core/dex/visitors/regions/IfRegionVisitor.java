@@ -2,8 +2,6 @@ package jadx.core.dex.visitors.regions;
 
 import java.util.List;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.IContainer;
@@ -51,8 +49,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 
 	@SuppressWarnings({ "UnnecessaryReturnStatement", "StatementWithEmptyBody" })
 	private static void orderBranches(MethodNode mth, IfRegion ifRegion) {
-		Region elseRegion = Nullability.castToNonnull(ifRegion.getElseRegion());
-		if (RegionUtils.isEmpty(elseRegion)) {
+		if (RegionUtils.isEmpty(ifRegion.getElseRegion())) {
 			return;
 		}
 		if (RegionUtils.isEmpty(ifRegion.getThenRegion())) {
@@ -61,7 +58,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 		}
 		if (mth.contains(AFlag.USE_LINES_HINTS)) {
 			int thenLine = RegionUtils.getFirstSourceLine(ifRegion.getThenRegion());
-			int elseLine = RegionUtils.getFirstSourceLine(elseRegion);
+			int elseLine = RegionUtils.getFirstSourceLine(ifRegion.getElseRegion());
 			if (thenLine != 0 && elseLine != 0) {
 				if (thenLine > elseLine) {
 					invertIfRegion(ifRegion);
@@ -76,8 +73,8 @@ public class IfRegionVisitor extends AbstractVisitor {
 			}
 		}
 		int thenSize = insnsCount(ifRegion.getThenRegion());
-		int elseSize = insnsCount(elseRegion);
-		if (isSimpleExitBlock(mth, elseRegion)) {
+		int elseSize = insnsCount(ifRegion.getElseRegion());
+		if (isSimpleExitBlock(mth, ifRegion.getElseRegion())) {
 			if (isSimpleExitBlock(mth, ifRegion.getThenRegion())) {
 				if (elseSize < thenSize) {
 					invertIfRegion(ifRegion);
@@ -86,7 +83,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 			}
 			boolean lastRegion = RegionUtils.hasExitEdge(ifRegion);
 			if (elseSize == 1 && lastRegion && mth.isVoidReturn()) {
-				InsnNode lastElseInsn = RegionUtils.getLastInsn(elseRegion);
+				InsnNode lastElseInsn = RegionUtils.getLastInsn(ifRegion.getElseRegion());
 				if (lastElseInsn != null && lastElseInsn.getType() == InsnType.THROW) {
 					// move `throw` into `then` block
 					invertIfRegion(ifRegion);
@@ -101,20 +98,20 @@ public class IfRegionVisitor extends AbstractVisitor {
 			return;
 		}
 		boolean thenExit = RegionUtils.hasExitBlock(ifRegion.getThenRegion());
-		boolean elseExit = RegionUtils.hasExitBlock(elseRegion);
+		boolean elseExit = RegionUtils.hasExitBlock(ifRegion.getElseRegion());
 		if (elseExit && (!thenExit || elseSize < thenSize)) {
 			invertIfRegion(ifRegion);
 			return;
 		}
 		// move 'if' from 'then' branch to make 'else if' chain
 		if (isIfRegion(ifRegion.getThenRegion())
-				&& !isIfRegion(Nullability.castToNonnull(ifRegion.getElseRegion()))
+				&& !isIfRegion(ifRegion.getElseRegion())
 				&& !thenExit) {
 			invertIfRegion(ifRegion);
 			return;
 		}
 		// move 'break' into 'then' branch
-		if (RegionUtils.hasBreakInsn(elseRegion)) {
+		if (RegionUtils.hasBreakInsn(ifRegion.getElseRegion())) {
 			invertIfRegion(ifRegion);
 			return;
 		}
