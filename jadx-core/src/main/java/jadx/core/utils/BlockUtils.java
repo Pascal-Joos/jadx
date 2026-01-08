@@ -19,8 +19,6 @@ import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -228,7 +226,7 @@ public class BlockUtils {
 	}
 
 	public static boolean isExitBlock(@Nullable BlockNode block) {
-		List<BlockNode> successors = Nullability.castToNonnull(block).getSuccessors();
+		List<BlockNode> successors = block.getSuccessors();
 		if (successors.isEmpty()) {
 			return true;
 		}
