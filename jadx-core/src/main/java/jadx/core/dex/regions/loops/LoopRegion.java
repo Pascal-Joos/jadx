@@ -25,8 +25,7 @@ public final class LoopRegion extends ConditionRegion {
 	private final boolean conditionAtEnd;
 	private final @Nullable BlockNode header;
 	// instruction which must be executed before condition in every loop
-	@Nullable
-	private BlockNode preCondition;
+	private @Nullable BlockNode preCondition;
 
 	@Nullable
 	private IRegion body;
@@ -79,9 +78,6 @@ public final class LoopRegion extends ConditionRegion {
 	 * Check if pre-conditions can be inlined into loop condition
 	 */
 	public boolean checkPreCondition() {
-		if (preCondition == null) {
-			return true;
-		}
 		List<InsnNode> insns = preCondition.getInstructions();
 		if (insns.isEmpty()) {
 			return true;
