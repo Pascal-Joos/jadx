@@ -32,8 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class FileUtils {
@@ -81,7 +79,7 @@ public class FileUtils {
 
 	public static void makeDirsForFile(Path path) {
 		if (path != null) {
-			makeDirs(Nullability.castToNonnull(path.toAbsolutePath().getParent()).toFile());
+			makeDirs(path.toAbsolutePath().getParent().toFile());
 		}
 	}
 
