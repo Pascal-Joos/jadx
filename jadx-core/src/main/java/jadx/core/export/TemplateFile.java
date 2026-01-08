@@ -28,7 +28,6 @@ public class TemplateFile {
 
 	private static class ParserState {
 		private State state = State.NONE;
-		@Nullable
 		private StringBuilder curVariable;
 		private boolean skip;
 	}
@@ -89,7 +88,6 @@ public class TemplateFile {
 	}
 
 	@Nullable
-	@javax.annotation.Nonnull
 	private String process(ParserState parser, char ch) {
 		State state = parser.state;
 		switch (ch) {
@@ -116,9 +114,6 @@ public class TemplateFile {
 
 					case END:
 						parser.state = State.NONE;
-						if (parser.curVariable == null) {
-							return null;
-						}
 						String varName = parser.curVariable.toString();
 						parser.curVariable = new StringBuilder();
 						return processVar(varName);
@@ -128,9 +123,6 @@ public class TemplateFile {
 			default:
 				switch (state) {
 					case VARIABLE:
-						if (parser.curVariable == null) {
-							return null;
-						}
 						parser.curVariable.append(ch);
 						parser.skip = true;
 						return null;
