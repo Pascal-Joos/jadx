@@ -8,8 +8,6 @@ import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrList;
@@ -264,7 +262,7 @@ public class RegionUtils {
 			}
 			return count;
 		}
-		throw new JadxRuntimeException(unknownContainerType(Nullability.castToNonnull(container)));
+		throw new JadxRuntimeException(unknownContainerType(container));
 	}
 
 	public static boolean isEmpty(IContainer container) {

@@ -8,8 +8,6 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.metadata.annotations.InsnCodeOffset;
@@ -79,7 +77,7 @@ public class RegionGen extends InsnGen {
 
 	private void makeRegionIndent(ICodeWriter code, IContainer region) throws CodegenException {
 		code.incIndent();
-		makeRegion(code, Nullability.castToNonnull(region));
+		makeRegion(code, region);
 		code.decIndent();
 	}
 

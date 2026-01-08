@@ -2,8 +2,6 @@ package jadx.core.dex.visitors.regions;
 
 import java.util.List;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.IContainer;
@@ -54,7 +52,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 		if (RegionUtils.isEmpty(ifRegion.getElseRegion())) {
 			return;
 		}
-		if (RegionUtils.isEmpty(Nullability.castToNonnull(ifRegion.getThenRegion()))) {
+		if (RegionUtils.isEmpty(ifRegion.getThenRegion())) {
 			invertIfRegion(ifRegion);
 			return;
 		}
@@ -74,10 +72,10 @@ public class IfRegionVisitor extends AbstractVisitor {
 				invertIfRegion(ifRegion);
 			}
 		}
-		int thenSize = insnsCount(Nullability.castToNonnull(ifRegion.getThenRegion()));
+		int thenSize = insnsCount(ifRegion.getThenRegion());
 		int elseSize = insnsCount(ifRegion.getElseRegion());
 		if (isSimpleExitBlock(mth, ifRegion.getElseRegion())) {
-			if (isSimpleExitBlock(mth, Nullability.castToNonnull(ifRegion.getThenRegion()))) {
+			if (isSimpleExitBlock(mth, ifRegion.getThenRegion())) {
 				if (elseSize < thenSize) {
 					invertIfRegion(ifRegion);
 					return;
@@ -99,14 +97,14 @@ public class IfRegionVisitor extends AbstractVisitor {
 			}
 			return;
 		}
-		boolean thenExit = RegionUtils.hasExitBlock(Nullability.castToNonnull(ifRegion.getThenRegion()));
+		boolean thenExit = RegionUtils.hasExitBlock(ifRegion.getThenRegion());
 		boolean elseExit = RegionUtils.hasExitBlock(ifRegion.getElseRegion());
 		if (elseExit && (!thenExit || elseSize < thenSize)) {
 			invertIfRegion(ifRegion);
 			return;
 		}
 		// move 'if' from 'then' branch to make 'else if' chain
-		if (isIfRegion(Nullability.castToNonnull(ifRegion.getThenRegion()))
+		if (isIfRegion(ifRegion.getThenRegion())
 				&& !isIfRegion(ifRegion.getElseRegion())
 				&& !thenExit) {
 			invertIfRegion(ifRegion);
@@ -163,7 +161,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 				|| ifRegion.getElseRegion().contains(AFlag.ELSE_IF_CHAIN)) {
 			return false;
 		}
-		if (!RegionUtils.hasExitBlock(Nullability.castToNonnull(ifRegion.getThenRegion()))) {
+		if (!RegionUtils.hasExitBlock(ifRegion.getThenRegion())) {
 			return false;
 		}
 		// code style check:
