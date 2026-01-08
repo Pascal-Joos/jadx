@@ -104,7 +104,11 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 			if (thenPhi == null || thenPhi != elsePhi) {
 				return false;
 			}
-			if (!ifRegion.getParent().replaceSubBlock(ifRegion, header)) {
+			IRegion parentRegion = ifRegion.getParent();
+			if (parentRegion == null) {
+				return false;
+			}
+			if (!parentRegion.replaceSubBlock(ifRegion, header)) {
 				return false;
 			}
 			InsnList.remove(tb, thenInsn);
@@ -145,7 +149,11 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 				return false;
 			}
 
-			if (!ifRegion.getParent().replaceSubBlock(ifRegion, header)) {
+			IRegion parentRegion = ifRegion.getParent();
+			if (parentRegion == null) {
+				return false;
+			}
+			if (!parentRegion.replaceSubBlock(ifRegion, header)) {
 				return false;
 			}
 			InsnList.remove(tb, thenInsn);
@@ -317,7 +325,8 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 
 		// all checks passed
 		BlockNode header = ifRegion.getConditionBlocks().get(0);
-		if (!ifRegion.getParent().replaceSubBlock(ifRegion, header)) {
+		IRegion parent = ifRegion.getParent();
+		if (parent == null || !parent.replaceSubBlock(ifRegion, header)) {
 			return;
 		}
 		InsnArg elseArg;
