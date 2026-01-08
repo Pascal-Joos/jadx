@@ -91,8 +91,7 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 	@Nullable
 	private static InsnNode getInsnByOffset(MethodNode mth, int offset) {
 		try {
-			InsnNode[] insns = mth.getInstructions();
-			return insns != null ? insns[offset] : null;
+			return mth.getInstructions()[offset];
 		} catch (Exception e) {
 			LOG.warn("Insn reference not found in: {} with offset: {}", mth, offset);
 			return null;

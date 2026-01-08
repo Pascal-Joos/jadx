@@ -8,8 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.ICatch;
 import jadx.api.plugins.input.data.ITry;
 import jadx.api.plugins.utils.Utils;
@@ -58,11 +56,11 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 			tries.forEach(tryData -> LOG.debug(" - {}", tryData));
 		}
 		for (ITry tryData : tries) {
-			List<ExceptionHandler> handlers = convertToHandlers(mth, tryData.getCatch(), Nullability.castToNonnull(insnByOffset));
+			List<ExceptionHandler> handlers = convertToHandlers(mth, tryData.getCatch(), insnByOffset);
 			if (handlers.isEmpty()) {
 				continue;
 			}
-			markTryBounds(Nullability.castToNonnull(insnByOffset), tryData, CatchAttr.build(handlers));
+			markTryBounds(insnByOffset, tryData, CatchAttr.build(handlers));
 		}
 	}
 
