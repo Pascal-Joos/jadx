@@ -13,8 +13,6 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
@@ -269,10 +267,10 @@ public class ProcessVariables extends AbstractVisitor {
 			LOG.warn("Try to declare already declared variable: {}", var);
 			return;
 		}
-		DeclareVariablesAttr dv = Nullability.castToNonnull(region).get(AType.DECLARE_VARIABLES);
+		DeclareVariablesAttr dv = region.get(AType.DECLARE_VARIABLES);
 		if (dv == null) {
 			dv = new DeclareVariablesAttr();
-			Nullability.castToNonnull(region).addAttr(dv);
+			region.addAttr(dv);
 		}
 		dv.addVar(var);
 		var.setDeclared(true);
