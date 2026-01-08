@@ -362,13 +362,10 @@ public class TypeUtils {
 		} else {
 			ClspClass clspClass = root.getClsp().getClsDetails(type);
 			if (clspClass != null) {
-				ArgType[] parents = clspClass.getParents();
-				if (parents != null) {
-					for (ArgType superType : parents) {
-						if (!superType.equals(ArgType.OBJECT)) {
-							consumer.accept(type, superType);
-							visitSuperTypes(superType, consumer);
-						}
+				for (ArgType superType : clspClass.getParents()) {
+					if (!superType.equals(ArgType.OBJECT)) {
+						consumer.accept(type, superType);
+						visitSuperTypes(superType, consumer);
 					}
 				}
 			}
