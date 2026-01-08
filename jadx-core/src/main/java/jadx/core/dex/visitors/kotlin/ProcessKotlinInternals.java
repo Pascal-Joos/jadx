@@ -57,7 +57,6 @@ public class ProcessKotlinInternals extends AbstractVisitor {
 	private static final String KOTLIN_VARNAME_SOURCE_MTH2 = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V";
 
 	private @Nullable ClassInfo kotlinIntrinsicsCls;
-
 	@Nullable
 	private Set<MethodInfo> kotlinVarNameSourceMethods;
 	private boolean hideInsns;
@@ -105,9 +104,6 @@ public class ProcessKotlinInternals extends AbstractVisitor {
 	}
 
 	private void processInvoke(MethodNode mth, InsnNode insn) {
-		if (kotlinVarNameSourceMethods == null) {
-			return;
-		}
 		int argsCount = insn.getArgsCount();
 		if (argsCount < 2) {
 			return;
