@@ -55,7 +55,6 @@ public final class LoopRegion extends ConditionRegion {
 		return header == null;
 	}
 
-	@Nullable
 	public IRegion getBody() {
 		return body;
 	}
