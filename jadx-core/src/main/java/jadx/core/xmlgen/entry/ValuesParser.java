@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.utils.android.TextResMapFile;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ParserConstants;
@@ -17,6 +19,7 @@ import jadx.core.xmlgen.XmlGenUtils;
 public class ValuesParser extends ParserConstants {
 	private static final Logger LOG = LoggerFactory.getLogger(ValuesParser.class);
 
+	@Nullable
 	private static Map<Integer, String> androidResMap;
 
 	@Nullable
@@ -128,7 +131,10 @@ public class ValuesParser extends ParserConstants {
 			case TYPE_REFERENCE: {
 				String ri = resMap.get(data);
 				if (ri == null) {
-					String androidRi = androidResMap.get(data);
+					if (androidResMap == null) {
+						return null;
+					}
+					String androidRi = Nullability.castToNonnull(androidResMap).get(data);
 					if (androidRi != null) {
 						return "@android:" + androidRi;
 					}
@@ -143,7 +149,10 @@ public class ValuesParser extends ParserConstants {
 			case TYPE_ATTRIBUTE: {
 				String ri = resMap.get(data);
 				if (ri == null) {
-					String androidRi = androidResMap.get(data);
+					if (androidResMap == null) {
+						return null;
+					}
+					String androidRi = Nullability.castToNonnull(androidResMap).get(data);
 					if (androidRi != null) {
 						return "?android:" + androidRi;
 					}
@@ -179,6 +188,9 @@ public class ValuesParser extends ParserConstants {
 		if (ri != null) {
 			return ri.replace('/', '.');
 		} else {
+			if (androidResMap == null) {
+				return null;
+			}
 			String androidRi = androidResMap.get(ref);
 			if (androidRi != null) {
 				return "android:" + androidRi.replace('/', '.');
