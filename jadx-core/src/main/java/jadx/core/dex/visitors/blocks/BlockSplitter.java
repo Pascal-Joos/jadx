@@ -75,7 +75,11 @@ public class BlockSplitter extends AbstractVisitor {
 		Map<Integer, BlockNode> blocksMap = new HashMap<>();
 		BlockNode curBlock = enterBlock;
 		InsnNode prevInsn = null;
-		for (InsnNode insn : mth.getInstructions()) {
+		InsnNode[] insnArr = mth.getInstructions();
+		if (insnArr == null) {
+			return blocksMap;
+		}
+		for (InsnNode insn : insnArr) {
 			if (insn == null) {
 				continue;
 			}

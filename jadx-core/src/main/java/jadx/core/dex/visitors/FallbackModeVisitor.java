@@ -22,7 +22,11 @@ public class FallbackModeVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		for (InsnNode insn : mth.getInstructions()) {
+		InsnNode[] insnArr = mth.getInstructions();
+		if (insnArr == null) {
+			return;
+		}
+		for (InsnNode insn : insnArr) {
 			if (insn == null) {
 				continue;
 			}
