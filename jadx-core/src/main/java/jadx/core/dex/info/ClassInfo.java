@@ -6,8 +6,6 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
@@ -172,7 +170,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 			}
 			return parentFullName + innerSep + shortName;
 		}
-		return Nullability.castToNonnull(pkg).isEmpty() ? shortName : Nullability.castToNonnull(pkg) + '.' + shortName;
+		return pkg.isEmpty() ? shortName : pkg + '.' + shortName;
 	}
 
 	private String makeFullName() {
