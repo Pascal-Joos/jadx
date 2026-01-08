@@ -169,6 +169,7 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 		this.doms = doms;
 	}
 
+	@Nullable
 	public BitSet getDomFrontier() {
 		return domFrontier;
 	}

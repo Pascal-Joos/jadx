@@ -215,7 +215,8 @@ public class IfMakerHelper {
 		if (nextThen == null || nextElse == null) {
 			return null;
 		}
-		if (!nextThen.getFirstIfBlock().getDomFrontier().equals(nextElse.getFirstIfBlock().getDomFrontier())) {
+		if (nextThen.getFirstIfBlock().getDomFrontier() == null
+				|| !nextThen.getFirstIfBlock().getDomFrontier().equals(nextElse.getFirstIfBlock().getDomFrontier())) {
 			return null;
 		}
 		nextThen = searchNestedIf(nextThen);

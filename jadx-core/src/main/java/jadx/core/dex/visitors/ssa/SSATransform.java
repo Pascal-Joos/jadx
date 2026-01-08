@@ -9,6 +9,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
@@ -93,7 +95,8 @@ public class SSATransform extends AbstractVisitor {
 		while (!workList.isEmpty()) {
 			BlockNode block = workList.pop();
 			BitSet domFrontier = block.getDomFrontier();
-			for (int id = domFrontier.nextSetBit(0); id >= 0; id = domFrontier.nextSetBit(id + 1)) {
+			for (int id = Nullability.castToNonnull(domFrontier).nextSetBit(0); id >= 0; id =
+					Nullability.castToNonnull(domFrontier).nextSetBit(id + 1)) {
 				if (!hasPhi.get(id) && la.isLive(id, regNum)) {
 					BlockNode df = blocks.get(id);
 					addPhi(mth, df, regNum);
