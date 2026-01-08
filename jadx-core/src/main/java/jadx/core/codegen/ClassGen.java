@@ -584,9 +584,11 @@ public class ClassGen {
 				ArgType wt = gt.getWildcardType();
 				if (wt != null) {
 					ArgType.WildcardBound bound = gt.getWildcardBound();
-					code.add(bound.getStr());
-					if (bound != ArgType.WildcardBound.UNBOUND) {
-						useType(code, wt);
+					if (bound != null) {
+						code.add(bound.getStr());
+						if (bound != ArgType.WildcardBound.UNBOUND) {
+							useType(code, wt);
+						}
 					}
 				} else {
 					useType(code, gt);
