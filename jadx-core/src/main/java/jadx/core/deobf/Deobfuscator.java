@@ -15,8 +15,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
@@ -267,7 +265,7 @@ public class Deobfuscator {
 
 	public void addPackagePreset(String origPkgName, String pkgAlias) {
 		PackageNode pkg = getPackageNode(origPkgName, true);
-		Nullability.castToNonnull(pkg).setAlias(pkgAlias);
+		pkg.setAlias(pkgAlias);
 	}
 
 	/**
@@ -280,7 +278,6 @@ public class Deobfuscator {
 	 * @return package node object or {@code null} if no package found and <b>create</b> set to
 	 *         {@code false}
 	 */
-	@Nullable
 	private PackageNode getPackageNode(String fullPkgName, boolean create) {
 		if (fullPkgName.isEmpty() || fullPkgName.equals(CLASS_NAME_SEPARATOR)) {
 			return rootPackage;
@@ -330,7 +327,7 @@ public class Deobfuscator {
 		ClassInfo classInfo = cls.getClassInfo();
 		String pkgFullName = classInfo.getPackage();
 		PackageNode pkg = getPackageNode(pkgFullName, true);
-		processPackageFull(Nullability.castToNonnull(pkg), pkgFullName);
+		processPackageFull(pkg, pkgFullName);
 
 		String alias = deobfPresets.getForCls(classInfo);
 		if (alias != null) {
@@ -366,12 +363,12 @@ public class Deobfuscator {
 			PackageNode subPkg = pkg;
 			for (int i = aliasParts.length - 1; i >= 0; i--) {
 				String aliasPart = aliasParts[i];
-				if (!Nullability.castToNonnull(subPkg).getName().equals(aliasPart)) {
+				if (!subPkg.getName().equals(aliasPart)) {
 					subPkg.setAlias(aliasPart);
 				}
 				subPkg = subPkg.getParentPackage();
 			}
-			return Nullability.castToNonnull(pkg).getFullAlias();
+			return pkg.getFullAlias();
 		}
 		PackageNode pkg;
 		DeobfClsInfo deobfClsInfo = clsMap.get(classInfo);
@@ -382,10 +379,10 @@ public class Deobfuscator {
 			pkg = getPackageNode(fullPkgName, true);
 			processPackageFull(pkg, fullPkgName);
 		}
-		if (Nullability.castToNonnull(pkg).hasAnyAlias()) {
-			return Nullability.castToNonnull(pkg).getFullAlias();
+		if (pkg.hasAnyAlias()) {
+			return pkg.getFullAlias();
 		} else {
-			return Nullability.castToNonnull(pkg).getFullName();
+			return pkg.getFullName();
 		}
 	}
 
@@ -579,7 +576,7 @@ public class Deobfuscator {
 		pkgSet.add(fullName);
 
 		// doPkg for all parent packages except root that not hasAliases
-		PackageNode parentPkg = Nullability.castToNonnull(pkg).getParentPackage();
+		PackageNode parentPkg = pkg.getParentPackage();
 		while (!parentPkg.getName().isEmpty()) {
 			if (!parentPkg.hasAlias()) {
 				processPackageFull(parentPkg, parentPkg.getFullName());
@@ -587,16 +584,14 @@ public class Deobfuscator {
 			parentPkg = parentPkg.getParentPackage();
 		}
 
-		if (!Nullability.castToNonnull(pkg).hasAlias()) {
-			String pkgName = Nullability.castToNonnull(pkg).getName();
+		if (!pkg.hasAlias()) {
+			String pkgName = pkg.getName();
 			if ((args.isDeobfuscationOn() && shouldRename(pkgName))
-					&& (Nullability.castToNonnull(pkg).getParentPackage() != rootPackage || !TldHelper.contains(pkgName)) // check if first
-																															// level is a
-																															// valid tld
+					&& (pkg.getParentPackage() != rootPackage || !TldHelper.contains(pkgName)) // check if first level is a valid tld
 					|| (args.isRenameValid() && !NameMapper.isValidIdentifier(pkgName))
 					|| (args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(pkgName))) {
-				String pkgAlias = String.format("p%03d%s", pkgIndex++, prepareNamePart(Nullability.castToNonnull(pkg).getName()));
-				Nullability.castToNonnull(pkg).setAlias(pkgAlias);
+				String pkgAlias = String.format("p%03d%s", pkgIndex++, prepareNamePart(pkg.getName()));
+				pkg.setAlias(pkgAlias);
 			}
 		}
 	}
