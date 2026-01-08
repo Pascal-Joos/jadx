@@ -735,7 +735,6 @@ public class BlockUtils {
 	 * @return null if cross is a method exit block.
 	 */
 	@Nullable
-	@CheckForNull
 	public static BlockNode getPathCross(MethodNode mth, Collection<BlockNode> blocks) {
 		BitSet domFrontBS = newBlocksBitSet(mth);
 		boolean first = true;
@@ -775,11 +774,10 @@ public class BlockUtils {
 			// collect dom frontier blocks from current set until only one block left
 			forEachBlockFromBitSet(mth, domFrontBS, block -> {
 				BitSet domFrontier = block.getDomFrontier();
-				if (domFrontier == null || domFrontier.isEmpty()) {
-					return;
+				if (!domFrontier.isEmpty()) {
+					combinedDF.or(domFrontier);
+					combinedDF.clear(block.getId());
 				}
-				combinedDF.or(domFrontier);
-				combinedDF.clear(block.getId());
 			});
 			combinedDF.andNot(excluded);
 			int cardinality = combinedDF.cardinality();

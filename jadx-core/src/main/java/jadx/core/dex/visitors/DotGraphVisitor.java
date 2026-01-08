@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.ICodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.codegen.MethodGen;
@@ -234,7 +232,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				for (BlockNode c : block.getDominatesOn()) {
 					conn.startLine(block.getCId() + " -> " + c.getCId() + "[color=green];");
 				}
-				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, Nullability.castToNonnull(block.getDomFrontier()))) {
+				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDomFrontier())) {
 					conn.startLine("f_" + block.getCId() + " -> f_" + dom.getCId() + "[color=blue];");
 				}
 			}
