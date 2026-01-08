@@ -6,8 +6,6 @@ import java.util.Queue;
 
 import javax.annotation.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.ArithNode;
@@ -56,26 +54,26 @@ public class ConditionGen extends InsnGen {
 
 	private void add(ICodeWriter code, CondStack stack, @Nullable IfCondition condition) throws CodegenException {
 		stack.push(condition);
-		switch (Nullability.castToNonnull(condition).getMode()) {
+		switch (condition.getMode()) {
 			case COMPARE:
-				addCompare(code, stack, Nullability.castToNonnull(condition).getCompare());
+				addCompare(code, stack, condition.getCompare());
 				break;
 
 			case TERNARY:
-				addTernary(code, stack, Nullability.castToNonnull(condition));
+				addTernary(code, stack, condition);
 				break;
 
 			case NOT:
-				addNot(code, stack, Nullability.castToNonnull(condition));
+				addNot(code, stack, condition);
 				break;
 
 			case AND:
 			case OR:
-				addAndOr(code, stack, Nullability.castToNonnull(condition));
+				addAndOr(code, stack, condition);
 				break;
 
 			default:
-				throw new JadxRuntimeException("Unknown condition mode: " + Nullability.castToNonnull(condition).getMode());
+				throw new JadxRuntimeException("Unknown condition mode: " + condition.getMode());
 		}
 		stack.pop();
 	}
