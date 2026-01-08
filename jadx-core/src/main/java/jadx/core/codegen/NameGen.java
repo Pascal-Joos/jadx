@@ -7,8 +7,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -177,13 +175,13 @@ public class NameGen {
 	}
 
 	private String makeNameForType(ArgType type) {
-		if (Nullability.castToNonnull(type).isPrimitive()) {
-			return Nullability.castToNonnull(type).getPrimitiveType().getShortName().toLowerCase();
+		if (type.isPrimitive()) {
+			return type.getPrimitiveType().getShortName().toLowerCase();
 		}
-		if (Nullability.castToNonnull(type).isArray()) {
-			return makeNameForType(Nullability.castToNonnull(type).getArrayRootElement()) + "Arr";
+		if (type.isArray()) {
+			return makeNameForType(type.getArrayRootElement()) + "Arr";
 		}
-		return makeNameForObject(Nullability.castToNonnull(type));
+		return makeNameForObject(type);
 	}
 
 	private String makeNameForObject(ArgType type) {
