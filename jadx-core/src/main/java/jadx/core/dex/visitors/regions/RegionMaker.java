@@ -247,6 +247,9 @@ public class RegionMaker {
 			loop.getEnd().remove(AFlag.ADDED_TO_REGION);
 		} else {
 			out = condInfo.getElseBlock();
+			if (out == null) {
+				return null;
+			}
 			if (outerRegion != null
 					&& out.contains(AFlag.LOOP_START)
 					&& !out.getAll(AType.LOOP).contains(loop)

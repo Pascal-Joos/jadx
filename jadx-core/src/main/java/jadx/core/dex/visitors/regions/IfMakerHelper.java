@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -57,6 +59,7 @@ public class IfMakerHelper {
 	}
 
 	@Nullable
+	@Nonnull
 	static IfInfo restructureIf(MethodNode mth, BlockNode block, @Nullable IfInfo info) {
 		BlockNode thenBlock = info.getThenBlock();
 		BlockNode elseBlock = info.getElseBlock();
@@ -68,7 +71,7 @@ public class IfMakerHelper {
 		}
 
 		// select 'then', 'else' and 'exit' blocks
-		if (thenBlock.contains(AFlag.RETURN) && elseBlock.contains(AFlag.RETURN)) {
+		if (thenBlock != null && elseBlock != null && thenBlock.contains(AFlag.RETURN) && elseBlock.contains(AFlag.RETURN)) {
 			info.setOutBlock(null);
 			return info;
 		}
@@ -86,7 +89,7 @@ public class IfMakerHelper {
 			info = new IfInfo(info, elseBlock, null);
 			info.setOutBlock(thenBlock);
 		} else {
-			info.setOutBlock(BlockUtils.getPathCross(mth, thenBlock, elseBlock));
+			info.setOutBlock(BlockUtils.getPathCross(mth, thenBlock, Nullability.castToNonnull(elseBlock)));
 		}
 		if (BlockUtils.isBackEdge(block, info.getOutBlock())) {
 			info.setOutBlock(null);
@@ -96,10 +99,10 @@ public class IfMakerHelper {
 
 	private static boolean isBadBranchBlock(IfInfo info, BlockNode block) {
 		// check if block at end of loop edge
-		if (block.contains(AFlag.LOOP_START) && block.getPredecessors().size() == 1) {
-			BlockNode pred = block.getPredecessors().get(0);
+		if (Nullability.castToNonnull(block).contains(AFlag.LOOP_START) && Nullability.castToNonnull(block).getPredecessors().size() == 1) {
+			BlockNode pred = Nullability.castToNonnull(block).getPredecessors().get(0);
 			if (pred.contains(AFlag.LOOP_END)) {
-				List<LoopInfo> startLoops = block.getAll(AType.LOOP);
+				List<LoopInfo> startLoops = Nullability.castToNonnull(block).getAll(AType.LOOP);
 				List<LoopInfo> endLoops = pred.getAll(AType.LOOP);
 				// search for same loop
 				for (LoopInfo startLoop : startLoops) {
@@ -111,7 +114,7 @@ public class IfMakerHelper {
 				}
 			}
 		}
-		return !allPathsFromIf(block, info);
+		return !allPathsFromIf(Nullability.castToNonnull(block), info);
 	}
 
 	private static boolean allPathsFromIf(BlockNode block, IfInfo info) {
@@ -128,13 +131,16 @@ public class IfMakerHelper {
 
 	@Nullable
 	static IfInfo mergeNestedIfNodes(@Nullable IfInfo currentIf) {
+		if (currentIf == null) {
+			return null;
+		}
 		BlockNode curThen = currentIf.getThenBlock();
 		BlockNode curElse = currentIf.getElseBlock();
 		if (curThen == curElse) {
 			return null;
 		}
 		if (BlockUtils.isFollowBackEdge(curThen)
-				|| BlockUtils.isFollowBackEdge(curElse)) {
+				|| BlockUtils.isFollowBackEdge(Nullability.castToNonnull(curElse))) {
 			return null;
 		}
 		boolean followThenBranch;
@@ -142,7 +148,7 @@ public class IfMakerHelper {
 		if (nextIf != null) {
 			followThenBranch = true;
 		} else {
-			nextIf = getNextIf(currentIf, curElse);
+			nextIf = getNextIf(currentIf, Nullability.castToNonnull(curElse));
 			if (nextIf != null) {
 				followThenBranch = false;
 			} else {
@@ -165,15 +171,15 @@ public class IfMakerHelper {
 			nextIf = IfInfo.invert(nextIf);
 		}
 		boolean thenPathSame = isEqualPaths(curThen, nextIf.getThenBlock());
-		boolean elsePathSame = isEqualPaths(curElse, nextIf.getElseBlock());
+		boolean elsePathSame = isEqualPaths(Nullability.castToNonnull(curElse), Nullability.castToNonnull(nextIf.getElseBlock()));
 		if (!thenPathSame && !elsePathSame) {
 			// complex condition, run additional checks
-			if (checkConditionBranches(curThen, curElse)
-					|| checkConditionBranches(curElse, curThen)) {
+			if (checkConditionBranches(curThen, Nullability.castToNonnull(curElse))
+					|| checkConditionBranches(Nullability.castToNonnull(curElse), curThen)) {
 				return null;
 			}
-			BlockNode otherBranchBlock = followThenBranch ? curElse : curThen;
-			otherBranchBlock = BlockUtils.followEmptyPath(otherBranchBlock);
+			BlockNode otherBranchBlock = followThenBranch ? Nullability.castToNonnull(curElse) : curThen;
+			otherBranchBlock = BlockUtils.followEmptyPath(Nullability.castToNonnull(otherBranchBlock));
 			if (!isPathExists(nextIf.getFirstIfBlock(), otherBranchBlock)) {
 				return checkForTernaryInCondition(currentIf);
 			}
@@ -243,19 +249,20 @@ public class IfMakerHelper {
 
 	private static boolean isInversionNeeded(IfInfo currentIf, IfInfo nextIf) {
 		return isEqualPaths(currentIf.getElseBlock(), nextIf.getThenBlock())
-				|| isEqualPaths(currentIf.getThenBlock(), nextIf.getElseBlock());
+				|| isEqualPaths(currentIf.getThenBlock(), Nullability.castToNonnull(nextIf.getElseBlock()));
 	}
 
 	private static boolean canMerge(IfInfo a, IfInfo b, boolean followThenBranch) {
 		if (followThenBranch) {
-			return isEqualPaths(a.getElseBlock(), b.getElseBlock());
+			return isEqualPaths(a.getElseBlock(), Nullability.castToNonnull(b.getElseBlock()));
 		} else {
 			return isEqualPaths(a.getThenBlock(), b.getThenBlock());
 		}
 	}
 
 	private static boolean checkConditionBranches(BlockNode from, BlockNode to) {
-		return from.getCleanSuccessors().size() == 1 && from.getCleanSuccessors().contains(to);
+		return Nullability.castToNonnull(from).getCleanSuccessors().size() == 1
+				&& Nullability.castToNonnull(from).getCleanSuccessors().contains(to);
 	}
 
 	private static IfInfo mergeIfInfo(IfInfo first, IfInfo second, boolean followThenBranch) {
@@ -265,40 +272,41 @@ public class IfMakerHelper {
 		BlockNode elseBlock;
 		if (followThenBranch) {
 			thenBlock = second.getThenBlock();
-			elseBlock = getBranchBlock(first.getElseBlock(), second.getElseBlock(), skipBlocks, mth);
+			elseBlock = getBranchBlock(first.getElseBlock(), Nullability.castToNonnull(second.getElseBlock()), skipBlocks, mth);
 		} else {
 			thenBlock = getBranchBlock(first.getThenBlock(), second.getThenBlock(), skipBlocks, mth);
 			elseBlock = second.getElseBlock();
 		}
 		Mode mergeOperation = followThenBranch ? Mode.AND : Mode.OR;
 		IfCondition condition = IfCondition.merge(mergeOperation, first.getCondition(), second.getCondition());
-		IfInfo result = new IfInfo(mth, condition, thenBlock, elseBlock);
+		IfInfo result = new IfInfo(mth, condition, thenBlock, Nullability.castToNonnull(elseBlock));
 		result.merge(first, second);
 		return result;
 	}
 
+	@Nullable
 	private static BlockNode getBranchBlock(BlockNode first, BlockNode second, Set<BlockNode> skipBlocks, MethodNode mth) {
 		if (first == second) {
 			return second;
 		}
-		if (isEqualReturnBlocks(first, second)) {
+		if (isEqualReturnBlocks(Nullability.castToNonnull(first), second)) {
 			skipBlocks.add(first);
 			return second;
 		}
-		BlockNode cross = BlockUtils.getPathCross(mth, first, second);
+		BlockNode cross = BlockUtils.getPathCross(mth, Nullability.castToNonnull(first), second);
 		if (cross != null) {
-			BlockUtils.visitBlocksOnPath(mth, first, cross, skipBlocks::add);
-			BlockUtils.visitBlocksOnPath(mth, second, cross, skipBlocks::add);
+			BlockUtils.visitBlocksOnPath(mth, Nullability.castToNonnull(first), cross, skipBlocks::add);
+			BlockUtils.visitBlocksOnPath(mth, Nullability.castToNonnull(second), cross, skipBlocks::add);
 			skipBlocks.remove(cross);
 			return cross;
 		}
-		BlockNode firstSkip = BlockUtils.followEmptyPath(first);
+		BlockNode firstSkip = BlockUtils.followEmptyPath(Nullability.castToNonnull(first));
 		BlockNode secondSkip = BlockUtils.followEmptyPath(second);
 		if (firstSkip.equals(secondSkip) || isEqualReturnBlocks(firstSkip, secondSkip)) {
 			skipBlocks.add(first);
 			skipBlocks.add(second);
-			BlockUtils.visitBlocksOnEmptyPath(first, skipBlocks::add);
-			BlockUtils.visitBlocksOnEmptyPath(second, skipBlocks::add);
+			BlockUtils.visitBlocksOnEmptyPath(Nullability.castToNonnull(first), skipBlocks::add);
+			BlockUtils.visitBlocksOnEmptyPath(Nullability.castToNonnull(second), skipBlocks::add);
 			return secondSkip;
 		}
 		throw new JadxRuntimeException("Unexpected merge pattern");
@@ -325,10 +333,10 @@ public class IfMakerHelper {
 
 	@Nullable
 	private static IfInfo getNextIf(IfInfo info, BlockNode block) {
-		if (!canSelectNext(info, block)) {
+		if (!canSelectNext(info, Nullability.castToNonnull(block))) {
 			return null;
 		}
-		return getNextIfNodeInfo(info, block);
+		return getNextIfNodeInfo(info, Nullability.castToNonnull(block));
 	}
 
 	private static boolean canSelectNext(IfInfo info, BlockNode block) {
