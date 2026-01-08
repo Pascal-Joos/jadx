@@ -9,8 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.metadata.annotations.InsnCodeOffset;
@@ -755,11 +753,7 @@ public class InsnGen {
 			throw new CodegenException("Anonymous inner class unlimited recursion detected."
 					+ " Convert class to inner: " + cls.getClassInfo().getFullName());
 		}
-		AnonymousClassAttr anonymousClsAttr = cls.get(AType.ANONYMOUS_CLASS);
-		if (anonymousClsAttr == null) {
-			throw new CodegenException("Missing anonymous class attribute for: " + cls.getClassInfo().getFullName());
-		}
-		ArgType parent = anonymousClsAttr.getBaseType();
+		ArgType parent = cls.get(AType.ANONYMOUS_CLASS).getBaseType();
 		// hide empty anonymous constructors
 		for (MethodNode ctor : cls.getMethods()) {
 			if (ctor.contains(AFlag.ANONYMOUS_CONSTRUCTOR)
@@ -938,12 +932,12 @@ public class InsnGen {
 	}
 
 	private void makeInlinedLambdaMethod(ICodeWriter code, InvokeCustomNode customNode, MethodNode callMth) throws CodegenException {
-		MethodGen callMthGen = new MethodGen(mgen.getClassGen(), Nullability.castToNonnull(callMth));
+		MethodGen callMthGen = new MethodGen(mgen.getClassGen(), callMth);
 		NameGen nameGen = callMthGen.getNameGen();
 		nameGen.inheritUsedNames(this.mgen.getNameGen());
 
 		List<ArgType> implArgs = customNode.getImplMthInfo().getArgumentsTypes();
-		List<RegisterArg> callArgs = Nullability.castToNonnull(callMth).getArgRegs();
+		List<RegisterArg> callArgs = callMth.getArgRegs();
 		if (implArgs.isEmpty()) {
 			code.add("()");
 		} else {

@@ -94,9 +94,6 @@ public class ProcessAnonymous extends AbstractVisitor {
 
 	private static void undoAnonymousMark(ClassNode cls) {
 		AnonymousClassAttr attr = cls.get(AType.ANONYMOUS_CLASS);
-		if (attr == null) {
-			return;
-		}
 		ClassNode outerCls = attr.getOuterCls();
 		cls.setDependencies(ListUtils.safeAdd(cls.getDependencies(), outerCls.getTopParentClass()));
 		outerCls.setUseIn(ListUtils.safeAdd(outerCls.getUseIn(), cls));
