@@ -8,8 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.uber.nullaway.annotations.Initializer;
-
 import jadx.core.Consts;
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
@@ -51,10 +49,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SimplifyVisitor.class);
 
-	@SuppressWarnings("NullAway.Init")
 	private MethodInfo stringGetBytesMth;
 
-	@Initializer
 	@Override
 	public void init(RootNode root) {
 		stringGetBytesMth = MethodInfo.fromDetails(
