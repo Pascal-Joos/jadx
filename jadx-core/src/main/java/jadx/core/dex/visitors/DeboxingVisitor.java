@@ -92,7 +92,7 @@ public class DeboxingVisitor extends AbstractVisitor {
 			return null;
 		}
 		MethodInfo callMth = insnNode.getCallMth();
-		if (valueOfMths != null && valueOfMths.contains(callMth)) {
+		if (valueOfMths.contains(callMth)) {
 			RegisterArg resArg = insnNode.getResult();
 			InsnArg arg = insnNode.getArg(0);
 			if (arg.isLiteral()) {
