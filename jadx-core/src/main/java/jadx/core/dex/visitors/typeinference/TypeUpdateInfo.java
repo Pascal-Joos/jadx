@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.MethodNode;
@@ -51,7 +53,7 @@ public class TypeUpdateInfo {
 				return update.getType();
 			}
 		}
-		return arg.getType();
+		return Nullability.castToNonnull(arg).getType();
 	}
 
 	public void rollbackUpdate(InsnArg arg) {
