@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.BlockUtils;
@@ -142,7 +144,7 @@ public class DominatorTree {
 				BlockNode idom = block.getIDom();
 				for (BlockNode pred : preds) {
 					BlockNode runner = pred;
-					while (runner != idom) {
+					while (runner != null && runner != idom) {
 						addToDF(runner, block, blocksCount);
 						runner = runner.getIDom();
 					}
@@ -158,10 +160,10 @@ public class DominatorTree {
 	}
 
 	private static void addToDF(BlockNode block, BlockNode dfBlock, int blocksCount) {
-		BitSet df = block.getDomFrontier();
+		BitSet df = Nullability.castToNonnull(block).getDomFrontier();
 		if (df == null) {
 			df = new BitSet(blocksCount);
-			block.setDomFrontier(df);
+			Nullability.castToNonnull(block).setDomFrontier(df);
 		}
 		df.set(dfBlock.getId());
 	}
