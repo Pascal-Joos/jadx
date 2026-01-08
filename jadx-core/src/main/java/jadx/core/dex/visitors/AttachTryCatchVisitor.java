@@ -8,8 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.ICatch;
 import jadx.api.plugins.input.data.ITry;
 import jadx.api.plugins.utils.Utils;
@@ -88,7 +86,7 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 			}
 		}
 		if (tryBlockStarted) {
-			Nullability.castToNonnull(insn).add(AFlag.TRY_LEAVE);
+			insn.add(AFlag.TRY_LEAVE);
 		} else {
 			// no instructions found in range -> add nop at start offset
 			InsnNode nop = insertNOP(insnByOffset, aTry.getStartOffset());
