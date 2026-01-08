@@ -295,9 +295,12 @@ public class RegionGen extends InsnGen {
 	public void makeTryCatch(TryCatchRegion region, ICodeWriter code) throws CodegenException {
 		code.startLine("try {");
 
-		InsnNode insn = BlockUtils.getFirstInsn(Utils.first(region.getTryCatchBlock().getBlocks()));
-		InsnCodeOffset.attach(code, insn);
-		CodeGenUtils.addCodeComments(code, mth, insn);
+		TryCatchBlockAttr tryCatchBlock = region.getTryCatchBlock();
+		if (tryCatchBlock != null) {
+			InsnNode insn = BlockUtils.getFirstInsn(Utils.first(tryCatchBlock.getBlocks()));
+			InsnCodeOffset.attach(code, insn);
+			CodeGenUtils.addCodeComments(code, mth, insn);
+		}
 
 		makeRegionIndent(code, region.getTryRegion());
 		// TODO: move search of 'allHandler' to 'TryCatchRegion'
