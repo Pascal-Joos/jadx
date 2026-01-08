@@ -27,7 +27,10 @@ public final class ForEachLoop extends LoopType {
 
 	public void injectFakeInsns(LoopRegion loopRegion) {
 		loopRegion.getInfo().getPreHeader().getInstructions().add(iterableArgInsn);
-		loopRegion.getHeader().getInstructions().add(0, varArgInsn);
+		BlockNode loopHeader = loopRegion.getHeader();
+		if (loopHeader != null) {
+			loopHeader.getInstructions().add(0, varArgInsn);
+		}
 	}
 
 	public RegisterArg getVarArg() {
