@@ -535,6 +535,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		this.accFlags = newAccessFlags;
 	}
 
+	@Nullable
 	public Region getRegion() {
 		return region;
 	}

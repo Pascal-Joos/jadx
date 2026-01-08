@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.ICodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.codegen.MethodGen;
@@ -153,7 +155,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				}
 			}
 			Set<IBlock> regionsBlocks = new HashSet<>(mth.getBasicBlocks().size());
-			RegionUtils.getAllRegionBlocks(mth.getRegion(), regionsBlocks);
+			RegionUtils.getAllRegionBlocks(Nullability.castToNonnull(mth.getRegion()), regionsBlocks);
 			for (ExceptionHandler handler : mth.getExceptionHandlers()) {
 				IContainer handlerRegion = handler.getHandlerRegion();
 				if (handlerRegion != null) {

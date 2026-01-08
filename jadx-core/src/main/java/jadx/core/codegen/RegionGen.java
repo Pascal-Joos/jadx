@@ -8,6 +8,8 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.metadata.annotations.InsnCodeOffset;
@@ -59,8 +61,8 @@ public class RegionGen extends InsnGen {
 	}
 
 	public void makeRegion(ICodeWriter code, IContainer cont) throws CodegenException {
-		declareVars(code, cont);
-		cont.generate(this, code);
+		declareVars(code, Nullability.castToNonnull(cont));
+		Nullability.castToNonnull(cont).generate(this, code);
 	}
 
 	private void declareVars(ICodeWriter code, IContainer cont) {
