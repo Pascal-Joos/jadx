@@ -106,9 +106,6 @@ public class TypeCompare {
 		if (firstPrimitive && secondPrimitive) {
 			PrimitiveType firstPrimitiveType = first.getPrimitiveType();
 			PrimitiveType secondPrimitiveType = second.getPrimitiveType();
-			if (firstPrimitiveType == null || secondPrimitiveType == null) {
-				return CONFLICT;
-			}
 			if (firstPrimitiveType == PrimitiveType.BOOLEAN
 					|| secondPrimitiveType == PrimitiveType.BOOLEAN) {
 				return CONFLICT;
