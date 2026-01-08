@@ -1,5 +1,7 @@
 package jadx.core.dex.visitors;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -78,7 +80,7 @@ public class FixAccessModifiers extends AbstractVisitor {
 		if (accessFlags.isPackagePrivate()) {
 			String pkg = cls.getPackage();
 			for (ClassNode useCls : cls.getUseIn()) {
-				if (!useCls.getPackage().equals(pkg)) {
+				if (!Nullability.castToNonnull(useCls.getPackage()).equals(pkg)) {
 					return AccessFlags.PUBLIC;
 				}
 			}

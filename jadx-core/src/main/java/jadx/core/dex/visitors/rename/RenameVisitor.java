@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.JadxArgs;
 import jadx.core.Consts;
 import jadx.core.codegen.json.JsonMappingGen;
@@ -117,7 +119,7 @@ public class RenameVisitor extends AbstractVisitor {
 			return;
 		}
 		String aliasPkg = classInfo.getAliasPkg();
-		if (args.isRenameValid() && aliasPkg.isEmpty()) {
+		if (args.isRenameValid() && Nullability.castToNonnull(aliasPkg).isEmpty()) {
 			classInfo.changePkg(Consts.DEFAULT_PACKAGE_NAME);
 			cls.addAttr(new RenameReasonAttr(cls).append("default package"));
 			return;
