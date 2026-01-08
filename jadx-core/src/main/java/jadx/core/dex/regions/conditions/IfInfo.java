@@ -80,7 +80,6 @@ public final class IfInfo {
 		return skipBlocks;
 	}
 
-	@Nullable
 	public BlockNode getThenBlock() {
 		return thenBlock;
 	}

@@ -17,8 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
@@ -468,7 +466,7 @@ public class RegionMaker {
 		// process special cases:
 		// 1. jump to outer loop
 		BlockNode exitEnd = BlockUtils.followEmptyPath(exit);
-		List<LoopInfo> loops = Nullability.castToNonnull(exitEnd).getAll(AType.LOOP);
+		List<LoopInfo> loops = exitEnd.getAll(AType.LOOP);
 		for (LoopInfo loopAtEnd : loops) {
 			if (loopAtEnd != loop && loop.hasParent(loopAtEnd)) {
 				insertEdge = exitEdge;
@@ -1142,11 +1140,11 @@ public class RegionMaker {
 	}
 
 	public static boolean isEqualReturnBlocks(BlockNode b1, BlockNode b2) {
-		if (!Nullability.castToNonnull(b1).isReturnBlock() || !Nullability.castToNonnull(b2).isReturnBlock()) {
+		if (!b1.isReturnBlock() || !b2.isReturnBlock()) {
 			return false;
 		}
-		List<InsnNode> b1Insns = Nullability.castToNonnull(b1).getInstructions();
-		List<InsnNode> b2Insns = Nullability.castToNonnull(b2).getInstructions();
+		List<InsnNode> b1Insns = b1.getInstructions();
+		List<InsnNode> b2Insns = b2.getInstructions();
 		if (b1Insns.size() != 1 || b2Insns.size() != 1) {
 			return false;
 		}
