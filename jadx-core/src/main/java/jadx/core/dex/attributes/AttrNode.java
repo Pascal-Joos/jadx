@@ -89,6 +89,7 @@ public abstract class AttrNode implements IAttributeNode {
 		return storage.contains(type);
 	}
 
+	@Nullable
 	@Override
 	public <T extends IJadxAttribute> T get(IJadxAttrType<T> type) {
 		return storage.get(type);
