@@ -42,7 +42,11 @@ public class MethodUtils {
 		if (mthNode != null) {
 			return mthNode;
 		}
-		return root.getClsp().getMethodDetails(callMth);
+		ClassPath clsp = root.getClsp();
+		if (clsp == null) {
+			return null;
+		}
+		return clsp.getMethodDetails(callMth);
 	}
 
 	@Nullable
@@ -111,6 +115,9 @@ public class MethodUtils {
 				}
 			}
 		} else {
+			if (root == null || root.getClsp() == null) {
+				return false;
+			}
 			ClspClass clsDetails = root.getClsp().getClsDetails(startCls);
 			if (clsDetails == null) {
 				// class info not available

@@ -493,6 +493,7 @@ public class RootNode {
 		codeDataUpdateListeners.forEach(l -> l.updated(codeData));
 	}
 
+	@Nullable
 	public ClspGraph getClsp() {
 		return clsp;
 	}

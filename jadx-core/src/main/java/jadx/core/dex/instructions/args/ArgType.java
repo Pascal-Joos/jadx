@@ -662,6 +662,9 @@ public abstract class ArgType {
 	}
 
 	public static boolean isInstanceOf(RootNode root, ArgType type, ArgType of) {
+		if (root == null) {
+			return false;
+		}
 		if (type.equals(of)) {
 			return true;
 		}
@@ -672,10 +675,10 @@ public abstract class ArgType {
 	}
 
 	public static boolean isClsKnown(RootNode root, ArgType cls) {
-		if (cls.isObject()) {
-			return root.getClsp().isClsKnown(cls.getObject());
+		if (root == null || !cls.isObject()) {
+			return false;
 		}
-		return false;
+		return root.getClsp().isClsKnown(cls.getObject());
 	}
 
 	public boolean canBeObject() {

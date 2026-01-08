@@ -36,6 +36,9 @@ public class TypeUtils {
 	}
 
 	public List<ArgType> getClassGenerics(ArgType type) {
+		if (root == null) {
+			return Collections.emptyList();
+		}
 		ClassNode classNode = root.resolveClass(type);
 		if (classNode != null) {
 			return classNode.getGenericTypeParameters();
@@ -360,7 +363,11 @@ public class TypeUtils {
 		if (cls != null) {
 			cls.visitSuperTypes(consumer);
 		} else {
-			ClspClass clspClass = root.getClsp().getClsDetails(type);
+			ClspGraph clsp = root.getClsp();
+			if (clsp == null) {
+				return;
+			}
+			ClspClass clspClass = clsp.getClsDetails(type);
 			if (clspClass != null) {
 				for (ArgType superType : clspClass.getParents()) {
 					if (!superType.equals(ArgType.OBJECT)) {
