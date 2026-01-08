@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -48,6 +50,7 @@ public class IfMakerHelper {
 		return info;
 	}
 
+	@Nullable
 	static IfInfo searchNestedIf(@Nullable IfInfo info) {
 		IfInfo next = mergeNestedIfNodes(info);
 		if (next != null) {
@@ -209,6 +212,7 @@ public class IfMakerHelper {
 	}
 
 	@Nullable
+	@CheckForNull
 	private static IfInfo checkForTernaryInCondition(IfInfo currentIf) {
 		IfInfo nextThen = getNextIf(currentIf, currentIf.getThenBlock());
 		IfInfo nextElse = getNextIf(currentIf, currentIf.getElseBlock());
@@ -220,6 +224,9 @@ public class IfMakerHelper {
 		}
 		nextThen = searchNestedIf(nextThen);
 		nextElse = searchNestedIf(nextElse);
+		if (nextThen == null || nextElse == null) {
+			return null;
+		}
 		if (nextThen.getThenBlock() == nextElse.getThenBlock()
 				&& nextThen.getElseBlock() == nextElse.getElseBlock()) {
 			return mergeTernaryConditions(currentIf, nextThen, nextElse);
@@ -305,20 +312,20 @@ public class IfMakerHelper {
 	}
 
 	static void confirmMerge(IfInfo info) {
-		if (info.getMergedBlocks().size() > 1) {
-			for (BlockNode block : info.getMergedBlocks()) {
-				if (block != info.getFirstIfBlock()) {
+		if (Nullability.castToNonnull(info).getMergedBlocks().size() > 1) {
+			for (BlockNode block : Nullability.castToNonnull(info).getMergedBlocks()) {
+				if (block != Nullability.castToNonnull(info).getFirstIfBlock()) {
 					block.add(AFlag.ADDED_TO_REGION);
 				}
 			}
 		}
-		if (!info.getSkipBlocks().isEmpty()) {
-			for (BlockNode block : info.getSkipBlocks()) {
+		if (!Nullability.castToNonnull(info).getSkipBlocks().isEmpty()) {
+			for (BlockNode block : Nullability.castToNonnull(info).getSkipBlocks()) {
 				block.add(AFlag.ADDED_TO_REGION);
 			}
-			info.getSkipBlocks().clear();
+			Nullability.castToNonnull(info).getSkipBlocks().clear();
 		}
-		for (InsnNode forceInlineInsn : info.getForceInlineInsns()) {
+		for (InsnNode forceInlineInsn : Nullability.castToNonnull(info).getForceInlineInsns()) {
 			forceInlineInsn.add(AFlag.FORCE_ASSIGN_INLINE);
 		}
 	}
