@@ -342,16 +342,12 @@ public class BlockUtils {
 
 	@Nullable
 	private static InsnArg foundWrappedInsnInCondition(IfCondition cond, InsnNode insn) {
-		if (cond == null || !cond.isCompare()) {
-			return null;
-		}
-		IfNode cmpInsn = cond.getCompare().getInsn();
-		InsnArg res = foundWrappedInsn(cmpInsn, insn);
-		if (res != null) {
-			return res;
+		if (cond.isCompare()) {
+			IfNode cmpInsn = cond.getCompare().getInsn();
+			return foundWrappedInsn(cmpInsn, insn);
 		}
 		for (IfCondition nestedCond : cond.getArgs()) {
-			res = foundWrappedInsnInCondition(nestedCond, insn);
+			InsnArg res = foundWrappedInsnInCondition(nestedCond, insn);
 			if (res != null) {
 				return res;
 			}
