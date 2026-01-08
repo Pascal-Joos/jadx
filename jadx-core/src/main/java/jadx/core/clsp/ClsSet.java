@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -248,10 +250,9 @@ public class ClsSet {
 	}
 
 	private static void writeArgTypesList(DataOutputStream out, List<ArgType> list, Map<String, ClspClass> names) throws IOException {
-		int size = list.size();
-		writeUnsignedByte(out, size);
+		int size = Nullability.castToNonnull(list).size();
 		if (size != 0) {
-			for (ArgType type : list) {
+			for (ArgType type : Nullability.castToNonnull(list)) {
 				writeArgType(out, type, names);
 			}
 		}
