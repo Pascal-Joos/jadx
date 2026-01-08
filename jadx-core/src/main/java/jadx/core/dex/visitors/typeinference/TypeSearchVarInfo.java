@@ -81,7 +81,6 @@ public class TypeSearchVarInfo {
 		this.candidateTypes = candidateTypes;
 	}
 
-	@Nullable
 	public List<ITypeConstraint> getConstraints() {
 		return constraints;
 	}

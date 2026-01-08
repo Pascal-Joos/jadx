@@ -12,8 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.Consts;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
@@ -171,7 +169,7 @@ public class TypeSearch {
 	}
 
 	private boolean resolveIndependentVariables(TypeSearchVarInfo varInfo) {
-		boolean allRelatedVarsResolved = Nullability.castToNonnull(varInfo.getConstraints()).stream()
+		boolean allRelatedVarsResolved = varInfo.getConstraints().stream()
 				.flatMap(c -> c.getRelatedVars().stream())
 				.allMatch(v -> state.getVarInfo(v).isTypeResolved());
 		if (!allRelatedVarsResolved) {
@@ -202,7 +200,7 @@ public class TypeSearch {
 		if (var.isTypeResolved()) {
 			return true;
 		}
-		for (ITypeConstraint constraint : Nullability.castToNonnull(var.getConstraints())) {
+		for (ITypeConstraint constraint : var.getConstraints()) {
 			if (!constraint.check(state)) {
 				return false;
 			}
@@ -349,7 +347,7 @@ public class TypeSearch {
 
 	private void addConstraint(TypeSearchVarInfo varInfo, @Nullable ITypeConstraint constraint) {
 		if (constraint != null) {
-			Nullability.castToNonnull(varInfo.getConstraints()).add(constraint);
+			varInfo.getConstraints().add(constraint);
 		}
 	}
 
