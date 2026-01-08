@@ -213,11 +213,6 @@ public class RegionMaker {
 
 		IfInfo condInfo = makeIfInfo(mth, loopRegion.getHeader());
 		condInfo = searchNestedIf(condInfo);
-		if (condInfo == null) {
-			stack.pop();
-			insertContinue(loop);
-			return null;
-		}
 		confirmMerge(condInfo);
 		if (!loop.getLoopBlocks().contains(condInfo.getThenBlock())) {
 			// invert loop condition if 'then' points to exit
