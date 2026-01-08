@@ -4,8 +4,6 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrList;
@@ -20,7 +18,7 @@ public class EdgeInsnAttr implements IJadxAttribute {
 	private final InsnNode insn;
 
 	public static void addEdgeInsn(@Nullable Edge edge, InsnNode insn) {
-		addEdgeInsn(Nullability.castToNonnull(edge).getSource(), Nullability.castToNonnull(edge).getTarget(), insn);
+		addEdgeInsn(edge.getSource(), edge.getTarget(), insn);
 	}
 
 	public static void addEdgeInsn(BlockNode start, BlockNode end, InsnNode insn) {
