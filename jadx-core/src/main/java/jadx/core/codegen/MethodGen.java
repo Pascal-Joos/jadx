@@ -10,8 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
@@ -555,7 +553,7 @@ public class MethodGen {
 	}
 
 	public static String getLabelName(BlockNode block) {
-		return String.format("L%d", Nullability.castToNonnull(block).getId());
+		return String.format("L%d", block.getId());
 	}
 
 	public static String getLabelName(IfNode insn) {

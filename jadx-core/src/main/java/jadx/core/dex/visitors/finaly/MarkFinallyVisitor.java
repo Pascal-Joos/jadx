@@ -101,20 +101,13 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 	 */
 	private static boolean extractFinally(MethodNode mth, TryCatchBlockAttr tryBlock, ExceptionHandler allHandler) {
 		BlockNode handlerBlock = allHandler.getHandlerBlock();
-		if (handlerBlock == null) {
-			mth.addDebugComment("Null handler block in: " + allHandler);
-			return false;
-		}
 		List<BlockNode> handlerBlocks =
 				new ArrayList<>(BlockUtils.collectBlocksDominatedByWithExcHandlers(mth, handlerBlock, handlerBlock));
 		handlerBlocks.remove(handlerBlock); // exclude block with 'move-exception'
 		cutPathEnds(mth, handlerBlocks);
 		if (handlerBlocks.isEmpty() || BlockUtils.isAllBlocksEmpty(handlerBlocks)) {
 			// remove empty catch
-			TryCatchBlockAttr handlerTryBlock = allHandler.getTryBlock();
-			if (handlerTryBlock != null) {
-				handlerTryBlock.removeHandler(allHandler);
-			}
+			allHandler.getTryBlock().removeHandler(allHandler);
 			return true;
 		}
 		BlockNode startBlock = Utils.getOne(handlerBlock.getCleanSuccessors());
@@ -169,11 +162,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		}
 
 		// remove 'finally' from 'try' blocks, check all up paths on each exit (connected with finally exit)
-		TryCatchBlockAttr handlerTryBlock = allHandler.getTryBlock();
-		if (handlerTryBlock == null) {
-			return false;
-		}
-		List<BlockNode> tryBlocks = handlerTryBlock.getBlocks();
+		List<BlockNode> tryBlocks = allHandler.getTryBlock().getBlocks();
 		BlockNode bottomBlock = BlockUtils.getBottomBlock(allHandler.getBlocks());
 		if (bottomBlock == null) {
 			return false;
