@@ -10,6 +10,8 @@ import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
@@ -119,17 +121,18 @@ public final class IfCondition extends AttrNode {
 	}
 
 	public static IfCondition invert(@Nullable IfCondition cond) {
-		Mode mode = cond.getMode();
+		Mode mode = Nullability.castToNonnull(cond).getMode();
 		switch (mode) {
 			case COMPARE:
-				return new IfCondition(cond.getCompare().invert());
+				return new IfCondition(Nullability.castToNonnull(cond).getCompare().invert());
 			case TERNARY:
-				return ternary(cond.first(), not(cond.second()), not(cond.third()));
+				return ternary(Nullability.castToNonnull(cond).first(), not(Nullability.castToNonnull(cond).second()),
+						not(Nullability.castToNonnull(cond).third()));
 			case NOT:
-				return cond.first();
+				return Nullability.castToNonnull(cond).first();
 			case AND:
 			case OR:
-				List<IfCondition> args = cond.getArgs();
+				List<IfCondition> args = Nullability.castToNonnull(cond).getArgs();
 				List<IfCondition> newArgs = new ArrayList<>(args.size());
 				for (IfCondition arg : args) {
 					newArgs.add(invert(arg));
