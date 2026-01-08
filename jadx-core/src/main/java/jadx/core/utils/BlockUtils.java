@@ -19,8 +19,6 @@ import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -921,10 +919,9 @@ public class BlockUtils {
 	 * Follow empty blocks and return end of path block (first not empty).
 	 * Return start block if no such path.
 	 */
-	@Nullable
 	public static BlockNode followEmptyPath(BlockNode start) {
 		while (true) {
-			BlockNode next = getNextBlockOnEmptyPath(Nullability.castToNonnull(start));
+			BlockNode next = getNextBlockOnEmptyPath(start);
 			if (next == null) {
 				return start;
 			}
