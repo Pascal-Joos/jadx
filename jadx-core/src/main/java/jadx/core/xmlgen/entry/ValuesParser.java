@@ -65,9 +65,6 @@ public class ValuesParser extends ParserConstants {
 				return protoValue.getValue();
 			}
 			List<ProtoValue> values = protoValue.getNamedValues();
-			if (values == null) {
-				return null;
-			}
 			List<String> strList = new ArrayList<>(values.size());
 			for (ProtoValue value : values) {
 				if (value.getName() == null) {

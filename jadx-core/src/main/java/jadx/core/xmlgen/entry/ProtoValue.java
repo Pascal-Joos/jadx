@@ -61,7 +61,6 @@ public class ProtoValue {
 		return this;
 	}
 
-	@Nullable
 	public List<ProtoValue> getNamedValues() {
 		return namedValues;
 	}
