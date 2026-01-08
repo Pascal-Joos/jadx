@@ -8,6 +8,8 @@ import java.util.TreeMap;
 
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EnumMapAttr;
@@ -110,7 +112,7 @@ public class ReSugarCode extends AbstractVisitor {
 		}
 		ArgType arrType = newArrayInsn.getArrayType();
 		ArgType elemType = arrType.getArrayElement();
-		boolean allowMissingKeys = arrType.getArrayDimension() == 1 && elemType.isPrimitive();
+		boolean allowMissingKeys = arrType.getArrayDimension() == 1 && Nullability.castToNonnull(elemType).isPrimitive();
 		int minLen = allowMissingKeys ? len / 2 : len;
 
 		RegisterArg arrArg = newArrayInsn.getResult();
@@ -163,7 +165,7 @@ public class ReSugarCode extends AbstractVisitor {
 		}
 
 		// checks complete, apply
-		InsnNode filledArr = new FilledNewArrayNode(elemType, len);
+		InsnNode filledArr = new FilledNewArrayNode(Nullability.castToNonnull(elemType), len);
 		filledArr.setResult(arrArg.duplicate());
 
 		long prevIndex = -1;
@@ -172,7 +174,7 @@ public class ReSugarCode extends AbstractVisitor {
 			if (index != prevIndex) {
 				// use zero for missing keys
 				for (long i = prevIndex + 1; i < index; i++) {
-					filledArr.addArg(InsnArg.lit(0, elemType));
+					filledArr.addArg(InsnArg.lit(0, Nullability.castToNonnull(elemType)));
 				}
 			}
 			InsnNode put = entry.getValue();

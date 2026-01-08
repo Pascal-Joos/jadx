@@ -4,6 +4,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -20,7 +22,7 @@ public class TypeGen {
 	}
 
 	public static String signature(ArgType type) {
-		PrimitiveType stype = type.getPrimitiveType();
+		PrimitiveType stype = Nullability.castToNonnull(type).getPrimitiveType();
 		if (stype == PrimitiveType.OBJECT) {
 			return Utils.makeQualifiedObjectName(type.getObject());
 		}

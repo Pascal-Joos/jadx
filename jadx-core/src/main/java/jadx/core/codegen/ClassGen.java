@@ -15,6 +15,8 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
@@ -510,17 +512,17 @@ public class ClassGen {
 	}
 
 	public void useType(ICodeWriter code, ArgType type) {
-		PrimitiveType stype = type.getPrimitiveType();
+		PrimitiveType stype = Nullability.castToNonnull(type).getPrimitiveType();
 		if (stype == null) {
-			code.add(type.toString());
+			code.add(Nullability.castToNonnull(type).toString());
 		} else if (stype == PrimitiveType.OBJECT) {
-			if (type.isGenericType()) {
-				code.add(type.getObject());
+			if (Nullability.castToNonnull(type).isGenericType()) {
+				code.add(Nullability.castToNonnull(type).getObject());
 			} else {
-				useClass(code, type);
+				useClass(code, Nullability.castToNonnull(type));
 			}
 		} else if (stype == PrimitiveType.ARRAY) {
-			useType(code, type.getArrayElement());
+			useType(code, Nullability.castToNonnull(type).getArrayElement());
 			code.add("[]");
 		} else {
 			code.add(stype.getLongName());

@@ -541,6 +541,9 @@ public class InsnDecoder {
 	private InsnNode filledNewArray(InsnData insn, boolean isRange) {
 		ArgType arrType = ArgType.parse(insn.getIndexAsType());
 		ArgType elType = arrType.getArrayElement();
+		if (elType == null) {
+			elType = ArgType.OBJECT;
+		}
 		boolean typeImmutable = elType.isPrimitive();
 		int regsCount = insn.getRegsCount();
 		InsnArg[] regs = new InsnArg[regsCount];
