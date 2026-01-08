@@ -614,7 +614,6 @@ public abstract class ArgType {
 		return null;
 	}
 
-	@Nullable
 	public WildcardBound getWildcardBound() {
 		return null;
 	}
