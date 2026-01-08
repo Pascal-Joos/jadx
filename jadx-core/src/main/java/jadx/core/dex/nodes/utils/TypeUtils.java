@@ -280,7 +280,7 @@ public class TypeUtils {
 
 	@Nullable
 	public ArgType replaceTypeVariablesUsingMap(ArgType replaceType, Map<ArgType, ArgType> replaceMap) {
-		if (replaceType == null || replaceMap.isEmpty()) {
+		if (replaceMap.isEmpty()) {
 			return null;
 		}
 		if (replaceType.isGenericType()) {

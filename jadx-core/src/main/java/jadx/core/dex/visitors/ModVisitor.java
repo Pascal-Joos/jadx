@@ -8,8 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
 import jadx.api.plugins.input.data.annotations.EncodedType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
@@ -512,22 +510,20 @@ public class ModVisitor extends AbstractVisitor {
 
 	private static InsnNode makeFilledArrayInsn(MethodNode mth, NewArrayNode newArrayNode, FillArrayInsn insn) {
 		ArgType insnArrayType = newArrayNode.getArrayType();
-		ArgType insnElementType = Nullability.castToNonnull(newArrayNode.getArrayType().getArrayElement());
+		ArgType insnElementType = insnArrayType.getArrayElement();
 		ArgType elType = insn.getElementType();
 		if (!elType.isTypeKnown()
-				&& Nullability.castToNonnull(insnElementType).isPrimitive()
-				&& elType.contains(Nullability.castToNonnull(insnElementType).getPrimitiveType())) {
-			elType = Nullability.castToNonnull(insnElementType);
+				&& insnElementType.isPrimitive()
+				&& elType.contains(insnElementType.getPrimitiveType())) {
+			elType = insnElementType;
 		}
-		if (!elType.equals(Nullability.castToNonnull(insnElementType)) && !insnArrayType.equals(ArgType.OBJECT)) {
+		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
 			mth.addWarn("Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
-					+ ", element type: " + elType + ", insn element type: " + Nullability.castToNonnull(insnElementType));
+					+ ", element type: " + elType + ", insn element type: " + insnElementType);
 		}
 		if (!elType.isTypeKnown()) {
 			LOG.warn("Unknown array element type: {} in mth: {}", elType, mth);
-			elType = Nullability.castToNonnull(insnElementType).isTypeKnown()
-					? Nullability.castToNonnull(insnElementType)
-					: elType.selectFirst();
+			elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
 			if (elType == null) {
 				throw new JadxRuntimeException("Null array element type");
 			}
