@@ -106,9 +106,6 @@ public class ValuesParser extends ParserConstants {
 			case TYPE_NULL:
 				return null;
 			case TYPE_STRING:
-				if (strings == null) {
-					return null;
-				}
 				return strings[data];
 			case TYPE_INT_DEC:
 				return Integer.toString(data);
