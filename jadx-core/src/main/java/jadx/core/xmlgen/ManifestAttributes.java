@@ -56,6 +56,7 @@ public class ManifestAttributes {
 	@Nullable
 	private static ManifestAttributes instance;
 
+	@Nullable
 	public static ManifestAttributes getInstance() {
 		if (instance == null) {
 			try {
