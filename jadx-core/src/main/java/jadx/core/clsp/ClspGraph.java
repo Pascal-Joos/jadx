@@ -13,8 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -30,11 +28,8 @@ public class ClspGraph {
 	private static final Logger LOG = LoggerFactory.getLogger(ClspGraph.class);
 
 	private final RootNode root;
-	@Nullable
 	private Map<String, ClspClass> nameMap;
-	@Nullable
 	private Map<String, Set<String>> superTypesCache;
-	@Nullable
 	private Map<String, List<String>> implementsCache;
 
 	private final Set<String> missingClasses = new HashSet<>();
@@ -73,25 +68,16 @@ public class ClspGraph {
 	}
 
 	public boolean isClsKnown(String fullName) {
-		if (nameMap == null) {
-			throw new JadxRuntimeException("Classpath must be loaded first");
-		}
-		return Nullability.castToNonnull(nameMap).containsKey(fullName);
+		return nameMap.containsKey(fullName);
 	}
 
 	@Nullable
 	public ClspClass getClsDetails(ArgType type) {
-		if (nameMap == null) {
-			return null;
-		}
 		return nameMap.get(type.getObject());
 	}
 
 	@Nullable
 	public IMethodDetails getMethodDetails(MethodInfo methodInfo) {
-		if (nameMap == null) {
-			throw new JadxRuntimeException("Classpath must be loaded first");
-		}
 		ClspClass cls = nameMap.get(methodInfo.getDeclClass().getRawName());
 		if (cls == null) {
 			return null;
@@ -120,9 +106,6 @@ public class ClspGraph {
 	}
 
 	private void addClass(ClassNode cls) {
-		if (nameMap == null) {
-			throw new JadxRuntimeException("Classpath must be loaded first");
-		}
 		ArgType clsType = cls.getClassInfo().getType();
 		String rawName = clsType.getObject();
 		ClspClass clspClass = new ClspClass(clsType, -1);
@@ -139,15 +122,12 @@ public class ClspGraph {
 	}
 
 	public List<String> getImplementations(String clsName) {
-		List<String> list = Nullability.castToNonnull(implementsCache).get(clsName);
+		List<String> list = implementsCache.get(clsName);
 		return list == null ? Collections.emptyList() : list;
 	}
 
 	private void fillImplementsCache() {
-		if (nameMap == null) {
-			throw new JadxRuntimeException("Classpath must be loaded first");
-		}
-		Map<String, List<String>> map = new HashMap<>(Nullability.castToNonnull(nameMap).size());
+		Map<String, List<String>> map = new HashMap<>(nameMap.size());
 		List<String> classes = new ArrayList<>(nameMap.keySet());
 		Collections.sort(classes);
 		for (String cls : classes) {
@@ -160,13 +140,10 @@ public class ClspGraph {
 
 	@Nullable
 	public String getCommonAncestor(String clsName, String implClsName) {
-		if (nameMap == null) {
-			throw new JadxRuntimeException("Classpath must be loaded first");
-		}
 		if (clsName.equals(implClsName)) {
 			return clsName;
 		}
-		ClspClass cls = Nullability.castToNonnull(nameMap).get(implClsName);
+		ClspClass cls = nameMap.get(implClsName);
 		if (cls == null) {
 			missingClasses.add(clsName);
 			return null;
@@ -197,22 +174,14 @@ public class ClspGraph {
 	}
 
 	public Set<String> getSuperTypes(String clsName) {
-		if (superTypesCache == null) {
-			fillSuperTypesCache();
-		}
-		Map<String, Set<String>> nnSuperTypesCache = Nullability.castToNonnull(superTypesCache);
-		Set<String> result = nnSuperTypesCache.get(clsName);
+		Set<String> result = superTypesCache.get(clsName);
 		return result == null ? Collections.emptySet() : result;
 	}
 
 	private void fillSuperTypesCache() {
-		if (nameMap == null) {
-			throw new JadxRuntimeException("Classpath must be loaded first");
-		}
-		Map<String, ClspClass> nnNameMap = Nullability.castToNonnull(nameMap);
-		Map<String, Set<String>> map = new HashMap<>(nnNameMap.size());
+		Map<String, Set<String>> map = new HashMap<>(nameMap.size());
 		Set<String> tmpSet = new HashSet<>();
-		for (Map.Entry<String, ClspClass> entry : nnNameMap.entrySet()) {
+		for (Map.Entry<String, ClspClass> entry : nameMap.entrySet()) {
 			ClspClass cls = entry.getValue();
 			tmpSet.clear();
 			addSuperTypes(cls, tmpSet);
@@ -247,9 +216,6 @@ public class ClspGraph {
 
 	@Nullable
 	private ClspClass getClspClass(ArgType clsType) {
-		if (nameMap == null) {
-			throw new JadxRuntimeException("Classpath must be loaded first");
-		}
 		ClspClass clspClass = nameMap.get(clsType.getObject());
 		if (clspClass == null) {
 			missingClasses.add(clsType.getObject());
