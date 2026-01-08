@@ -90,11 +90,9 @@ public class InlineMethods extends AbstractVisitor {
 			// remap args
 			InsnArg[] regs = new InsnArg[callMth.getRegsCount()];
 			int[] regNums = mia.getArgsRegNums();
-			if (regNums != null) {
-				for (int i = 0; i < regNums.length; i++) {
-					InsnArg arg = insn.getArg(i);
-					regs[regNums[i]] = arg;
-				}
+			for (int i = 0; i < regNums.length; i++) {
+				InsnArg arg = insn.getArg(i);
+				regs[regNums[i]] = arg;
 			}
 			// replace args
 			List<RegisterArg> inlArgs = new ArrayList<>();
