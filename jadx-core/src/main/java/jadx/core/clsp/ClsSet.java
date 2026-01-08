@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -72,6 +74,7 @@ public class ClsSet {
 		PRIMITIVE
 	}
 
+	@Nullable
 	private ClspClass[] classes;
 
 	public void loadFromClstFile() throws IOException, DecodeException {
@@ -82,10 +85,10 @@ public class ClsSet {
 			}
 			load(input);
 		}
-		if (LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled() && classes != null) {
 			long time = System.currentTimeMillis() - startTime;
 			int methodsCount = Stream.of(classes).mapToInt(clspClass -> clspClass.getMethodsMap().size()).sum();
-			LOG.debug("Clst file loaded in {}ms, classes: {}, methods: {}", time, classes.length, methodsCount);
+			LOG.debug("Clst file loaded in {}ms, classes: {}, methods: {}", time, Nullability.castToNonnull(classes).length, methodsCount);
 		}
 	}
 
@@ -210,18 +213,21 @@ public class ClsSet {
 	}
 
 	private void save(OutputStream output) throws IOException {
+		if (classes == null) {
+			throw new JadxRuntimeException("Missing classes");
+		}
 		DataOutputStream out = new DataOutputStream(output);
 		out.writeBytes(JADX_CLS_SET_HEADER);
 		out.writeByte(VERSION);
 
-		Map<String, ClspClass> names = new HashMap<>(classes.length);
-		out.writeInt(classes.length);
-		for (ClspClass cls : classes) {
+		Map<String, ClspClass> names = new HashMap<>(Nullability.castToNonnull(classes).length);
+		out.writeInt(Nullability.castToNonnull(classes).length);
+		for (ClspClass cls : Nullability.castToNonnull(classes)) {
 			String clsName = cls.getName();
 			writeString(out, clsName);
 			names.put(clsName, cls);
 		}
-		for (ClspClass cls : classes) {
+		for (ClspClass cls : Nullability.castToNonnull(classes)) {
 			writeArgTypesArray(out, cls.getParents(), names);
 			writeArgTypesList(out, cls.getTypeParameters(), names);
 			List<ClspMethod> methods = cls.getSortedMethodsList();
@@ -230,8 +236,8 @@ public class ClsSet {
 				writeMethod(out, method, names);
 			}
 		}
-		int methodsCount = Stream.of(classes).mapToInt(c -> c.getMethodsMap().size()).sum();
-		LOG.info("Classes: {}, methods: {}, file size: {} bytes", classes.length, methodsCount, out.size());
+		int methodsCount = Stream.of(Nullability.castToNonnull(classes)).mapToInt(c -> c.getMethodsMap().size()).sum();
+		LOG.info("Classes: {}, methods: {}, file size: {} bytes", Nullability.castToNonnull(classes).length, methodsCount, out.size());
 	}
 
 	private static void writeMethod(DataOutputStream out, ClspMethod method, Map<String, ClspClass> names) throws IOException {
@@ -422,6 +428,9 @@ public class ClsSet {
 		if (ordinal >= TypeEnum.values().length) {
 			throw new JadxRuntimeException("Incorrect ordinal for type enum: " + ordinal);
 		}
+		if (classes == null) {
+			throw new JadxRuntimeException("Classes not loaded");
+		}
 		switch (TypeEnum.values()[ordinal]) {
 			case WILDCARD:
 				ArgType.WildcardBound bound = ArgType.WildcardBound.getByNum(in.readByte());
@@ -437,6 +446,9 @@ public class ClsSet {
 				return ArgType.outerGeneric(outerType, innerType);
 
 			case GENERIC:
+				if (classes == null) {
+					throw new JadxRuntimeException("Classes not loaded");
+				}
 				ArgType clsType = classes[in.readInt()].getClsType();
 				return ArgType.generic(clsType, readArgTypesList(in));
 
@@ -446,6 +458,9 @@ public class ClsSet {
 				return ArgType.genericType(typeVar, extendTypes);
 
 			case OBJECT:
+				if (classes == null) {
+					throw new JadxRuntimeException("Classes not loaded");
+				}
 				return classes[in.readInt()].getClsType();
 
 			case ARRAY:
@@ -501,10 +516,13 @@ public class ClsSet {
 	}
 
 	public int getClassesCount() {
-		return classes.length;
+		return classes != null ? Nullability.castToNonnull(classes).length : 0;
 	}
 
 	public void addToMap(Map<String, ClspClass> nameMap) {
+		if (classes == null) {
+			return;
+		}
 		for (ClspClass cls : classes) {
 			nameMap.put(cls.getName(), cls);
 		}
