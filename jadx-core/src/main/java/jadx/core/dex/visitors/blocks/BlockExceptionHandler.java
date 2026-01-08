@@ -521,6 +521,9 @@ public class BlockExceptionHandler {
 				return false;
 			}
 			BlockNode block = handler.getHandlerBlock();
+			if (block == null) {
+				return false;
+			}
 			if (block.getInstructions().size() != 1
 					|| !BlockUtils.checkLastInsnType(block, InsnType.MOVE_EXCEPTION)) {
 				return false;

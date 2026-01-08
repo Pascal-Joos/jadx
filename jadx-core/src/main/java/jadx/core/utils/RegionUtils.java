@@ -8,6 +8,8 @@ import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrList;
@@ -381,7 +383,7 @@ public class RegionUtils {
 		while (container != parent) {
 			if (parent == null) {
 				if (region.contains(AType.EXC_HANDLER)) {
-					return isRegionContainsExcHandlerRegion(container, region);
+					return isRegionContainsExcHandlerRegion(Nullability.castToNonnull(container), region);
 				}
 				return false;
 			}
