@@ -10,8 +10,6 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
@@ -259,7 +257,7 @@ public class ProcessAnonymous extends AbstractVisitor {
 		}
 		if (accessFlags.isSynthetic()) {
 			// allow synthetic usage in inner class
-			return !Nullability.castToNonnull(useCls.getParentClass()).equals(cls);
+			return !useCls.getParentClass().equals(cls);
 		}
 		return true;
 	}

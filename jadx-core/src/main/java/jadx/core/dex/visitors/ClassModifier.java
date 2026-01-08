@@ -9,8 +9,6 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
@@ -205,7 +203,7 @@ public class ClassModifier extends AbstractVisitor {
 			if (constr.isThis() && !args.isEmpty()) {
 				// remove first arg for non-static class (references to outer class)
 				RegisterArg firstArg = args.get(0);
-				if (firstArg.getType().equals(Nullability.castToNonnull(cls.getParentClass()).getClassInfo().getType())) {
+				if (firstArg.getType().equals(cls.getParentClass().getClassInfo().getType())) {
 					SkipMethodArgsAttr.skipArg(mth, 0);
 				}
 				// remove unused args
