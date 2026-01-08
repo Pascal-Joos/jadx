@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.uber.nullaway.annotations.Initializer;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.IMethodData;
@@ -71,7 +69,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private int blocksMaxCId;
 	@Nullable
 	private BlockNode enterBlock;
-	@Nullable
 	private BlockNode exitBlock;
 	private List<SSAVar> sVars;
 	private List<ExceptionHandler> exceptionHandlers;
@@ -349,7 +346,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		this.enterBlock = enterBlock;
 	}
 
-	@Nullable
 	public BlockNode getExitBlock() {
 		return exitBlock;
 	}
@@ -359,18 +355,15 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	public List<BlockNode> getPreExitBlocks() {
-		return exitBlock == null ? Collections.emptyList() : exitBlock.getPredecessors();
+		return exitBlock.getPredecessors();
 	}
 
 	public boolean isPreExitBlocks(BlockNode block) {
-		if (exitBlock == null) {
-			return false;
-		}
 		List<BlockNode> successors = block.getSuccessors();
 		if (successors.size() == 1) {
 			return successors.get(0).equals(exitBlock);
 		}
-		return Nullability.castToNonnull(exitBlock).getPredecessors().contains(block);
+		return exitBlock.getPredecessors().contains(block);
 	}
 
 	public void registerLoop(LoopInfo loop) {
