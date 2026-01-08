@@ -34,11 +34,7 @@ public final class TypeBoundInvokeUse implements ITypeBoundDynamic {
 
 	@Override
 	public ArgType getType() {
-		InsnArg instanceArg = invokeNode.getInstanceArg();
-		if (instanceArg == null) {
-			return arg.getType();
-		}
-		return getArgType(instanceArg.getType(), arg.getType());
+		return getArgType(invokeNode.getInstanceArg().getType(), arg.getType());
 	}
 
 	private ArgType getArgType(ArgType instanceType, ArgType argType) {
