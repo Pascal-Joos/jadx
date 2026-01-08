@@ -6,8 +6,6 @@ import javax.annotation.Nullable;
 
 import org.jetbrains.annotations.NotNull;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
@@ -41,9 +39,7 @@ public final class InsnWrapArg extends InsnArg {
 	@Override
 	public InsnArg duplicate() {
 		InsnWrapArg copy = new InsnWrapArg(wrappedInsn.copyWithoutResult());
-		if (type != null) {
-			copy.setType(Nullability.castToNonnull(type));
-		}
+		copy.setType(type);
 		return copyCommonParams(copy);
 	}
 
