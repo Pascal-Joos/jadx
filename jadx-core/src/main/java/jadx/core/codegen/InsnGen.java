@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.metadata.annotations.InsnCodeOffset;
@@ -243,7 +245,7 @@ public class InsnGen {
 	}
 
 	protected void useType(ICodeWriter code, ArgType type) {
-		mgen.getClassGen().useType(code, type);
+		mgen.getClassGen().useType(code, Nullability.castToNonnull(type));
 	}
 
 	public void makeInsn(InsnNode insn, ICodeWriter code) throws CodegenException {
