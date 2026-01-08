@@ -179,12 +179,9 @@ public class ResXmlGen {
 			if (dataType == ParserConstants.TYPE_INT_DEC && nameStr != null) {
 				try {
 					int intVal = Integer.parseInt(valueStr);
-					ManifestAttributes manifestAttributes = ManifestAttributes.getInstance();
-					if (manifestAttributes != null) {
-						String newVal = manifestAttributes.decode(nameStr.replace("android:attr.", ""), intVal);
-						if (newVal != null) {
-							valueStr = newVal;
-						}
+					String newVal = ManifestAttributes.getInstance().decode(nameStr.replace("android:attr.", ""), intVal);
+					if (newVal != null) {
+						valueStr = newVal;
 					}
 				} catch (NumberFormatException e) {
 					// ignore
