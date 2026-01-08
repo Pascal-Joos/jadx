@@ -11,8 +11,6 @@ import java.util.function.BiConsumer;
 
 import org.jetbrains.annotations.Nullable;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.core.clsp.ClspClass;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
@@ -71,7 +69,7 @@ public class TypeUtils {
 	}
 
 	public ArgType expandTypeVariables(MethodNode mth, ArgType type) {
-		if (Nullability.castToNonnull(type).containsTypeVariable()) {
+		if (type.containsTypeVariable()) {
 			expandTypeVar(mth, type, getKnownTypeVarsAtMethod(mth));
 		}
 		return type;

@@ -8,8 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
-
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.SignatureAttr;
 import jadx.core.dex.attributes.IAttributeNode;
@@ -132,7 +130,6 @@ public class SignatureParser {
 		return skipUntil(lastChar) ? inclusiveSlice() : null;
 	}
 
-	@Nullable
 	public ArgType consumeType() {
 		char ch = next();
 		switch (ch) {
@@ -156,7 +153,7 @@ public class SignatureParser {
 				break;
 
 			case '[':
-				return ArgType.array(Nullability.castToNonnull(consumeType()));
+				return ArgType.array(consumeType());
 
 			case STOP_CHAR:
 				return null;
