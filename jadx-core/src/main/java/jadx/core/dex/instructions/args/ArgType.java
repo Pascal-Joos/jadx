@@ -599,7 +599,6 @@ public abstract class ArgType {
 		return false;
 	}
 
-	@Nullable
 	public List<ArgType> getGenericTypes() {
 		return null;
 	}

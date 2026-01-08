@@ -94,7 +94,7 @@ public class UsageInfo {
 				consumer.accept(clsNode);
 			}
 			List<ArgType> genericTypes = type.getGenericTypes();
-			if (type.isGeneric() && genericTypes != null && notEmpty(genericTypes)) {
+			if (type.isGeneric() && notEmpty(genericTypes)) {
 				for (ArgType argType : genericTypes) {
 					processType(argType, consumer);
 				}
