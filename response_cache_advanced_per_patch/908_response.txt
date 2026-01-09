@@ -1,0 +1,38 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static BlockNode getBranchBlock(BlockNode first, BlockNode second, Set<BlockNode> skipBlocks, MethodNode mth) {
+        		if (first == second) {
+        			return second;
+        		}
+        		BlockNode firstNonnull = Nullability.castToNonnull(first);
+        		if (isEqualReturnBlocks(firstNonnull, Nullability.castToNonnull(second))) {
+        			skipBlocks.add(first);
+        			return second;
+        		}
+        		BlockNode cross = BlockUtils.getPathCross(mth, firstNonnull, Nullability.castToNonnull(second));
+        		if (cross != null) {
+        			BlockUtils.visitBlocksOnPath(mth, firstNonnull, cross, skipBlocks::add);
+        			BlockUtils.visitBlocksOnPath(mth, Nullability.castToNonnull(second), cross, skipBlocks::add);
+        			skipBlocks.remove(cross);
+        			return cross;
+        		}
+        		BlockNode firstSkip = BlockUtils.followEmptyPath(first);
+        		BlockNode secondSkip = BlockUtils.followEmptyPath(second);
+        		if (firstSkip == null) {
+        			return null;
+        		}
+        		if (firstSkip.equals(secondSkip) || isEqualReturnBlocks(firstSkip, secondSkip)) {
+        			skipBlocks.add(first);
+        			skipBlocks.add(second);
+        			BlockUtils.visitBlocksOnEmptyPath(firstNonnull, skipBlocks::add);
+        			BlockUtils.visitBlocksOnEmptyPath(Nullability.castToNonnull(second), skipBlocks::add);
+        			return secondSkip;
+        		}
+        		throw new JadxRuntimeException("Unexpected merge pattern");
+}
+  ```
+    ]]>
+  </code>
+</response>

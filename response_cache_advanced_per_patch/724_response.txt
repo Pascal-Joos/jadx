@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void finishBasicBlocks() {
+		blocks = lockList(Nullability.castToNonnull(blocks));
+		loops = lockList(loops);
+		blocks.forEach(BlockNode::lock);
+}
+  ```
+    ]]>
+  </code>
+</response>

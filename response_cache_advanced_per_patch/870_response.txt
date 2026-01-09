@@ -1,0 +1,63 @@
+```xml
+<response>
+    <reason><![CDATA[
+Based solely on the provided method body, there is no explicit guarantee that `currentIf` is non‑null when `BlockNode curThen = currentIf.getThenBlock();` is executed.
+
+Analysis of the code:
+
+1. Method signature:
+   ```java
+   static IfInfo mergeNestedIfNodes(IfInfo currentIf) { ... }
+   ```
+   - `currentIf` is a parameter with a reference type (`IfInfo`).
+   - There is no `@NonNull` annotation, explicit null-check, or assertion on `currentIf` at the start of the method.
+
+2. Use of `currentIf`:
+   - The *first* dereference is:
+     ```java
+     BlockNode curThen = currentIf.getThenBlock();
+     ```
+   - If `currentIf` were `null`, this would immediately throw a `NullPointerException`.
+   - The rest of the method assumes `currentIf` is valid and repeatedly dereferences it:
+     - `currentIf.getElseBlock()`
+     - `getNextIf(currentIf, ...)`
+     - `currentIf.getMergedBlocks()`
+     - `currentIf.resetForceInlineInsns()`
+     - `mergeIfInfo(currentIf, nextIf, followThenBranch)`
+     - `checkForTernaryInCondition(currentIf)`
+
+   None of these calls are preceded by a `currentIf != null` guard.
+
+3. Comparison with `curElse` and `Nullability.castToNonnull`:
+   - The code uses `Nullability.castToNonnull(curElse)` and `Nullability.castToNonnull(nextIf.getElseBlock())`. This is an indication that `curElse` (and some other references) may be nullable at type level, and the code relies on some external reasoning/assertions or static analysis when using them.
+   - However, **no such cast or annotation is used for `currentIf`** itself. The code just uses it as if it is definitively non-null.
+
+4. Missing contractual information:
+   - Whether `currentIf` can be null in real executions depends on the *contract of callers* and the *intended invariants of the analysis framework* this code is part of (e.g., a decompiler CFG/if-merging component).
+   - The snippet alone does not show:
+     - Any caller code proving `currentIf` is always non-null before calling `mergeNestedIfNodes`.
+     - Any annotation on `IfInfo` or on the parameter indicating non-nullability.
+   - Without that external contract, standard Java semantics say a reference-typed parameter can be null.
+
+Conclusion:
+
+- From the method body alone, there is no internal check that would prevent `currentIf` from being null.
+- Java does not prevent callers from passing `null` unless contractually or by annotation enforced elsewhere.
+- Therefore, **from the information given**, it cannot be definitively stated that `currentIf` is always non-null; at the language level it *can* be null, and the code would then NPE at `currentIf.getThenBlock()`.
+
+Because this hinges entirely on contracts and invariants not visible in the provided snippet (e.g., whether the analysis framework *guarantees* `IfInfo` is never null at this point), the correct classification with the given data is that we cannot conclusively determine non-nullness.
+
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[
+Provide the definition of the IfInfo class, specifically:
+- The declarations and annotations (if any) for getThenBlock(), getElseBlock(), and getMergedBlocks().
+- Any nullability annotations (@NonNull, @Nullable, etc.) on the IfInfo type or its methods.
+        ]]></request>
+        <request><![CDATA[
+Provide at least the immediate callers of mergeNestedIfNodes(IfInfo currentIf), so we can see whether they guarantee that currentIf is never null (e.g., by construction, by prior checks, or by annotations).
+        ]]></request>
+    </requests>
+</response>
+```

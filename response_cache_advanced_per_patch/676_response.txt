@@ -1,0 +1,33 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void checkInstructions(MethodNode mth) {
+		InsnNode[] insnArr = mth.getInstructions();
+		if (isEmpty(insnArr)) {
+			return;
+		}
+		int regsCount = mth.getRegsCount();
+		List<RegisterArg> list = new ArrayList<>();
+		for (InsnNode insnNode : insnArr) {
+			if (insnNode == null) {
+				continue;
+			}
+			list.clear();
+			RegisterArg resultArg = insnNode.getResult();
+			if (resultArg != null) {
+				list.add(resultArg);
+			}
+			insnNode.getRegisterArgs(list);
+			for (RegisterArg arg : list) {
+				if (arg.getRegNum() >= regsCount) {
+					throw new JadxRuntimeException("Incorrect register number in instruction: " + insnNode
+							+ ", expected to be less than " + regsCount);
+				}
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,4 @@
+<response>
+    <reason><![CDATA[By the given criteria, initializer methods are typically special lifecycle methods (e.g., onCreate, init) or methods whose names start with "init" or "initialize" and are not setters. The provided method is named setType, clearly following the setter naming convention, and only assigns a single field from its parameter. Therefore, it should be treated as a regular setter, not as an initializer method for NullAway purposes.]]></reason>
+    <value>NO</value>
+</response>

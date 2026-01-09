@@ -1,0 +1,21 @@
+<response>
+    <reason><![CDATA[
+The parameter `pkgFullName` of `cutLastPkgPart` is only assigned from a local variable of the same name in `applyPkgRenames`:
+
+```java
+String pkgFullName = pkgRename.getNodeRef().getDeclaringClass();
+```
+
+This value is then used directly both in `applyPkgRenames` and passed unchanged into `cutLastPkgPart` via:
+
+```java
+clsInfo.changePkg(cutLastPkgPart(clsInfo.getAliasPkg()) + '.' + pkgRename.getNewName());
+```
+
+However, in this call the argument to `cutLastPkgPart` is *not* that `pkgFullName` variable, but `clsInfo.getAliasPkg()` instead. Thus, the nullability of `pkgRename.getNodeRef().getDeclaringClass()` is irrelevant to this parameter.
+
+The only value that actually flows into `cutLastPkgPart` is the return value of `clsInfo.getAliasPkg()`. We are not given the declaration or implementation of `getAliasPkg()`, and therefore cannot determine whether it can return `null`. If `getAliasPkg()` can return null, `cutLastPkgPart` would dereference it (`pkgFullName.lastIndexOf('.')`) and crash.
+
+Because `cutLastPkgPart`’s argument is entirely determined by `ClassInfo.getAliasPkg()`, and we do not have that method’s declaration, we cannot safely conclude the parameter’s nullability without inspecting it.]]></reason>
+    <value>YES</value>
+</response>

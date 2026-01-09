@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+At the specific call site
+
+    List<BlockNode> successors = includeExcHandlers ? child.getSuccessors() : child.getCleanSuccessors();
+
+we need to know if `child.getCleanSuccessors()` can be null when the ternary chooses that branch.
+
+The implementation of `getCleanSuccessors()` is:
+
+    public List<BlockNode> getCleanSuccessors() {
+        return this.cleanSuccessors;
+    }
+
+So nullability depends entirely on the field `cleanSuccessors`. The provided code shows multiple usages of `getCleanSuccessors()` across the codebase:
+
+- Many call sites treat the result as possibly null and perform explicit null checks, e.g.:
+
+  - `List<BlockNode> cleanSuccessors = block.getCleanSuccessors(); if (cleanSuccessors == null) { return null; }`
+  - `List<BlockNode> successors = block.getCleanSuccessors(); if (successors == null || successors.size() != 1) { return null; }`
+  - `BlockNode getNextBlock(BlockNode block) { List<BlockNode> s = block.getCleanSuccessors(); if (s == null || s.isEmpty()) return null; ... }`
+
+- Other call sites defensively wrap it via `Nullability.castToNonnull(...)`, clearly indicating that it may be null and that callers explicitly guard against that.
+
+- Conversely, some places directly call `start.getCleanSuccessors().contains(end)` or iterate over `for (BlockNode node : start.getCleanSuccessors())` with no null check. That pattern by itself does not prove non‑null; it only shows that many callers assume or require non‑null for their particular blocks, not that the field is globally guaranteed non‑null.
+
+Crucially, none of the provided code shows initialization of `cleanSuccessors`, nor any invariant or annotation that guarantees it is always non‑null for every `BlockNode`, or for this particular `child` at this call site. We see only:
+
+- Occasional explicit `updateCleanSuccessors()` calls on some blocks (e.g., splitters) after structural changes, but no global guarantee that `cleanSuccessors` is initialized for all blocks before this call.
+- Multiple methods are carefully written to handle `null` from `getCleanSuccessors`, which is strong evidence that `cleanSuccessors` is allowed to be null.
+
+Given the rules:
+
+- We must not assume behavior of other methods without their full declarations.
+- Initialization of `cleanSuccessors` (likely via something like `updateCleanSuccessors` or constructor logic) is not shown.
+- Therefore we cannot prove that, for `child` at this call site, `cleanSuccessors` is definitely non‑null.
+
+Since the method simply returns a field that is demonstrably treated as nullable in other parts of the code, and there is no shown invariant guaranteeing non‑null here, the safe and supported conclusion is that `getCleanSuccessors()` **can** return null at this call site when that branch is chosen.
+
+  ]]></reason>
+  <value>YES</value>
+</response>

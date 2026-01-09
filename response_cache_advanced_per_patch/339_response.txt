@@ -1,0 +1,49 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method:
+
+public static String signature(ArgType type) {
+    PrimitiveType stype = type.getPrimitiveType();
+    if (stype == PrimitiveType.OBJECT) {
+        return Utils.makeQualifiedObjectName(type.getObject());
+    }
+    if (stype == PrimitiveType.ARRAY) {
+        return '[' + signature(type.getArrayElement());
+    }
+    return stype.getShortName();
+}
+
+The expression in question is `stype` in `return stype.getShortName();`.
+
+Control-flow analysis:
+- `stype` is assigned exactly once: `PrimitiveType stype = type.getPrimitiveType();`
+- There are two early-return branches:
+  1. If `stype == PrimitiveType.OBJECT`, we return from the method before reaching `stype.getShortName()`.
+  2. If `stype == PrimitiveType.ARRAY`, we again return before reaching `stype.getShortName()`.
+
+- Thus, the `return stype.getShortName();` line is only reached when:
+  - `stype != PrimitiveType.OBJECT`, and
+  - `stype != PrimitiveType.ARRAY`.
+
+Nullness of `stype`:
+- The code does not check `stype` for null before either of the comparisons (`stype == PrimitiveType.OBJECT` or `stype == PrimitiveType.ARRAY`).
+- In Java, using `==` with a null left-hand operand and a non-null right-hand operand is safe; it just evaluates to `false`. So:
+  - If `stype` were null, both conditions `stype == PrimitiveType.OBJECT` and `stype == PrimitiveType.ARRAY` would simply be false and execution would fall through to `return stype.getShortName();`.
+
+Therefore, whether `stype` can be null at the final return depends entirely on the contract of `type.getPrimitiveType()`:
+
+- If `ArgType.getPrimitiveType()` is *guaranteed by its contract* (e.g., documented or enforced) to never return null (for all valid inputs to `signature`), then `stype` cannot be null and `stype.getShortName()` is safe.
+- If there is no such guarantee, or if `getPrimitiveType()` can represent “no primitive type” or an invalid/unknown type by returning null, then the method will reach `return stype.getShortName();` with `stype == null`, causing a NullPointerException. In that case, the expression `stype` *can* be null at that line.
+
+Because the implementation or specification of `ArgType.getPrimitiveType()` is not provided, we cannot deduce from the given snippet alone that `stype` is definitely non-null. The current method does not perform any null checks that would exclude null before dereferencing `stype`.
+
+So strictly from the given code, without additional guarantees about `ArgType.getPrimitiveType()`, it is possible for `stype` to be null at `return stype.getShortName();`.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or documented contract of ArgType.getPrimitiveType().]]></request>
+        <request><![CDATA[Confirm whether ArgType instances passed to signature(...) are always of kinds that guarantee a non-null PrimitiveType.]]></request>
+    </requests>
+</response>
+```

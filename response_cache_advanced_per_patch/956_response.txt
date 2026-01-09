@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static void connect(BlockNode from, BlockNode to) {
+		if (!from.getSuccessors().contains(to)) {
+			from.getSuccessors().add(to);
+		}
+		if (!Nullability.castToNonnull(to).getPredecessors().contains(from)) {
+			to.getPredecessors().add(from);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

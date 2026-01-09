@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void insertContinueInSwitch(BlockNode block, BlockNode out, BlockNode end) {
+		int endId = end.getId();
+		for (BlockNode s : block.getCleanSuccessors()) {
+			if (Nullability.castToNonnull(s.getDomFrontier()).get(endId) && s != out) {
+				// search predecessor of loop end on path from this successor
+				List<BlockNode> list = BlockUtils.collectBlocksDominatedBy(mth, s, s);
+				for (BlockNode p : end.getPredecessors()) {
+					if (list.contains(p)) {
+						if (p.isSynthetic()) {
+							p.getInstructions().add(new InsnNode(InsnType.CONTINUE, 0));
+						}
+						break;
+					}
+				}
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

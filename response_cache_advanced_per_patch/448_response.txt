@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void simplifyTernary(MethodNode mth, TernaryInsn insn) {
+		IfCondition condition = insn.getCondition();
+		if (condition != null && condition.isCompare()) {
+			simplifyIf(mth, condition.getCompare().getInsn());
+		} else {
+			insn.simplifyCondition();
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

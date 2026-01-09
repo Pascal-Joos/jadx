@@ -1,0 +1,35 @@
+```xml
+<response>
+    <reason><![CDATA[
+The potentially-null expression is the local variable `elemType` used here:
+
+    ArgType arrType = newArrayInsn.getArrayType();
+    ArgType elemType = arrType.getArrayElement();
+    boolean allowMissingKeys = arrType.getArrayDimension() == 1 && elemType.isPrimitive();
+
+So the question is whether `arrType.getArrayElement()` can ever return `null` for a `NewArrayNode`’s array type.
+
+From the method’s control flow:
+
+1. `arrType` is obtained from `newArrayInsn.getArrayType()`. There is no null-check on `arrType`, so if that were nullable, the code would already be unsafe at `arrType.getArrayDimension()` and `new FilledNewArrayNode(elemType, len)` later.
+
+2. `elemType` is then used:
+   - Immediately in `elemType.isPrimitive()` in the `allowMissingKeys` expression.
+   - Later in `InsnArg.lit(0, elemType)`.
+   Both calls assume `elemType` is non-null. If `elemType` were possibly `null`, this method would be prone to a straightforward `NullPointerException` in any such case.
+
+To determine whether `elemType` actually can be null, we must rely on the contract and typical implementation of `ArgType` and `NewArrayNode` in this codebase (this pattern matches the jadx decompiler code):
+
+- For array types, `ArgType.getArrayElement()` is defined to return the *element* type of the array (or the base element type when there are multiple dimensions). In jadx’s implementation, for any `ArgType` that is an array, `getArrayElement()` always returns a valid `ArgType`. It does not return `null`. Multi-dimensional arrays still have a non-null element type representing the nested array or primitive/object element.
+
+- A `NewArrayNode` represents a `new-array` / `filled-new-array`-style instruction and always carries a valid array `ArgType`. It is constructed only with array types, and those array types are well-formed (i.e., they have a non-null element type). The decompiler relies on this invariant in many places without guarding against null.
+
+- The method itself also later passes `elemType` into `new FilledNewArrayNode(elemType, len)` and `InsnArg.lit(0, elemType)` without checks. In the surrounding codebase, these methods also assume a non-null type. This is consistent with an internal guarantee that `getArrayElement()` does not return null for a valid array type.
+
+Given these contracts and typical implementations, along every reachable code path where `processNewArray` is invoked with a valid `NewArrayNode`, `arrType` is a proper array type and `arrType.getArrayElement()` is guaranteed to be a non-null `ArgType`. Therefore, in the context this code is written for, `elemType` is not nullable, and the expression `elemType.isPrimitive()` cannot encounter a `null` `elemType`.
+
+If `ArgType` or `NewArrayNode` were implemented differently in some other, non-standard environment (e.g., allowing malformed array types with missing element types), then a `NullPointerException` would be possible here. But under the usual and intended contracts of this code, `elemType` cannot be null.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

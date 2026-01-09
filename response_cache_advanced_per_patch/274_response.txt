@@ -1,0 +1,37 @@
+```xml
+<response>
+    <reason><![CDATA[
+insnElementType is obtained via:
+
+    ArgType insnArrayType = newArrayNode.getArrayType();
+    ArgType insnElementType = newArrayNode.getArrayType().getArrayElement();
+
+So insnElementType is the result of ArgType.getArrayElement() on the value returned by newArrayNode.getArrayType().
+
+From the shown method alone, there is no explicit null check on:
+- newArrayNode
+- newArrayNode.getArrayType()
+- newArrayNode.getArrayType().getArrayElement()
+
+Whether insnElementType can be null therefore depends entirely on the contract/implementation of:
+1) NewArrayNode.getArrayType()
+2) ArgType.getArrayElement()
+
+Typical type/IR models (including Jadx’s ArgType) are designed so that:
+- A NewArrayNode always represents an array type, and
+- ArgType.getArrayElement() returns the element type for arrays and does not return null for valid array types; for non-array types it may either throw or return some sentinel, but in the context of NewArrayNode it is expected to be an array.
+
+In Jadx’s actual implementation, ArgType.getArrayElement() for an array type does not return null. A NewArrayNode is created only for array-creation instructions, so its array type is guaranteed to be an array ArgType. As a result, getArrayElement() is guaranteed to return a non-null ArgType instance.
+
+Because of these invariants:
+- If this code is operating on a well-formed IR (which NewArrayNode represents) and the usual library contracts hold, insnElementType cannot be null at the line:
+
+    && insnElementType.isPrimitive()
+
+If those contracts are broken (e.g., NewArrayNode.getArrayType() returns a non-array or a null type), many other parts of the decompiler would also break. This method clearly assumes those invariants and does not defensively check for null.
+
+Given the typical and intended contracts in this codebase, insnElementType is not expected to be null at that point.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

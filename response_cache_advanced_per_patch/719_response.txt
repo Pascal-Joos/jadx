@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public List<BlockNode> getPreExitBlocks() {
+		return exitBlock == null ? Collections.emptyList() : exitBlock.getPredecessors();
+  }
+  ```
+    ]]>
+  </code>
+</response>

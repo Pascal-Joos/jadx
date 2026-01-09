@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static BlockNode followEmptyPath(BlockNode start) {
+		while (true) {
+			BlockNode next = getNextBlockOnEmptyPath(Nullability.castToNonnull(start));
+			if (next == null) {
+				return start;
+			}
+			start = next;
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

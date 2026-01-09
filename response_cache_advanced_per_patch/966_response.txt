@@ -1,0 +1,45 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void processExcHandler(MethodNode mth, ExceptionHandler handler, Set<BlockNode> exits) {
+		BlockNode start = handler.getHandlerBlock();
+		if (start == null) {
+			return;
+		}
+		RegionStack stack = new RegionStack(this.mth);
+		BlockNode dom;
+		if (handler.isFinally()) {
+			dom = BlockUtils.getTopSplitterForHandler(start);
+		} else {
+			dom = start;
+			stack.addExits(exits);
+		}
+		if (dom.contains(AFlag.REMOVE)) {
+			return;
+		}
+		BitSet domFrontier = dom.getDomFrontier();
+		List<BlockNode> handlerExits = BlockUtils.bitSetToBlocks(this.mth, domFrontier);
+		boolean inLoop = this.mth.getLoopForBlock(start) != null;
+		for (BlockNode exit : handlerExits) {
+			if ((!inLoop || BlockUtils.isPathExists(start, exit))
+					&& RegionUtils.isRegionContainsBlock(this.mth.getRegion(), exit)) {
+				stack.addExit(exit);
+			}
+		}
+		handler.setHandlerRegion(makeRegion(start, stack));
+
+		ExcHandlerAttr excHandlerAttr = start.get(AType.EXC_HANDLER);
+		if (excHandlerAttr == null) {
+			mth.addWarn("Missing exception handler attribute for start block: " + start);
+		} else {
+			IContainer handlerRegion = handler.getHandlerRegion();
+			if (handlerRegion != null) {
+				handlerRegion.addAttr(excHandlerAttr);
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,26 @@
+<response>
+    <reason><![CDATA[
+Within the method
+
+private static boolean checkConditionBranches(BlockNode from, BlockNode to) {
+    return from.getCleanSuccessors().size() == 1 && from.getCleanSuccessors().contains(to);
+}
+
+the parameter `from` is dereferenced immediately (`from.getCleanSuccessors()`) and is never reassigned or checked for null inside the method. Therefore, if any caller ever passes `null` for `from`, the method will dereference it and crash (NullPointerException).
+
+Looking at its only shown usages:
+
+- `checkConditionBranches(curThen, Nullability.castToNonnull(curElse))`
+- `checkConditionBranches(Nullability.castToNonnull(curElse), curThen)`
+
+`curThen` comes from `currentIf.getThenBlock()`, and `curElse` from `currentIf.getElseBlock()`. There are no explicit null checks on `curThen` before it is passed as `from`, and `curThen` is passed directly (without any `castToNonnull`) as the `from` argument in:
+
+- `checkConditionBranches(curThen, Nullability.castToNonnull(curElse))`
+- `checkConditionBranches(Nullability.castToNonnull(curElse), curThen)` (second call: `curThen` is the `to` argument)
+
+Thus, even in the existing call chain, nothing within `checkConditionBranches` itself or its immediate invocations guarantees that `curThen` (when used as `from`) is non-null from a purely semantic standpoint, independent of annotations. A caller could pass null, and the method would crash.
+
+Since the question is whether `from` *can* receive `null` based on context and possible callers (ignoring annotations), the answer is that it is indeed possible for `from` to be null and cause a crash; the method does not internally prevent or handle that situation.
+    ]]></reason>
+    <value>YES</value>
+</response>

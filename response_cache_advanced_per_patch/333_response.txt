@@ -1,0 +1,12 @@
+<response>
+  <reason><![CDATA[
+The method body is:
+
+public PrimitiveType getPrimitiveType() {
+    return null;
+}
+
+There is a single return statement, and it returns null unconditionally. No other methods are called and no conditions are evaluated, so there are no alternative return paths that could produce a non-null value. Therefore, based solely on its body, this method will always return null.
+  ]]></reason>
+  <value>YES</value>
+</response>

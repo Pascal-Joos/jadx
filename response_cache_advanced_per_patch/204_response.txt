@@ -1,0 +1,27 @@
+```xml
+<response>
+    <reason><![CDATA[Based solely on the provided method:
+
+public List<LiteralArg> getLiteralArgs(ArgType elType) {
+    return arrayData.getLiteralArgs(elType);
+}
+
+we cannot determine whether `arrayData` is guaranteed to be non-null at this call site. The expression of interest is effectively `arrayData` (the receiver of `getLiteralArgs`), and its nullability depends on:
+
+- How and where `arrayData` is declared (field, local, parameter).
+- How and where `arrayData` is initialized or assigned.
+- Whether there are any prior null checks (e.g., `Objects.requireNonNull(arrayData)` or `if (arrayData == null) ...`) that dominate this method.
+- Any class invariants or constructor logic that guarantee `arrayData` is always non-null.
+- Any annotations or contracts (e.g., @NonNull, @Nullable) that constrain `arrayData`.
+
+Additionally, even if `arrayData` is non-null, the method `arrayData.getLiteralArgs(elType)` itself could return null depending on its implementation and contract, which is also not shown here.
+
+Since none of this surrounding context is provided, there is insufficient information to assert definitively whether `arrayData` can be null at this line or whether `arrayData.getLiteralArgs(elType)` can return null.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show the declaration of `arrayData` (its type, field/variable declaration, and any annotations).]]></request>
+        <request><![CDATA[Show all constructors and methods that assign to `arrayData`, including any null checks or validations.]]></request>
+        <request><![CDATA[Provide the implementation (or documented contract) of `arrayData.getLiteralArgs(ArgType)` to determine whether it can return null.]]></request>
+    </requests>
+</response>
+```

@@ -1,0 +1,12 @@
+<response>
+    <reason><![CDATA[
+Based on the criteria you described for NullAway initializer methods, this method should NOT be treated as an initializer method:
+
+1. Its name does not match known framework lifecycle/initializer patterns (e.g., `onCreate`, `init`) nor does it start with "init" or "initialize".
+2. Its name, `addClasspath`, semantically describes an operation that *adds* data (like a mutator/adder) rather than a dedicated, one-time object setup hook.
+3. While it initializes `nameMap` on first call and throws if called again, this pattern alone is not sufficient to classify it as an initializer method for NullAway’s purposes; many non-initializer business methods lazily initialize fields.
+4. There is no indication that external frameworks or annotation processors treat `addClasspath` as a mandatory lifecycle/setup hook, which is one of the main reasons NullAway supports special initializer methods.
+
+Therefore, even though it initializes a field, under the stated rules and naming conventions it should be considered a regular mutator method, not an initializer method.]]></reason>
+    <value>NO</value>
+</response>

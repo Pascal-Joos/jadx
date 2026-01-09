@@ -1,0 +1,57 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private MethodOverrideAttr processOverrideMethods(MethodNode mth, SuperTypesData superData) {
+		MethodOverrideAttr result = mth.get(AType.METHOD_OVERRIDE);
+		if (result != null) {
+			return result;
+		}
+		ClassNode cls = mth.getParentClass();
+		String signature = mth.getMethodInfo().makeSignature(false);
+		List<IMethodDetails> overrideList = new ArrayList<>();
+		Set<IMethodDetails> baseMethods = new HashSet<>();
+		for (ArgType superType : superData.getSuperTypes()) {
+			ClassNode classNode = mth.root().resolveClass(superType);
+			if (classNode != null) {
+				MethodNode ovrdMth = searchOverriddenMethod(classNode, signature);
+				if (ovrdMth != null) {
+					if (isMethodVisibleInCls(ovrdMth, cls)) {
+						overrideList.add(ovrdMth);
+						MethodOverrideAttr attr = ovrdMth.get(AType.METHOD_OVERRIDE);
+						if (attr != null) {
+							addBaseMethod(superData, overrideList, baseMethods, superType);
+							return buildOverrideAttr(mth, overrideList, baseMethods, attr);
+						}
+					}
+				}
+			} else {
+				RootNode root = mth.root();
+				if (root == null) {
+					return null;
+				}
+				ClspGraph clsp = root.getClsp();
+				if (clsp == null) {
+					return null;
+				}
+				ClspClass clsDetails = clsp.getClsDetails(superType);
+				if (clsDetails != null) {
+					Map<String, ClspMethod> methodsMap = clsDetails.getMethodsMap();
+					for (Map.Entry<String, ClspMethod> entry : methodsMap.entrySet()) {
+						String mthShortId = entry.getKey();
+						if (mthShortId.startsWith(signature)) {
+							overrideList.add(entry.getValue());
+							break;
+						}
+					}
+				}
+			}
+			addBaseMethod(superData, overrideList, baseMethods, superType);
+		}
+		return buildOverrideAttr(mth, overrideList, baseMethods, null);
+}
+  ```
+    ]]>
+  </code>
+</response>

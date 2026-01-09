@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static Set<BlockNode> collectBlocksDominatedByWithExcHandlers(MethodNode mth, BlockNode dominator, BlockNode start) {
+		Set<BlockNode> result = new LinkedHashSet<>();
+		collectWhileDominates(dominator, Nullability.castToNonnull(start), result, newBlocksBitSet(mth), true);
+		return result;
+}
+  ```
+    ]]>
+  </code>
+</response>

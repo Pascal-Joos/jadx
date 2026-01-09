@@ -1,0 +1,5 @@
+<response>
+    <reason><![CDATA[
+The method is named `init`, which matches the documented heuristic for initializer methods (“any method that has a name that starts with `init` or `initialize` and is not a setter method”). It takes a single parameter `RootNode root` and assigns it to a field `this.root`. This is not a conventional setter (which would typically be named `setRoot`), and its name and signature match the pattern of framework-style initialization hooks (e.g., `Servlet.init`, `Filter.init`). Therefore, under the described criteria for NullAway, this method should be treated as an initializer method rather than a plain setter.]]></reason>
+    <value>YES</value>
+</response>

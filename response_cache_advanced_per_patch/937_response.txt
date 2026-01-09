@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void injectFakeInsns(LoopRegion loopRegion) {
+		loopRegion.getInfo().getPreHeader().getInstructions().add(iterableArgInsn);
+		BlockNode loopHeader = loopRegion.getHeader();
+		if (loopHeader != null) {
+			loopHeader.getInstructions().add(0, varArgInsn);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

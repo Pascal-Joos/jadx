@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void addToMap(Map<String, ClspClass> nameMap) {
+		if (classes == null) {
+			return;
+		}
+		for (ClspClass cls : classes) {
+			nameMap.put(cls.getName(), cls);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

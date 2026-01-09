@@ -1,0 +1,26 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void undoAnonymousMark(ClassNode cls) {
+		AnonymousClassAttr attr = cls.get(AType.ANONYMOUS_CLASS);
+		if (attr == null) {
+			return;
+		}
+		ClassNode outerCls = attr.getOuterCls();
+		cls.setDependencies(ListUtils.safeAdd(cls.getDependencies(), outerCls.getTopParentClass()));
+		outerCls.setUseIn(ListUtils.safeAdd(outerCls.getUseIn(), cls));
+
+		cls.remove(AType.ANONYMOUS_CLASS);
+		cls.remove(AFlag.DONT_GENERATE);
+		for (MethodNode mth : cls.getMethods()) {
+			if (mth.isConstructor()) {
+				mth.remove(AFlag.ANONYMOUS_CONSTRUCTOR);
+			}
+		}
+		cls.addDebugComment("Anonymous mark cleared");
+}
+  ```
+    ]]>
+  </code>
+</response>

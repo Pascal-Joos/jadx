@@ -1,0 +1,4 @@
+<response>
+    <reason><![CDATA[The method name `setHandlerRegion` follows the conventional setter pattern (`setXyz`) and does not start with `init` or `initialize`. By your own definition, setter methods must not be treated as initializer methods. Therefore, even though it assigns a field, it should not be considered an initializer method for NullAway purposes.]]></reason>
+    <value>NO</value>
+</response>

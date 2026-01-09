@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public static String getLabelName(BlockNode block) {
+		return String.format("L%d", Nullability.castToNonnull(block).getId());
+  }
+  ```
+    ]]>
+  </code>
+</response>

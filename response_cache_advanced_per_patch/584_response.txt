@@ -1,0 +1,50 @@
+<response>
+  <reason><![CDATA[
+The specific call site in question is inside TypeInferenceVisitor.checkAndSplitConstInsn:
+
+```java
+InsnNode copyInsn = constInsn.copyWithNewSsaVar(mth);
+copyInsn.add(AFlag.SYNTHETIC);
+BlockUtils.insertAfterInsn(blockNode, constInsn, copyInsn);
+
+RegisterArg phiArg = phiInsn.getArgBySsaVar(var);
+phiInsn.replaceArg(phiArg, copyInsn.getResult().duplicate());
+```
+
+Here the call is effectively `copyInsn.getResult()`.
+
+`copyInsn` is created by:
+
+```java
+InsnNode copyInsn = constInsn.copyWithNewSsaVar(mth);
+```
+
+whose implementation is:
+
+```java
+public InsnNode copyWithNewSsaVar(MethodNode mth) {
+    RegisterArg result = getResult();
+    if (result == null) {
+        throw new JadxRuntimeException("Result in null");
+    }
+    int regNum = result.getRegNum();
+    RegisterArg resDupArg = result.duplicate(regNum, null);
+    mth.makeNewSVar(resDupArg);
+    return copy(resDupArg);
+}
+```
+
+Key points:
+
+1. `copyWithNewSsaVar` first reads `getResult()` on `this` (which is `constInsn`), and if it is null it *throws* a `JadxRuntimeException`. It does not proceed to create and return a new instruction in that case.
+
+2. Only if `constInsn.getResult()` is non‑null does it build `resDupArg` and then call `copy(resDupArg)`. This `copy(resDupArg)` produces the returned `InsnNode` (`copyInsn`) with that `resDupArg` as its result. So whenever `copyWithNewSsaVar` returns normally, the returned node has a non‑null result.
+
+3. At the call site, `copyInsn` is obtained from `copyWithNewSsaVar`. Therefore:
+   - If `copyInsn` exists (i.e., no exception was thrown), then its `getResult()` is guaranteed non‑null.
+   - If the original `constInsn` had a null result, the program would not reach the `copyInsn.getResult()` call at all because `copyWithNewSsaVar` would have thrown.
+
+Under the provided rules, exception paths are not considered null returns. At this call site, execution reaching `copyInsn.getResult()` implies `copyInsn.getResult()` is non‑null. Thus `copyInsn.getResult()` cannot be null at this specific call site.
+]]></reason>
+  <value>NO</value>
+</response>

@@ -1,0 +1,39 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void markTryBounds(InsnNode[] insnByOffset, ITry aTry, CatchAttr catchAttr) {
+		int offset = aTry.getStartOffset();
+		int end = aTry.getEndOffset();
+
+		boolean tryBlockStarted = false;
+		InsnNode insn = null;
+		while (offset <= end) {
+			InsnNode insnAtOffset = insnByOffset[offset];
+			if (insnAtOffset != null) {
+				insn = insnAtOffset;
+				attachCatchAttr(catchAttr, insn);
+				if (!tryBlockStarted) {
+					insn.add(AFlag.TRY_ENTER);
+					tryBlockStarted = true;
+				}
+			}
+			offset = getNextInsnOffset(insnByOffset, offset);
+			if (offset == -1) {
+				break;
+			}
+		}
+		if (tryBlockStarted) {
+			Nullability.castToNonnull(insn).add(AFlag.TRY_LEAVE);
+		} else {
+			// no instructions found in range -> add nop at start offset
+			InsnNode nop = insertNOP(insnByOffset, aTry.getStartOffset());
+			nop.add(AFlag.TRY_ENTER);
+			nop.add(AFlag.TRY_LEAVE);
+			nop.addAttr(catchAttr);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

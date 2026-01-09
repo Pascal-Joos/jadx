@@ -1,0 +1,6 @@
+<response>
+    <reason><![CDATA[
+The method name `lock` does not match any of the patterns NullAway treats as initializer methods (such as lifecycle-like methods with specific framework names, or names beginning with `init` or `initialize`). It is also not a constructor and is not documented or implied to be a special framework-driven setup hook. While it mutates several fields, its semantic intent is to transition the object into a "locked" state rather than to perform the primary initialization of the object, and it is not a setter-like method whose name starts with `init`/`initialize`. Under the described NullAway rules and heuristics, `lock()` should not be considered an initializer method.
+    ]]></reason>
+    <value>NO</value>
+</response>

@@ -1,0 +1,51 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static boolean visitBlocksOnPath(MethodNode mth, BlockNode start, BlockNode end, Consumer<BlockNode> visitor) {
+		visitor.accept(start);
+		if (start == end) {
+			return true;
+		}
+		List<BlockNode> startSuccessors = start.getCleanSuccessors();
+		if (startSuccessors != null && startSuccessors.contains(end)) {
+			visitor.accept(end);
+			return true;
+		}
+		// DFS on clean successors
+		BitSet visited = newBlocksBitSet(mth);
+		Deque<BlockNode> queue = new ArrayDeque<>();
+		queue.addLast(start);
+		while (true) {
+			BlockNode current = queue.peekLast();
+			if (current == null) {
+				return false;
+			}
+			boolean added = false;
+			for (BlockNode next : Nullability.castToNonnull(current.getCleanSuccessors())) {
+				if (next == end) {
+					queue.removeFirst(); // start already visited
+					queue.addLast(next);
+					queue.forEach(visitor);
+					return true;
+				}
+				int id = next.getId();
+				if (!visited.get(id)) {
+					visited.set(id);
+					queue.addLast(next);
+					added = true;
+					break;
+				}
+			}
+			if (!added) {
+				queue.pollLast();
+				if (queue.isEmpty()) {
+					return false;
+				}
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

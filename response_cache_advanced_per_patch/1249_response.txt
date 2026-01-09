@@ -1,0 +1,36 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void decode(XmlElement e) throws IOException {
+ 		if (writer == null) {
+ 			return;
+ 		}
+ 		String tag = deobfClassName(e.getName());
+ 		tag = getValidTagAttributeName(tag);
+ 		currentTag = tag;
+ 		Nullability.castToNonnull(writer).startLine('<').add(tag);
+ 		for (int i = 0; i < e.getNamespaceDeclarationCount(); i++) {
+ 			decode(e.getNamespaceDeclaration(i));
+ 		}
+ 		for (int i = 0; i < e.getAttributeCount(); i++) {
+ 			decode(e.getAttribute(i));
+ 		}
+ 		if (e.getChildCount() > 0) {
+ 			Nullability.castToNonnull(writer).add('>');
+ 			Nullability.castToNonnull(writer).incIndent();
+ 			for (int i = 0; i < e.getChildCount(); i++) {
+ 				Map<String, String> oldNsMap = new HashMap<>(nsMap);
+ 				decode(e.getChild(i));
+ 				nsMap = oldNsMap;
+ 			}
+ 			Nullability.castToNonnull(writer).decIndent();
+ 			Nullability.castToNonnull(writer).startLine("</").add(tag).add('>');
+ 		} else {
+ 			Nullability.castToNonnull(writer).add("/>");
+ 		}
+}
+  ```
+    ]]>
+  </code>
+</response>

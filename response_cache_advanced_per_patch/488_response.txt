@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static List<BlockNode> buildSimplePath(BlockNode block) {
+ 		if (block == null) {
+ 			return Collections.emptyList();
+ 		}
+ 		List<BlockNode> list = new ArrayList<>();
+ 		if (Nullability.castToNonnull(block.getCleanSuccessors()).size() >= 2) {
+ 			return Collections.emptyList();
+ 		}
+ 		list.add(block);
+ 
+ 		BlockNode currentBlock = getNextBlock(block);
+ 		while (currentBlock != null
+ 				&& Nullability.castToNonnull(currentBlock.getCleanSuccessors()).size() < 2
+ 				&& currentBlock.getPredecessors().size() == 1) {
+ 			list.add(currentBlock);
+ 			currentBlock = getNextBlock(currentBlock);
+ 		}
+ 		return list;
+}
+  ```
+    ]]>
+  </code>
+</response>

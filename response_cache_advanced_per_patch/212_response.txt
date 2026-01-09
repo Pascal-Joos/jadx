@@ -1,0 +1,10 @@
+<response>
+    <reason><![CDATA[
+According to the criteria you described, initializer methods are typically:
+- Known framework lifecycle methods (e.g., onCreate, init), or
+- Methods whose names start with "init" or "initialize" and are not setters.
+
+The given method is named `setImplMthInfo`, which clearly follows a setter naming convention ("setX") and not "init"/"initialize". Therefore, even though it assigns a field, it should be treated as a setter method, not as an initializer method for NullAway’s purposes.
+    ]]></reason>
+    <value>NO</value>
+</response>

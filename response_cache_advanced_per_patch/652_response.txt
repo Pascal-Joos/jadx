@@ -1,0 +1,51 @@
+<response>
+  <reason><![CDATA[
+The method `MethodNode.getEnterBlock()` simply returns the field `enterBlock`. So the question reduces to: *can `enterBlock` be null at the specific call sites shown?*
+
+Across the provided call chain, `mth.getEnterBlock()` is used in ways that would immediately throw a `NullPointerException` if it were null:
+
+1. **ClassModifier.removeFieldUsageFromConstructor**
+   ```java
+   BlockNode block = mth.getEnterBlock().getCleanSuccessors().get(0);
+   ```
+   This dereferences `getEnterBlock()` via `getCleanSuccessors()`. If `getEnterBlock()` were null here, an NPE would occur. There is no preceding null check or fallback logic, so this code relies on `enterBlock` being non-null whenever this visitor runs on such a method.
+
+2. **RegionMakerVisitor.visit**
+   ```java
+   BlockNode startBlock = Utils.first(Nullability.castToNonnull(mth.getEnterBlock()).getCleanSuccessors());
+   ```
+   The explicit `Nullability.castToNonnull` indicates a design contract that `enterBlock` must not be null at this stage. If it were null, this would fail fast.
+
+3. **BlockUtils.dfsVisit**
+   ```java
+   BlockNode enterBlock = mth.getEnterBlock();
+   queue.addLast(Nullability.castToNonnull(enterBlock));
+   visited.set(Nullability.castToNonnull(mth.getEnterBlock()).getId());
+   ```
+   Again, `castToNonnull` enforces the assumption that `enterBlock` is not null.
+
+4. **BlockExceptionHandler.getTopSplitterBlock**
+   ```java
+   if (top == mth.getEnterBlock()) {
+       BlockNode fixedTop = mth.getEnterBlock().getSuccessors().get(0);
+       return BlockSplitter.blockSplitTop(mth, fixedTop);
+   }
+   ```
+   Here `getEnterBlock()` is dereferenced with `getSuccessors().get(0)` with no null guard.
+
+5. **Many other usages** (e.g., `SSATransform.addPhi`, `RenameState.init`, `FixMultiEntryLoops.detectSpecialEdges`, `ExtractFieldInit.collectFieldsInit`, `RegionMaker.canInsertBreak`, `DotGraphVisitor.DumpDotGraph.process`, `BlockUtils.isFirstInsn`) all use `mth.getEnterBlock()` either as:
+   - an argument to methods that conceptually require a valid start block (like graph traversals), or
+   - are wrapped in `Nullability.castToNonnull`, or
+   - dereference it immediately (e.g., `.getId()`, `.getSuccessors()`, `.getCleanSuccessors()`).
+
+There is no code path shown where `enterBlock` is checked for null or where a null value is handled gracefully. Instead, the entire CFG/SSA/region-building pipeline assumes the existence of a valid entry block for any method that has basic blocks and is being processed by these visitors.
+
+Additionally, `DominatorTree.sortBlocks` and `BlockUtils.dfsVisit` depend on being able to start traversal from `mth.getEnterBlock()`. A null entry block would break the fundamental CFG invariants and cause immediate failure; there is no defensive coding around that.
+
+Given these usages, for the methods that reach these call sites, `enterBlock` must already have been set and is treated as non-null by design. A null value would lead to immediate, unhandled NPEs, which is inconsistent with the rest of the framework's control-flow handling (where invalid CFGs are typically reported via explicit `JadxRuntimeException`, not by allowing null entry blocks).
+
+Therefore, at these specific call sites, `mth.getEnterBlock()` is required by the surrounding code and explicit non-null casts to be non-null, and is not allowed to be null in normal operation.
+
+]]></reason>
+  <value>NO</value>
+</response>

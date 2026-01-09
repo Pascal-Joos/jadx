@@ -1,0 +1,28 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private boolean canRemoveMethod(MethodNode mth) {
+		if (mth.getUseIn().isEmpty()) {
+			return true;
+		}
+		InsnNode[] insns = mth.getInstructions();
+		if (insns == null || insns.length == 0) {
+			return true;
+		}
+		for (InsnNode insn : insns) {
+			if (insn != null && insn.getType() != InsnType.NOP) {
+				if (insn.getType() == InsnType.RETURN && insn.getArgsCount() == 0) {
+					// ignore void return
+				} else {
+					// found useful instruction
+					return false;
+				}
+			}
+		}
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

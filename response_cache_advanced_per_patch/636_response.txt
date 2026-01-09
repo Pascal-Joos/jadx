@@ -1,0 +1,14 @@
+<response>
+    <success>false</success>
+    <methods>
+      <method>getSuccessors</method>
+      <method>getPredecessors</method>
+      <method>startNewBlock</method>
+      <method>connect</method>
+      <method>replaceTarget</method>
+      <method>removeEmptyDetachedBlocks</method>
+      <method>process</method>
+      <method>removeMarkedBlocks</method>
+      <method>copyBlockData</method>
+    </methods>
+</response>

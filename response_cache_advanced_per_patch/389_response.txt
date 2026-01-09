@@ -1,0 +1,30 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private InsnNode makeNewArray(InsnData insn) {
+  		ArgType indexType = Nullability.castToNonnull(ArgType.parse(insn.getIndexAsType()));
+  		int dim = (int) insn.getLiteral();
+  		ArgType arrType;
+  		if (dim == 0) {
+  			arrType = indexType;
+  		} else {
+  			if (indexType.isArray()) {
+  				// java bytecode can pass array as a base type
+  				arrType = indexType;
+  			} else {
+  				arrType = ArgType.array(indexType, dim);
+  			}
+  		}
+  		int regsCount = insn.getRegsCount();
+  		NewArrayNode newArr = new NewArrayNode(Nullability.castToNonnull(arrType), regsCount - 1);
+  		newArr.setResult(InsnArg.reg(insn, 0, Nullability.castToNonnull(arrType)));
+  		for (int i = 1; i < regsCount; i++) {
+  			newArr.addArg(InsnArg.typeImmutableReg(insn, i, ArgType.INT));
+  		}
+  		return newArr;
+}
+  ```
+    ]]>
+  </code>
+</response>

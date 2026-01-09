@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public ArgType expandTypeVariables(MethodNode mth, ArgType type) {
+		if (Nullability.castToNonnull(type).containsTypeVariable()) {
+			expandTypeVar(mth, type, getKnownTypeVarsAtMethod(mth));
+		}
+		return type;
+}
+  ```
+    ]]>
+  </code>
+</response>

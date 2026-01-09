@@ -1,0 +1,73 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+BitSet domFrontier = block.getDomFrontier();
+```
+
+`block` is a `BlockNode` that belongs to a `MethodNode` being processed by the decompiler passes.
+
+The lifecycle of `domFrontier` on each `BlockNode` is controlled by `DominatorTree.computeDominanceFrontier(MethodNode mth)`:
+
+```java
+public static void computeDominanceFrontier(MethodNode mth) {
+    List<BlockNode> blocks = mth.getBasicBlocks();
+    for (BlockNode block : blocks) {
+        block.setDomFrontier(null);
+    }
+    int blocksCount = blocks.size();
+    for (BlockNode block : blocks) {
+        List<BlockNode> preds = block.getPredecessors();
+        if (preds.size() >= 2) {
+            BlockNode idom = block.getIDom();
+            for (BlockNode pred : preds) {
+                BlockNode runner = pred;
+                while (runner != idom) {
+                    addToDF(runner, block, blocksCount);
+                    runner = runner.getIDom();
+                }
+            }
+        }
+    }
+    for (BlockNode block : blocks) {
+        BitSet df = block.getDomFrontier();
+        if (df == null || df.isEmpty()) {
+            block.setDomFrontier(EmptyBitSet.EMPTY);
+        }
+    }
+}
+```
+
+`addToDF` lazily allocates and assigns a non‑null `BitSet` when needed:
+
+```java
+private static void addToDF(BlockNode block, BlockNode dfBlock, int blocksCount) {
+    BitSet df = block.getDomFrontier();
+    if (df == null) {
+        df = new BitSet(blocksCount);
+        block.setDomFrontier(df);
+    }
+    df.set(dfBlock.getId());
+}
+```
+
+Critically, after `computeDominanceFrontier` finishes, every `BlockNode` in `mth.getBasicBlocks()` has:
+
+- either a non‑empty `BitSet` assigned during `addToDF`, or
+- if `null` or empty, it is replaced by `EmptyBitSet.EMPTY` in the final loop.
+
+Thus, after `computeDominanceFrontier`, `block.getDomFrontier()` is never `null` for any basic block that belongs to that method; it is always either a real `BitSet` or the shared non‑null `EmptyBitSet.EMPTY`.
+
+The provided call sites that use `block.getDomFrontier()` in `RegionMaker`, `SSATransform`, `DotGraphVisitor`, `BlockUtils`, and `BlockExceptionHandler` are all within analysis/transform phases that run after dominators and dominance frontiers have been computed. For example:
+
+- `BlockProcessor.processBlocksTree(mth)` runs `DominatorTree.computeDominanceFrontier(mth)` before SSA transform and region processing.
+- `BlockExceptionHandler.process(mth)` also explicitly calls `DominatorTree.computeDominanceFrontier(mth)` before using dominator information.
+
+Because of this pipeline, when `BitSet domFrontier = block.getDomFrontier();` is executed in these phases, `block` is a basic block of some `MethodNode` for which `computeDominanceFrontier` has already been called, and so `getDomFrontier()` cannot return `null` at that point.
+
+The existence of defensive null checks at some other usages (e.g. `if (domFrontier == null || domFrontier.isEmpty())`) does not change the fact that, given the established call order where this site is executed, `domFrontier` has already been normalized to a non‑null value.
+
+Therefore, at this specific call site, the method’s result cannot be `null`.]]></reason>
+  <value>NO</value>
+</response>

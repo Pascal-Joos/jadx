@@ -1,0 +1,57 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean mergeMultiCatch(MethodNode mth, TryCatchBlockAttr tryCatch) {
+		if (tryCatch.getHandlers().size() < 2) {
+			return false;
+		}
+		for (ExceptionHandler handler : tryCatch.getHandlers()) {
+			if (handler.getBlocks().size() != 1) {
+				return false;
+			}
+			BlockNode block = handler.getHandlerBlock();
+			if (block == null) {
+				return false;
+			}
+			if (block.getInstructions().size() != 1
+					|| !BlockUtils.checkLastInsnType(block, InsnType.MOVE_EXCEPTION)) {
+				return false;
+			}
+		}
+		List<BlockNode> handlerBlocks = ListUtils.map(tryCatch.getHandlers(), ExceptionHandler::getHandlerBlock);
+		List<BlockNode> successorBlocks = handlerBlocks.stream()
+				.flatMap(h -> h.getSuccessors().stream())
+				.distinct()
+				.collect(Collectors.toList());
+		if (successorBlocks.size() != 1) {
+			return false;
+		}
+		BlockNode successorBlock = successorBlocks.get(0);
+		if (!ListUtils.unorderedEquals(successorBlock.getPredecessors(), handlerBlocks)) {
+			return false;
+		}
+		List<RegisterArg> regs = tryCatch.getHandlers().stream()
+				.map(h -> Objects.requireNonNull(BlockUtils.getLastInsn(h.getHandlerBlock())).getResult())
+				.distinct()
+				.collect(Collectors.toList());
+		if (regs.size() != 1) {
+			return false;
+		}
+
+		// merge confirm, leave only first handler, remove others
+		ExceptionHandler resultHandler = tryCatch.getHandlers().get(0);
+		tryCatch.getHandlers().removeIf(handler -> {
+			if (handler == resultHandler) {
+				return false;
+			}
+			resultHandler.addCatchTypes(mth, handler.getCatchTypes());
+			handler.markForRemove();
+			return true;
+		});
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

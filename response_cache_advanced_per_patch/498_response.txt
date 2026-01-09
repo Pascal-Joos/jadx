@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @javax.annotation.Nullable
+	public static BlockNode getNextBlock(BlockNode block) {
+		List<BlockNode> s = block.getCleanSuccessors();
+		if (s == null || s.isEmpty()) {
+			return null;
+		}
+		return s.get(0);
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,4 @@
+<response>
+    <reason><![CDATA[The method name starts with "set" (setHandlerBlock) and follows the typical setter pattern of assigning a parameter to a single field. According to your criteria, initializer methods are typically named like onCreate, init, initialize*, and should explicitly not be setter methods. Therefore, this method should be treated as a regular setter, not as an initializer method for NullAway.]]></reason>
+    <value>NO</value>
+</response>

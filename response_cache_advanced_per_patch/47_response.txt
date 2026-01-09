@@ -1,0 +1,51 @@
+<response>
+  <reason><![CDATA[
+At the specific call site in `OverrideMethodVisitor.processMethodArgsOverloaded`:
+
+```java
+ClspClass clsDetails = root.getClsp().getClsDetails(startCls);
+if (clsDetails == null) {
+    // class info not available
+    return false;
+}
+// ...
+if (!isMthConstructor) {
+    ArgType[] parents = clsDetails.getParents();
+    if (parents != null) {
+        for (ArgType parent : parents) {
+            ...
+        }
+    }
+}
+```
+
+`clsDetails` is explicitly checked for null, so the receiver of the call `clsDetails.getParents()` is guaranteed non-null.
+
+However, the `getParents()` method itself is:
+
+```java
+public ArgType[] getParents() {
+    return parents;
+}
+```
+
+This simply returns the field `parents` with no initialization or null-guard logic shown. There is no evidence in the provided code that `parents` is always initialized to a non-null array; other call sites (e.g., in `MethodUtils.processMethodArgsOverloaded` itself) defensively check:
+
+```java
+ArgType[] parents = clsDetails.getParents();
+if (parents != null) {
+    ...
+}
+```
+
+This null-check indicates that the authors anticipate `getParents()` can legitimately return null. No code in the provided snippets contradicts this possibility or enforces non-nullity of `parents`.
+
+Because:
+
+- `getParents()` directly returns the field `parents`,
+- There is no shown guarantee that `parents` is always assigned a non-null value, and
+- Other callers guard against a null return from `getParents()`,
+
+the invocation `clsDetails.getParents()` at this call site can return null, which is why it is immediately checked against null before use.]]></reason>
+  <value>YES</value>
+</response>

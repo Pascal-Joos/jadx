@@ -1,0 +1,114 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private BlockNode processLoop(IRegion curRegion, LoopInfo loop, RegionStack stack) {
+		BlockNode loopStart = loop.getStart();
+		Set<BlockNode> exitBlocksSet = loop.getExitNodes();
+
+		// set exit blocks scan order priority
+		// this can help if loop have several exits (after using 'break' or 'return' in loop)
+		List<BlockNode> exitBlocks = new ArrayList<>(exitBlocksSet.size());
+		BlockNode nextStart = getNextBlock(loopStart);
+		if (nextStart != null && exitBlocksSet.remove(nextStart)) {
+			exitBlocks.add(nextStart);
+		}
+		if (exitBlocksSet.remove(loopStart)) {
+			exitBlocks.add(loopStart);
+		}
+		if (exitBlocksSet.remove(loop.getEnd())) {
+			exitBlocks.add(loop.getEnd());
+		}
+		exitBlocks.addAll(exitBlocksSet);
+
+		LoopRegion loopRegion = makeLoopRegion(curRegion, loop, exitBlocks);
+		if (loopRegion == null) {
+			BlockNode exit = makeEndlessLoop(curRegion, stack, loop, loopStart);
+			insertContinue(loop);
+			return exit;
+		}
+		curRegion.getSubBlocks().add(loopRegion);
+		IRegion outerRegion = stack.peekRegion();
+		stack.push(loopRegion);
+
+		IfInfo condInfo = makeIfInfo(mth, loopRegion.getHeader());
+		condInfo = searchNestedIf(condInfo);
+		if (condInfo == null) {
+			stack.pop();
+			insertContinue(loop);
+			return null;
+		}
+		confirmMerge(condInfo);
+		if (!loop.getLoopBlocks().contains(condInfo.getThenBlock())) {
+			// invert loop condition if 'then' points to exit
+			condInfo = IfInfo.invert(condInfo);
+		}
+		loopRegion.updateCondition(condInfo);
+		exitBlocks.removeAll(condInfo.getMergedBlocks());
+
+		if (!exitBlocks.isEmpty()) {
+			BlockNode loopExit = condInfo.getElseBlock();
+			if (loopExit != null) {
+				// add 'break' instruction before path cross between main loop exit and sub-exit
+				for (Edge exitEdge : loop.getExitEdges()) {
+					if (exitBlocks.contains(exitEdge.getSource())) {
+						insertLoopBreak(stack, loop, loopExit, exitEdge);
+					}
+				}
+			}
+		}
+
+		BlockNode out;
+		if (loopRegion.isConditionAtEnd()) {
+			BlockNode thenBlock = condInfo.getThenBlock();
+			out = thenBlock == loopStart ? condInfo.getElseBlock() : thenBlock;
+			loopStart.remove(AType.LOOP);
+			loop.getEnd().add(AFlag.ADDED_TO_REGION);
+			stack.addExit(loop.getEnd());
+			processedBlocks.clear(loopStart.getId());
+			Region body = makeRegion(loopStart, stack);
+			loopRegion.setBody(body);
+			loopStart.addAttr(AType.LOOP, loop);
+			loop.getEnd().remove(AFlag.ADDED_TO_REGION);
+		} else {
+			out = condInfo.getElseBlock();
+			if (outerRegion != null
+					&& out.contains(AFlag.LOOP_START)
+					&& !out.getAll(AType.LOOP).contains(loop)
+					&& RegionUtils.isRegionContainsBlock(outerRegion, out)) {
+				// exit to already processed outer loop
+				out = null;
+			}
+			stack.addExit(out);
+			BlockNode loopBody = condInfo.getThenBlock();
+			Region body;
+			if (Objects.equals(loopBody, loopStart)) {
+				// empty loop body
+				body = new Region(loopRegion);
+			} else {
+				body = makeRegion(loopBody, stack);
+			}
+			// add blocks from loop start to first condition block
+			BlockNode conditionBlock = condInfo.getFirstIfBlock();
+			if (loopStart != conditionBlock) {
+				Set<BlockNode> blocks = BlockUtils.getAllPathsBlocks(loopStart, conditionBlock);
+				blocks.remove(conditionBlock);
+				for (BlockNode block : blocks) {
+					if (block.getInstructions().isEmpty()
+							&& !block.contains(AFlag.ADDED_TO_REGION)
+							&& !RegionUtils.isRegionContainsBlock(body, block)) {
+						body.add(block);
+					}
+				}
+			}
+			loopRegion.setBody(body);
+		}
+		stack.pop();
+		insertContinue(loop);
+		return out;
+}
+  ```
+    ]]>
+  </code>
+</response>

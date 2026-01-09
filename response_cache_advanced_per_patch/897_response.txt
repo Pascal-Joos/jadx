@@ -1,0 +1,31 @@
+<response>
+    <reason><![CDATA[
+Within isPathExists(BlockNode start, BlockNode end), the parameter end is:
+
+- Compared by reference (start == end).
+- Dereferenced immediately via end.isDominator(start).
+- Used as an element in collections: start.getCleanSuccessors().contains(end) and start.getPredecessors().contains(end).
+- Passed directly to traverseSuccessorsUntil(start, end, new BitSet(), true).
+
+There are no assignments to end inside isPathExists; its value is entirely determined by callers.
+
+From the provided call chain:
+
+1. RegionUtils.hasPathThroughBlock calls BlockUtils.isPathExists(block, (BlockNode) cont) only when `cont instanceof BlockNode`. A non-null IContainer cast to BlockNode can still be null at runtime only if the underlying value is actually null. However, `cont` itself is passed to hasPathThroughBlock by callers. No checks inside hasPathThroughBlock guarantee non-nullity of that BlockNode reference beyond the `instanceof` (which only asserts type, not non-nullness of the underlying value in all theoretical call scenarios).
+
+2. Other callers (e.g., RegionMaker, IfMakerHelper, CodeShrinkVisitor, ProcessTryCatchRegions, BlockExceptionHandler) pass arguments such as:
+   - Exit edges’ targets: `exitEdge.getTarget()`
+   - LoopInfo-derived nodes: `loop.getEnd()`, `loop.getStart()`, `loopExit`, `exit`, `block`, `handlerBlock`, `dominator`, etc.
+   There is no explicit null-check for these arguments before they are passed into isPathExists. Even though, in the intended design, these are logically expected to be non-null, nothing in the shown code strictly prevents a caller (current or future) from passing null as the second argument.
+
+3. There is no intermediate method between callers and isPathExists that normalizes, replaces, or guards against null for the end parameter.
+
+Because:
+- Callers do not universally guard against null for the second argument.
+- isPathExists itself dereferences end without checks and does not modify or sanitize it.
+- In Java, it is always possible (from the language’s perspective) for a caller to supply null to a reference parameter unless the code structure strictly prevents it (e.g., by construction or prior checks), which we do not see enforced here across all paths.
+
+It follows that there is a concrete possibility that end could be null at the call site, which would cause a NullPointerException upon executing end.isDominator(start). Therefore, considering only the code and calls provided and ignoring annotations, the parameter end can be null from the method’s perspective.
+    ]]></reason>
+    <value>YES</value>
+</response>

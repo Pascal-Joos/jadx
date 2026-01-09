@@ -1,0 +1,52 @@
+<response>
+    <reason><![CDATA[
+Within makeFullClsName, the only use of the parameter pkg is in the expression:
+
+    return pkg.isEmpty() ? shortName : pkg + '.' + shortName;
+
+If parentClass is null, this line is executed unconditionally, and it dereferences pkg (pkg.isEmpty()). Therefore, if pkg is null at that point, the method will crash with a NullPointerException.
+
+From the call sites at depth 1:
+
+1) makeAliasFullName():
+   Calls makeFullClsName(getAliasPkg(), ...).
+   We do not have the declaration of getAliasPkg(), so it might return null.
+
+2) makeAliasRawFullName():
+   Also calls makeFullClsName(getAliasPkg(), ...).
+   Same concern: getAliasPkg() may return null.
+
+3) makeFullName():
+   Calls makeFullClsName(pkg, ...).
+   Here pkg is a field of ClassInfo. In splitAndApplyNames, pkg is explicitly set to null in one branch:
+       if (canBeInner && sep > 0 && sep != clsName.length() - 1) {
+           ...
+           pkg = null;
+           parentClass = fromName(root, parClsName);
+           ...
+       } else {
+           pkg = clsPkg;
+           parentClass = null;
+       }
+   After that, makeFullName() is called:
+       this.fullName = makeFullName();
+   In the "inner class" branch, pkg is null and parentClass is set via fromName(...). If fromName fails and returns null (we do not have its implementation), then parentClass will be null and makeFullName() will call:
+       return makeFullClsName(pkg, name, parentClass, false, false);
+with pkg == null and parentClass == null, causing pkg.isEmpty() on a null reference. Thus, there is a clear potential path for pkg to be null.
+
+4) fillAliasFullName(ClassAliasInfo alias):
+   Calls makeFullClsName(alias.getPkg(), ...).
+   We do not have the declaration of ClassAliasInfo.getPkg(), so it may also return null.
+
+5) makeRawFullName():
+   Calls makeFullClsName(pkg, ...), with the same considerations as for makeFullName().
+
+Because:
+- pkg is explicitly assigned null in splitAndApplyNames,
+- parentClass may be null depending on fromName(...),
+- other sources for pkg (getAliasPkg(), ClassAliasInfo.getPkg()) are unknown,
+there are realistic execution paths where pkg is null when makeFullClsName is invoked and parentClass is null, which will crash on pkg.isEmpty().
+
+Therefore, based purely on the provided context and ignoring annotations, the parameter pkg can be null.]]></reason>
+    <value>YES</value>
+</response>

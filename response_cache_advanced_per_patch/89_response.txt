@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private InsnGen makeInsnGen( MethodNode mth) {
+		MethodGen mthGen = new MethodGen(this, Nullability.castToNonnull(mth));
+		return new InsnGen(mthGen, false);
+}
+  ```
+    ]]>
+  </code>
+</response>

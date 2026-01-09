@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@NotNull
+	public static InsnArg wrapInsnIntoArg(InsnNode insn) {
+		InsnType type = insn.getType();
+		if (type == InsnType.CONST || type == InsnType.MOVE) {
+			if (insn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
+				RegisterArg resArg = insn.getResult();
+				InsnArg arg = wrap(insn);
+				if (resArg != null) {
+					arg.setType(Nullability.castToNonnull(resArg.getType()));
+				}
+				return arg;
+			} else {
+				InsnArg arg = insn.getArg(0);
+				insn.add(AFlag.DONT_GENERATE);
+				return arg;
+			}
+		}
+		return wrapArg(insn);
+	}
+  ```
+    ]]>
+  </code>
+</response>

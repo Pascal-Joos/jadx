@@ -1,0 +1,52 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void inlineAnonymousConstructor(ICodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {
+		if (this.mth.getParentClass() == cls) {
+			cls.remove(AType.ANONYMOUS_CLASS);
+			cls.remove(AFlag.DONT_GENERATE);
+			mth.getParentClass().getTopParentClass().add(AFlag.RESTART_CODEGEN);
+			throw new CodegenException("Anonymous inner class unlimited recursion detected."
+					+ " Convert class to inner: " + cls.getClassInfo().getFullName());
+		}
+		AnonymousClassAttr anonymousClsAttr = cls.get(AType.ANONYMOUS_CLASS);
+		if (anonymousClsAttr == null) {
+			throw new CodegenException("Missing anonymous class attribute for: " + cls.getClassInfo().getFullName());
+		}
+		ArgType parent = anonymousClsAttr.getBaseType();
+		// hide empty anonymous constructors
+		for (MethodNode ctor : cls.getMethods()) {
+			if (ctor.contains(AFlag.ANONYMOUS_CONSTRUCTOR)
+					&& RegionUtils.isEmpty(ctor.getRegion())) {
+				ctor.add(AFlag.DONT_GENERATE);
+			}
+		}
+		code.attachDefinition(cls);
+		code.add("new ");
+		useClass(code, parent);
+		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
+		if (callMth != null) {
+			// copy var names
+			List<RegisterArg> mthArgs = callMth.getArgRegs();
+			int argsCount = Math.min(insn.getArgsCount(), mthArgs.size());
+			for (int i = 0; i < argsCount; i++) {
+				InsnArg arg = insn.getArg(i);
+				if (arg.isRegister()) {
+					RegisterArg mthArg = mthArgs.get(i);
+					RegisterArg insnArg = (RegisterArg) arg;
+					mthArg.getSVar().setCodeVar(insnArg.getSVar().getCodeVar());
+				}
+			}
+		}
+		generateMethodArguments(code, insn, 0, callMth);
+		code.add(' ');
+
+		ClassGen classGen = new ClassGen(cls, mgen.getClassGen().getParentGen());
+		classGen.setOuterNameGen(mgen.getNameGen());
+		classGen.addClassBody(code, true);
+}
+  ```
+    ]]>
+  </code>
+</response>

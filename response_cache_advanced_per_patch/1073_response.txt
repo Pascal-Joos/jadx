@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public InsnArg duplicate() {
+      ArgType immutableType = getImmutableType();
+      return copyCommonParams(new LiteralArg(literal, immutableType != null ? immutableType : type));
+  }
+  ```
+    ]]>
+  </code>
+</response>

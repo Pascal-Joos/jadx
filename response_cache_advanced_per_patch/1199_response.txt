@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  protected void die(String message) throws IOException {
+		throw new IOException("Decode error: " + message
+				+ (is != null ? ", position: 0x" + Long.toHexString(is.getPos()) : ""));
+}
+  ```
+    ]]>
+  </code>
+</response>

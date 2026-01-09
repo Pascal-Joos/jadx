@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean replaceConst(MethodNode mth, InsnNode constInsn, InsnArg constArg) {
+		SSAVar ssaVar = Nullability.castToNonnull(constInsn.getResult()).getSVar();
+		if (ssaVar.getUseCount() == 0) {
+			return true;
+		}
+		List<RegisterArg> useList = new ArrayList<>(ssaVar.getUseList());
+		int replaceCount = 0;
+		for (RegisterArg arg : useList) {
+			if (canInline(arg) && replaceArg(mth, arg, constArg, constInsn)) {
+				replaceCount++;
+			}
+		}
+		if (replaceCount == useList.size()) {
+			return true;
+		}
+		// hide insn if used only in not generated insns
+		if (ssaVar.getUseList().stream().allMatch(ConstInlineVisitor::canIgnoreInsn)) {
+			constInsn.add(AFlag.DONT_GENERATE);
+		}
+		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

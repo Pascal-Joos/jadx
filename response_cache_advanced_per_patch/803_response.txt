@@ -1,0 +1,39 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the method body alone, there is no local guarantee that `ifRegion.getParent()` is non-null before it is used.
+
+Key points:
+
+1. The method accepts `IfRegion ifRegion` as a parameter and never checks `ifRegion` itself for null. That means the method implicitly assumes a non-null `ifRegion`, but this is only a convention, not a programmatic guarantee.
+
+2. `IRegion parentRegion = ifRegion.getParent();` is called in two code paths:
+   - In the `thenResArg != null && elseResArg != null` branch.
+   - In the `RETURN`-instructions branch.
+   In both places, the next line is:
+   ```java
+   if (parentRegion == null || !parentRegion.replaceSubBlock(ifRegion, header)) {
+       return false;
+   }
+   ```
+   So the code explicitly handles the possibility that `parentRegion` (i.e., `ifRegion.getParent()`) is null by checking `parentRegion == null`.
+
+3. There is no earlier logic in this method that ensures `ifRegion` is attached to a parent region. All earlier checks are about:
+   - Presence or absence of ELSE_IF_CHAIN
+   - Non-null then/else regions
+   - Shape and contents of those regions and instructions
+   None of these conditions logically imply that `ifRegion` must already have a non-null parent region in the region tree.
+
+4. Whether `getParent()` can be null in practice depends on the broader contract of the region-building framework:
+   - Some frameworks guarantee every non-root region always has a non-null parent.
+   - Others allow transient or root regions (for example, the top-level region) to have `null` parents.
+   Since this contract is not visible in the provided snippet, we cannot infer a global guarantee of non-null.
+
+5. The method itself clearly anticipates a `null` parent (it checks `parentRegion == null` and treats it as a normal failure case), which is a strong indication that `null` is considered a legitimate possible value by the author.
+
+Given only the provided code, the safe conclusion is that `ifRegion.getParent()` can evaluate to null; the method is written to handle that case.
+
+]]></reason>
+    <value>YES</value>
+</response>
+```

@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  protected void useType(ICodeWriter code, ArgType type) {
+		mgen.getClassGen().useType(code, Nullability.castToNonnull(type));
+}
+  ```
+    ]]>
+  </code>
+</response>

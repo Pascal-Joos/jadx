@@ -1,0 +1,113 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean makeTernaryInsn(MethodNode mth, IfRegion ifRegion) {
+		if (ifRegion.contains(AFlag.ELSE_IF_CHAIN)) {
+			return false;
+		}
+		IContainer thenRegion = ifRegion.getThenRegion();
+		IContainer elseRegion = ifRegion.getElseRegion();
+		if (thenRegion == null) {
+			return false;
+		}
+		if (elseRegion == null) {
+			return processOneBranchTernary(mth, ifRegion);
+		}
+		BlockNode tb = getTernaryInsnBlock(thenRegion);
+		BlockNode eb = getTernaryInsnBlock(elseRegion);
+		if (tb == null || eb == null) {
+			return false;
+		}
+		List<BlockNode> conditionBlocks = ifRegion.getConditionBlocks();
+		if (conditionBlocks.isEmpty()) {
+			return false;
+		}
+
+		BlockNode header = conditionBlocks.get(0);
+		InsnNode thenInsn = tb.getInstructions().get(0);
+		InsnNode elseInsn = eb.getInstructions().get(0);
+
+		if (!verifyLineHints(mth, thenInsn, elseInsn)) {
+			return false;
+		}
+
+		RegisterArg thenResArg = thenInsn.getResult();
+		RegisterArg elseResArg = elseInsn.getResult();
+		if (thenResArg != null && elseResArg != null) {
+			PhiInsn thenPhi = thenResArg.getSVar().getOnlyOneUseInPhi();
+			PhiInsn elsePhi = elseResArg.getSVar().getOnlyOneUseInPhi();
+			if (thenPhi == null || thenPhi != elsePhi) {
+				return false;
+			}
+			IRegion parentRegion = ifRegion.getParent();
+			if (parentRegion == null || !parentRegion.replaceSubBlock(ifRegion, header)) {
+				return false;
+			}
+			InsnList.remove(tb, thenInsn);
+			InsnList.remove(eb, elseInsn);
+
+			RegisterArg resArg;
+			if (thenPhi.getArgsCount() == 2) {
+				resArg = thenPhi.getResult();
+				InsnRemover.unbindResult(mth, thenInsn);
+			} else {
+				resArg = thenResArg;
+				thenPhi.removeArg(elseResArg);
+			}
+			InsnArg thenArg = InsnArg.wrapInsnIntoArg(thenInsn);
+			InsnArg elseArg = InsnArg.wrapInsnIntoArg(elseInsn);
+			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), resArg, thenArg, elseArg);
+			int branchLine = Math.max(thenInsn.getSourceLine(), elseInsn.getSourceLine());
+			ternInsn.setSourceLine(Math.max(ifRegion.getSourceLine(), branchLine));
+
+			InsnRemover.unbindResult(mth, elseInsn);
+
+			// remove 'if' instruction
+			header.getInstructions().clear();
+			ternInsn.rebindArgs();
+			header.getInstructions().add(ternInsn);
+
+			clearConditionBlocks(conditionBlocks, header);
+			return true;
+		}
+
+		if (!mth.isVoidReturn()
+				&& thenInsn.getType() == InsnType.RETURN
+				&& elseInsn.getType() == InsnType.RETURN) {
+			InsnArg thenArg = thenInsn.getArg(0);
+			InsnArg elseArg = elseInsn.getArg(0);
+			if (thenArg.isLiteral() != elseArg.isLiteral()) {
+				// one arg is literal
+				return false;
+			}
+
+			IRegion parentRegion = ifRegion.getParent();
+			if (parentRegion == null || !parentRegion.replaceSubBlock(ifRegion, header)) {
+				return false;
+			}
+			InsnList.remove(tb, thenInsn);
+			InsnList.remove(eb, elseInsn);
+			tb.remove(AFlag.RETURN);
+			eb.remove(AFlag.RETURN);
+
+			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), null, thenArg, elseArg);
+			InsnNode retInsn = new InsnNode(InsnType.RETURN, 1);
+			InsnArg arg = InsnArg.wrapInsnIntoArg(ternInsn);
+			arg.setType(thenArg.getType());
+			retInsn.addArg(arg);
+
+			header.getInstructions().clear();
+			retInsn.rebindArgs();
+			header.getInstructions().add(retInsn);
+			header.add(AFlag.RETURN);
+
+			clearConditionBlocks(conditionBlocks, header);
+			return true;
+		}
+		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

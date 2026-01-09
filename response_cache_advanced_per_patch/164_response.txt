@@ -1,0 +1,91 @@
+<response>
+  <reason><![CDATA[
+At this call site, `getAliasPkg()` is invoked with no parameters on a `ClassInfo` instance. The implementation is:
+
+```java
+public String getAliasPkg() {
+    if (isInner()) {
+        return parentClass.getAliasPkg();
+    }
+    return alias == null ? getPackage() : alias.getPkg();
+}
+```
+
+To return `null`, one of the following would have to be `null`:
+- `parentClass.getAliasPkg()` (for inner classes), or
+- `getPackage()` (when `alias == null`), or
+- `alias.getPkg()` (when `alias != null`).
+
+From the provided code:
+
+1. **Propagation for inner classes**
+
+   If `isInner()` is true, the method delegates to `parentClass.getAliasPkg()`. The same method is used everywhere else in the codebase and its result is treated as a non-null `String`:
+   - Concatenated with `"."` or other strings, e.g.:
+     ```java
+     clsInfo.changePkg(cutLastPkgPart(clsInfo.getAliasPkg()) + '.' + pkgRename.getNewName());
+     ```
+   - Passed to methods expecting a valid package name, used in `split("\\.")`, `replace`, `equals`, `startsWith`, and `isEmpty` checks.
+   - Used in path construction:
+     ```java
+     getAliasPkg().replace('.', File.separatorChar)
+     ```
+     which would immediately throw a `NullPointerException` if `getAliasPkg()` were `null`.
+
+   There is no null-check before any of these operations. The library relies on `getAliasPkg()` being non-null for *all* classes, including parent classes. Thus, if a parent’s `getAliasPkg()` were `null`, many other call sites would crash. The design clearly assumes `parentClass.getAliasPkg()` is never `null`.
+
+2. **Non-inner classes: `getPackage()` branch**
+
+   When `alias == null`, `getAliasPkg()` returns `getPackage()`:
+
+   ```java
+   return alias == null ? getPackage() : alias.getPkg();
+   ```
+
+   For `ClassInfo`, `getPackage()` represents the original package of the class. From the broader usage in `Deobfuscator`, `RenameVisitor`, `UserRenames`, and others, `getPackage()` is treated as a valid, non-null string and sometimes as possibly empty (`""`) for default package:
+   - It’s concatenated with `"."` and passed to `split("\\.")`.
+   - It’s used in `equals`, `startsWith`, `isDefaultPackage()` checks, and stored into sets of package names.
+
+   This codebase repeatedly assumes the package string may be empty but never `null`. No null-guarding is present anywhere `getPackage()` is used, which implies it is guaranteed non-null.
+
+3. **Non-inner classes: `alias.getPkg()` branch**
+
+   When `alias != null`, `getAliasPkg()` returns `alias.getPkg()`. All constructions of `ClassAliasInfo` (the type of `alias`) in the provided code always pass a non-null package string:
+   - `changePkg`:
+     ```java
+     ClassAliasInfo newAlias = new ClassAliasInfo(aliasPkg, getAliasShortName());
+     ```
+     `aliasPkg` here comes from callers such as:
+     - `changePkg(cutLastPkgPart(clsInfo.getAliasPkg()) + '.' + pkgRename.getNewName())`
+     - `changePkg(rebuildPkgMiddle(clsInfo.getAliasPkg(), pkgFullName, pkgRename.getNewName()))`
+     - `changePkg(pkgNode.getFullAlias())`
+     - `changePkg(Consts.DEFAULT_PACKAGE_NAME)`
+     - `changePkg(fullPkgAlias)`
+     All of these rely on string operations on non-null values and themselves are treated as non-null.
+   - `changeShortName`:
+     ```java
+     ClassAliasInfo newAlias = new ClassAliasInfo(getAliasPkg(), aliasName);
+     ```
+     Again, `getAliasPkg()` is assumed non-null here, and that is used directly as the `pkg` argument for `ClassAliasInfo`.
+
+   No code path suggests `ClassAliasInfo.pkg` is allowed to be `null`, and the rest of the system assumes `getAliasPkg()` remains a legal string after any aliasing.
+
+4. **Usage patterns enforce non-null**
+
+   Across the code you provided, `getAliasPkg()` is:
+   - Compared with other strings using `equals`.
+   - Used as a key in sets and maps.
+   - Split with `split("\\.")`.
+   - Immediately dereferenced (e.g., `.isEmpty()`, `.replace()`, `.startsWith()`).
+
+   At no site is there a null check before these uses. If `getAliasPkg()` could legitimately be `null`, the library would be very fragile and would frequently throw `NullPointerException`. The pervasive assumption is that `getAliasPkg()` always returns a non-null string, possibly empty for the default package.
+
+Given:
+- The body of `getAliasPkg()` has no explicit `null` returns.
+- The only sources (`parentClass.getAliasPkg()`, `getPackage()`, `alias.getPkg()`) are consistently treated as non-null throughout the provided code.
+- There are many call sites (including the ones you listed) that would immediately NPE if `getAliasPkg()` were `null`.
+
+At this specific call site (`getAliasPkg()` with no special parameters), the method cannot return `null.`
+  ]]></reason>
+  <value>NO</value>
+</response>

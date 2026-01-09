@@ -1,0 +1,47 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void makeInlinedLambdaMethod(ICodeWriter code, InvokeCustomNode customNode, MethodNode callMth) throws CodegenException {
+		MethodGen callMthGen = new MethodGen(mgen.getClassGen(), callMth);
+		NameGen nameGen = callMthGen.getNameGen();
+		nameGen.inheritUsedNames(this.mgen.getNameGen());
+
+		MethodInfo implMthInfo = customNode.getImplMthInfo();
+		if (implMthInfo == null) {
+			throw new CodegenException("Missing impl method info for invoke-custom");
+		}
+		List<ArgType> implArgs = implMthInfo.getArgumentsTypes();
+		List<RegisterArg> callArgs = callMth.getArgRegs();
+		if (implArgs.isEmpty()) {
+			code.add("()");
+		} else {
+			int callArgsCount = callArgs.size();
+			int startArg = callArgsCount - implArgs.size();
+			for (int i = startArg; i < callArgsCount; i++) {
+				if (i != startArg) {
+					code.add(", ");
+				}
+				CodeVar argCodeVar = callArgs.get(i).getSVar().getCodeVar();
+				defVar(code, argCodeVar);
+			}
+		}
+		// force set external arg names into call method args
+		int extArgsCount = customNode.getArgsCount();
+		int startArg = customNode.getHandleType() == MethodHandleType.INVOKE_STATIC ? 0 : 1; // skip 'this' arg
+		for (int i = startArg; i < extArgsCount; i++) {
+			RegisterArg extArg = (RegisterArg) customNode.getArg(i);
+			RegisterArg callRegArg = callArgs.get(i);
+			callRegArg.getSVar().setCodeVar(extArg.getSVar().getCodeVar());
+		}
+		code.add(" -> {");
+		code.incIndent();
+		callMthGen.addInstructions(code);
+
+		code.decIndent();
+		code.startLine('}');
+}
+  ```
+    ]]>
+  </code>
+</response>

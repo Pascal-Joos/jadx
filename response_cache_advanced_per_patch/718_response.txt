@@ -1,0 +1,4 @@
+<response>
+    <reason><![CDATA[By the criteria you provided, initializer methods are typically lifecycle or framework setup methods (e.g., onCreate, init, initialize*) or methods whose name starts with "init"/"initialize" and are explicitly not simple setters. The given method is named setExitBlock, clearly following a standard setter naming convention (setX) and only assigns a single field. Therefore, it should be treated as a regular setter method, not as an initializer method for NullAway’s purposes.]]></reason>
+    <value>NO</value>
+</response>

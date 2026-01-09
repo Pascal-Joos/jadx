@@ -1,0 +1,32 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void removeStep(MethodNode mth, InsnRemover remover) {
+		if (mth.getBasicBlocks() == null) {
+			return;
+		}
+		for (BlockNode block : mth.getBasicBlocks()) {
+			remover.setBlock(block);
+			for (InsnNode insn : block.getInstructions()) {
+				switch (insn.getType()) {
+					case NOP:
+					case GOTO:
+					case NEW_INSTANCE:
+						remover.addAndUnbind(insn);
+						break;
+
+					default:
+						if (insn.contains(AFlag.REMOVE)) {
+							remover.addAndUnbind(insn);
+						}
+						break;
+				}
+			}
+			remover.perform();
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

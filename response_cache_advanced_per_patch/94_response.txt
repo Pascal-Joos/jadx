@@ -1,0 +1,33 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void add(ICodeWriter code, CondStack stack,  IfCondition condition) throws CodegenException {
+		stack.push(condition);
+		switch (Nullability.castToNonnull(condition).getMode()) {
+			case COMPARE:
+				addCompare(code, stack, Nullability.castToNonnull(condition).getCompare());
+				break;
+
+			case TERNARY:
+				addTernary(code, stack, Nullability.castToNonnull(condition));
+				break;
+
+			case NOT:
+				addNot(code, stack, Nullability.castToNonnull(condition));
+				break;
+
+			case AND:
+			case OR:
+				addAndOr(code, stack, Nullability.castToNonnull(condition));
+				break;
+
+			default:
+				throw new JadxRuntimeException("Unknown condition mode: " + Nullability.castToNonnull(condition).getMode());
+		}
+		stack.pop();
+}
+  ```
+    ]]>
+  </code>
+</response>

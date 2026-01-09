@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private static BlockNode getNextBlockOnEmptyPath(BlockNode block) {
+		if (!block.getInstructions().isEmpty() || block.getPredecessors().size() > 1) {
+			return null;
+		}
+		List<BlockNode> successors = block.getCleanSuccessors();
+		if (successors == null || successors.size() != 1) {
+			return null;
+		}
+		return successors.get(0);
+	}
+  ```
+    ]]>
+  </code>
+</response>

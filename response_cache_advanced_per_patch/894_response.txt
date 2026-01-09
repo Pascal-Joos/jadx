@@ -1,0 +1,52 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private boolean insertLoopBreak(RegionStack stack, LoopInfo loop, BlockNode loopExit, Edge exitEdge) {
+		BlockNode exit = exitEdge.getTarget();
+		Edge insertEdge = null;
+		boolean confirm = false;
+		// process special cases:
+		// 1. jump to outer loop
+		BlockNode exitEnd = BlockUtils.followEmptyPath(exit);
+		List<LoopInfo> loops = Nullability.castToNonnull(exitEnd).getAll(AType.LOOP);
+		for (LoopInfo loopAtEnd : loops) {
+			if (loopAtEnd != loop && loop.hasParent(loopAtEnd)) {
+				insertEdge = exitEdge;
+				confirm = true;
+				break;
+			}
+		}
+
+		if (!confirm) {
+			BlockNode insertBlock = null;
+			while (exit != null) {
+				if (insertBlock != null && isPathExists(loopExit, exit)) {
+					// found cross
+					if (canInsertBreak(insertBlock)) {
+						insertEdge = new Edge(insertBlock, insertBlock.getSuccessors().get(0));
+						confirm = true;
+						break;
+					}
+					return false;
+				}
+				insertBlock = exit;
+				List<BlockNode> cs = exit.getCleanSuccessors();
+				exit = cs.size() == 1 ? cs.get(0) : null;
+			}
+		}
+		if (!confirm) {
+			return false;
+		}
+		InsnNode breakInsn = new InsnNode(InsnType.BREAK, 0);
+		breakInsn.addAttr(AType.LOOP, loop);
+		EdgeInsnAttr.addEdgeInsn(insertEdge, breakInsn);
+		stack.addExit(exit);
+		// add label to 'break' if needed
+		addBreakLabel(exitEdge, exit, breakInsn);
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

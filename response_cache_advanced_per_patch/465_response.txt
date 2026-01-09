@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void simplifyCondition() {
+ 		IfCondition simplified = IfCondition.simplify(Nullability.castToNonnull(condition));
+ 		if (simplified != null) {
+ 			condition = simplified;
+ 			if (Nullability.castToNonnull(condition).getMode() == IfCondition.Mode.NOT) {
+ 				invert();
+ 			}
+ 		}
+}
+  ```
+    ]]>
+  </code>
+</response>

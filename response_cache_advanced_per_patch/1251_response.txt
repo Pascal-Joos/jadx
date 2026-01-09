@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void decode(XmlNamespace n) {
+  		if (nsMap == null || writer == null) {
+  			return;
+  		}
+  		String prefix = n.getPrefix();
+  		String uri = n.getUri();
+  		nsMap.put(uri, prefix);
+  		Nullability.castToNonnull(writer).add(" xmlns:").add(prefix).add("=\"").add(uri).add('"');
+  }
+  ```
+    ]]>
+  </code>
+</response>

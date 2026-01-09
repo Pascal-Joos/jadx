@@ -1,0 +1,9 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>Nullability.castToNonnull</method>
+    <method>BlockUtils.getPathCross</method>
+    <method>BlockUtils.followEmptyPath</method>
+    <method>BlockUtils.visitBlocksOnEmptyPath</method>
+  </methods>
+</response>

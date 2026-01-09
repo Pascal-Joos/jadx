@@ -1,0 +1,79 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to determine if the local variable `postDoms` at the line
+
+    postDoms.clear(block.getId());
+
+inside the final `forEach` could ever be null.
+
+1. **Initialization of the map entries**
+
+   At the beginning, for every `BlockNode` in `blockNodes`, a non-null `BitSet` is created and stored in the map:
+
+   ```java
+   for (BlockNode block : blockNodes) {
+       BitSet postDoms = new BitSet(blocksCount);
+       postDoms.or(initSet);
+       map.put(block, postDoms);
+   }
+   ```
+
+   Thus, after this loop, for each `block` in `blockNodes`, `map.get(block)` is non-null (given that `blockNodes` here is the same collection as later in `blockNodes.forEach`).
+
+2. **Subsequent updates to the map**
+
+   Later, during the fixed point iteration:
+
+   ```java
+   for (BlockNode block : blockNodes) {
+       ...
+       BitSet d = map.get(block);
+       ...
+       if (!changed && !d.equals(domSet)) {
+           changed = true;
+           map.put(block, d);
+       }
+   }
+   ```
+
+   Here `map.put(block, d)` only ever stores `d`, which is initially obtained via `map.get(block)` (previously guaranteed non-null) and then modified in-place. No `null` is ever assigned to `map` values.
+
+3. **Final transformation before the examined line**
+
+   The line in question is inside:
+
+   ```java
+   blockNodes.forEach(block -> {
+       BitSet postDoms = map.get(block);
+       postDoms.clear(block.getId());
+       if (postDoms.isEmpty()) {
+           map.put(block, EmptyBitSet.EMPTY);
+       }
+   });
+   ```
+
+   - At the entry to this lambda for any `block` in `blockNodes`, `map.get(block)` returns either:
+     - the original `BitSet` created in the first loop and possibly modified, or
+     - `EmptyBitSet.EMPTY` (assigned only after `postDoms.clear(...)` and the emptiness check).
+
+   - `EmptyBitSet.EMPTY` is also a `BitSet` (or at least a non-null object implementing the same interface used here), and it is put into the map only after `postDoms.clear(...)` runs. It therefore does not affect the nullability of `postDoms` at the `clear` call.
+
+   - At no point is `null` ever put into `map`.
+
+4. **Potential external factors**
+
+   - The code assumes that the `Collection<BlockNode> blockNodes` passed into the method is the same logical set used initially and finally. If some `block` in the final `forEach` was not present in the earlier initialization loop, `map.get(block)` might be null. However, the same `blockNodes` variable is used consistently in:
+     - the initialization loop,
+     - the fixed-point iteration, and
+     - the final `forEach`.
+     
+     There is no modification of the `map` that would remove a key or set its value to null. Under normal Java semantics and given this method body alone, all `block` elements encountered in the final `forEach` have a non-null value in `map`.
+
+   - The only other potential source of `null` would be if `map` were concurrently modified from another thread, or if `blockNodes` were concurrently mutated. That would violate standard assumptions of single-threaded execution or proper synchronization and is not suggested by the method itself.
+
+Given the code as written, with the standard single-threaded assumption and the same `blockNodes` collection being used throughout, `map.get(block)` will always yield a non-null reference. Thus `postDoms` at the `clear` call cannot be null.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

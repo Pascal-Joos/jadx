@@ -1,0 +1,18 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public boolean hasNotGeneratedParent() {
+		if (contains(AFlag.DONT_GENERATE)) {
+			return true;
+		}
+		ClassNode parent = getParentClass();
+		if (parent == null || parent == this) {
+			return false;
+		}
+		return parent.hasNotGeneratedParent();
+}
+  ```
+    ]]>
+  </code>
+</response>

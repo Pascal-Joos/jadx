@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public IDebugInfo getDebugInfo() {
+		if (noCode || codeReader == null) {
+			return null;
+		}
+		return codeReader.getDebugInfo();
+  }
+  ```
+    ]]>
+  </code>
+</response>

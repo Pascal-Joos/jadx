@@ -1,0 +1,13 @@
+<response>
+    <success>false</success>
+    <methods>
+      <method>compareTypes</method>
+      <method>getType</method>
+      <method>isArray</method>
+      <method>getArrayElement</method>
+      <method>isObject</method>
+      <method>isPrimitive</method>
+      <method>getPrimitiveType</method>
+      <method>castToNonnull</method>
+    </methods>
+</response>

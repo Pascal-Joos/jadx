@@ -1,0 +1,68 @@
+<response>
+  <reason><![CDATA[
+At this call site, `var` is an element of the `vars` list passed to `fullCheck`:
+
+```java
+private boolean fullCheck(List<TypeSearchVarInfo> vars) {
+	for (TypeSearchVarInfo var : vars) {
+		if (!singleCheck(var)) {
+			return false;
+		}
+	}
+	return true;
+}
+```
+
+`vars` itself comes from `state.getUnresolvedVars()` in `run()`:
+
+```java
+List<TypeSearchVarInfo> vars = state.getUnresolvedVars();
+...
+search(vars);
+searchSuccess = fullCheck(vars);
+```
+
+Before `fullCheck` is called, the following always happens in `run()`:
+
+```java
+mth.getSVars().forEach(this::fillTypeCandidates);
+mth.getSVars().forEach(this::collectConstraints);
+state.getUnresolvedVars().forEach(this::resolveIndependentVariables);
+```
+
+`collectConstraints` is the only place in the provided code that assigns to the `constraints` field (via setters) for variables participating in the search:
+
+```java
+private void collectConstraints(SSAVar var) {
+	TypeSearchVarInfo varInfo = state.getVarInfo(var);
+	if (varInfo.isTypeResolved()) {
+		varInfo.setConstraints(Collections.emptyList());
+		return;
+	}
+	varInfo.setConstraints(new ArrayList<>());
+	addConstraint(varInfo, makeConstraint(var.getAssign()));
+	for (RegisterArg regArg : var.getUseList()) {
+		addConstraint(varInfo, makeConstraint(regArg));
+	}
+}
+```
+
+In both branches (`isTypeResolved()` true or false), `varInfo.setConstraints(...)` is called with a *non-null* argument:
+
+- `Collections.emptyList()` is non-null.
+- `new ArrayList<>()` is non-null.
+
+After this, constraints may have elements added, but the list object itself remains non-null.
+
+The `resolveIndependentVariables` method, which is later invoked on `state.getUnresolvedVars()`, uses `varInfo.getConstraints().stream()`. This implies that all `TypeSearchVarInfo` objects in `state.getUnresolvedVars()` must already have a non-null `constraints` list; otherwise a `NullPointerException` would occur here before reaching `fullCheck` or the `singleCheck(var)` call site in question.
+
+Since:
+- every `TypeSearchVarInfo` derived from `mth.getSVars()` has `setConstraints` called with a non-null list in `collectConstraints` before any use in `resolveIndependentVariables`, `search`, or `fullCheck`,
+- `fullCheck` iterates over these `TypeSearchVarInfo` objects,
+- `singleCheck(var)` then calls `var.getConstraints()`,
+
+the `constraints` field on `var` has been initialized to a non-null list by `collectConstraints`. There is no path in the shown code where a `TypeSearchVarInfo` could appear in `state.getUnresolvedVars()` (and hence in `vars` for `fullCheck`) without having had `setConstraints` called with a non-null list.
+
+Therefore, at this specific call site `var.getConstraints()` inside `singleCheck`, the returned value cannot be null.]]></reason>
+  <value>NO</value>
+</response>

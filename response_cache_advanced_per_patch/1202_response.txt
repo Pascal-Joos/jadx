@@ -1,0 +1,63 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void parseElement() throws IOException {
+		if (is == null) {
+			throw new IOException("ParserStream is not initialized");
+		}
+		if (firstElement) {
+			firstElement = false;
+		} else {
+			writer.incIndent();
+		}
+		if (is.readInt16() != 0x10) {
+			die("ELEMENT HEADER SIZE is not 0x10");
+		}
+		// TODO: Check element chunk size
+		is.readInt32();
+		int elementBegLineNumber = is.readInt32();
+		int comment = is.readInt32();
+		int startNS = is.readInt32();
+		int startNSName = is.readInt32(); // actually is elementName...
+		if (!isLastEnd && !"ERROR".equals(currentTag)) {
+			writer.add('>');
+		}
+		isOneLine = true;
+		isLastEnd = false;
+		currentTag = deobfClassName(getString(startNSName));
+		currentTag = getValidTagAttributeName(currentTag);
+		writer.startLine('<').add(currentTag);
+		writer.attachSourceLine(elementBegLineNumber);
+		int attributeStart = is.readInt16();
+		if (attributeStart != 0x14) {
+			die("startNS's attributeStart is not 0x14");
+		}
+		int attributeSize = is.readInt16();
+		if (attributeSize != 0x14) {
+			die("startNS's attributeSize is not 0x14");
+		}
+		int attributeCount = is.readInt16();
+		int idIndex = is.readInt16();
+		int classIndex = is.readInt16();
+		int styleIndex = is.readInt16();
+		if ("manifest".equals(currentTag) || writer.getIndent() == 0) {
+			for (Map.Entry<String, String> entry : nsMap.entrySet()) {
+				String nsValue = getValidTagAttributeName(entry.getValue());
+				writer.add(" xmlns");
+				if (nsValue != null && !nsValue.trim().isEmpty()) {
+					writer.add(':');
+					writer.add(nsValue);
+				}
+				writer.add("=\"").add(StringUtils.escapeXML(entry.getKey())).add('"');
+			}
+		}
+		boolean attrNewLine = attributeCount != 1 && ATTR_NEW_LINE;
+		for (int i = 0; i < attributeCount; i++) {
+			parseAttribute(i, attrNewLine);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

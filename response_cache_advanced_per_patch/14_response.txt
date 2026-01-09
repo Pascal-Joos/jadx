@@ -1,0 +1,22 @@
+```xml
+<response>
+    <reason><![CDATA[
+At the start of the method, there is an explicit null check:
+
+    if (classes == null) {
+        throw new JadxRuntimeException("Missing classes");
+    }
+
+If `classes` were null, the method would throw and exit immediately. Therefore, execution can only reach:
+
+    Map<String, ClspClass> names = new HashMap<>(classes.length);
+
+if `classes` is guaranteed to be non-null.
+
+`classes.length` on a non-null array is always a valid `int` and cannot cause `classes` to become null. No other assignment to `classes` occurs in the shown method, so its non-null status is preserved.
+
+Thus, at the point where `classes.length` is evaluated for the `HashMap` constructor, `classes` cannot be null on any possible execution path through this method.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

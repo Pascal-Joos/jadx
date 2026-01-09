@@ -1,0 +1,26 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static IfInfo mergeIfInfo(IfInfo first, IfInfo second, boolean followThenBranch) {
+ 		MethodNode mth = first.getMth();
+ 		Set<BlockNode> skipBlocks = first.getSkipBlocks();
+ 		BlockNode thenBlock;
+ 		BlockNode elseBlock;
+ 		if (followThenBranch) {
+ 			thenBlock = second.getThenBlock();
+ 			elseBlock = getBranchBlock(first.getElseBlock(), second.getElseBlock(), skipBlocks, mth);
+ 		} else {
+ 			thenBlock = getBranchBlock(first.getThenBlock(), second.getThenBlock(), skipBlocks, mth);
+ 			elseBlock = second.getElseBlock();
+ 		}
+ 		Mode mergeOperation = followThenBranch ? Mode.AND : Mode.OR;
+ 		IfCondition condition = IfCondition.merge(mergeOperation, first.getCondition(), second.getCondition());
+ 		IfInfo result = new IfInfo(mth, condition, Nullability.castToNonnull(thenBlock), Nullability.castToNonnull(elseBlock));
+ 		result.merge(first, second);
+ 		return result;
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,51 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within this method, `invokeCustomNode.getCallInsn()` is assigned on all control-flow paths before it is used, so it cannot be null at the point of the call to `addAttr`.
+
+Detailed reasoning:
+
+1. `InvokeCustomNode invokeCustomNode = new InvokeCustomNode(lambdaInfo, insn, false, isRange);`  
+   At this point we have an `InvokeCustomNode` instance; `callInsn` is not yet set in the shown code.
+
+2. Later, we construct `InvokeNode invokeNode = buildInvokeNode(methodHandleType, invokeCustomNode, callMthInfo);`.  
+   This gives us a non-null `invokeNode` reference (if it could be null, that would have to be established from the implementation of `buildInvokeNode`, but regardless of its internals we then assign it directly to `invokeCustomNode`).
+
+3. We then have a conditional:
+
+   ```java
+   if (methodHandleType == MethodHandleType.INVOKE_CONSTRUCTOR) {
+       ConstructorInsn ctrInsn = new ConstructorInsn(mth, invokeNode);
+       invokeCustomNode.setCallInsn(ctrInsn);
+   } else {
+       invokeCustomNode.setCallInsn(invokeNode);
+   }
+   ```
+
+   In both branches, `invokeCustomNode.setCallInsn(...)` is called with a non-null argument (`ctrInsn` or `invokeNode`). There is no path in this method where `setCallInsn` is *not* invoked before we later use `getCallInsn()`.
+
+4. The subsequent null check is on `callMth`:
+
+   ```java
+   MethodNode callMth = root.resolveMethod(callMthInfo);
+   if (callMth != null) {
+       invokeCustomNode.getCallInsn().addAttr(callMth);
+       ...
+   }
+   ```
+
+   The guarded variable is `callMth`, not `invokeCustomNode` or its `callInsn` field. Regardless of whether `callMth` is null, by this point `invokeCustomNode.setCallInsn(...)` has already executed in all code paths.
+
+5. There is no early return or exception path between constructing `invokeCustomNode` and the line using `getCallInsn()`. Thus control flow always passes through the `if/else` that sets `callInsn` first.
+
+6. Unless:
+   - `InvokeCustomNode.setCallInsn(...)` itself allows setting `callInsn` to `null`, or
+   - `InvokeCustomNode.getCallInsn()` is implemented to sometimes return `null` despite a non-null assignment (e.g., by ignoring the last set value, or by conditional internal logic),
+
+   then within the contract implied by this snippet, `invokeCustomNode.getCallInsn()` is guaranteed to be non-null at the use site.
+
+Given only the provided method and standard, reasonable semantics for getters/setters, there is no execution path where `getCallInsn()` would be null when `addAttr` is called. Any null would have to come from an unexpected or broken implementation of `InvokeCustomNode` itself, which is outside the information provided.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

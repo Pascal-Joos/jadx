@@ -1,0 +1,34 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void parseNameSpaceEnd() throws IOException {
+		int headerSize = is.readInt16();
+		if (headerSize > 0x10) {
+			LOG.warn("Invalid namespace end");
+		} else if (headerSize < 0x10) {
+			die("NAMESPACE end is not 0x10 big");
+		}
+		int dataSize = is.readInt32();
+		if (dataSize > 0x18) {
+			LOG.warn("Invalid namespace size");
+		} else if (dataSize < 0x18) {
+			die("NAMESPACE header chunk is not 0x18 big");
+		}
+		int endLineNumber = is.readInt32();
+		int comment = is.readInt32();
+		int endPrefix = is.readInt32();
+		int endURI = is.readInt32();
+		is.skip(headerSize - 0x10);
+		namespaceDepth--;
+
+		String nsKey = getString(endURI);
+		String nsValue = getString(endPrefix);
+		if (nsMap != null && StringUtils.notBlank(nsKey) && !nsMap.containsValue(nsValue)) {
+			nsMap.putIfAbsent(nsKey, nsValue);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

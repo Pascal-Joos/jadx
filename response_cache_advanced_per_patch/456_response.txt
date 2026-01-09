@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+void wrap(ICodeWriter code, IfCondition condition) throws CodegenException {
+		wrap(code, new CondStack(), Nullability.castToNonnull(condition));
+}
+  ```
+    ]]>
+  </code>
+</response>

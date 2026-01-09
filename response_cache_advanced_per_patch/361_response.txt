@@ -1,0 +1,23 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private TypeCompareEnum compareWildcardTypes(ArgType first, ArgType second) {
+		WildcardBound firstWildcardBound = first.getWildcardBound();
+		WildcardBound secondWildcardBound = second.getWildcardBound();
+		if (firstWildcardBound == WildcardBound.UNBOUND) {
+			return WIDER;
+		}
+		if (secondWildcardBound == WildcardBound.UNBOUND) {
+			return NARROW;
+		}
+		TypeCompareEnum wildcardCompare = compareTypes(first.getWildcardType(), Nullability.castToNonnull(second.getWildcardType()));
+		if (firstWildcardBound == secondWildcardBound) {
+			return wildcardCompare;
+		}
+		return CONFLICT;
+}
+  ```
+    ]]>
+  </code>
+</response>

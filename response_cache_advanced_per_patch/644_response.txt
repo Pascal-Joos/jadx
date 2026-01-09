@@ -1,0 +1,48 @@
+<response>
+  <reason><![CDATA[
+The method `getEnterBlock()` is a trivial getter:
+
+```java
+public BlockNode getEnterBlock() {
+    return enterBlock;
+}
+```
+
+So `mth.getEnterBlock()` is `enterBlock` on that `MethodNode` instance.
+
+From the provided call sites we can infer how `enterBlock` is treated:
+
+1. Many usages immediately dereference the result without any null checks, e.g.:
+
+   - `mth.getEnterBlock().getCleanSuccessors().get(0);`
+   - `BlockNode startBlock = Utils.first(mth.getEnterBlock().getCleanSuccessors());`
+   - `BlockNode fixedTop = mth.getEnterBlock().getSuccessors().get(0);`
+   - `BlockUtils.visitSinglePath(mth.getEnterBlock(), ...)`
+   - `BlockUtils.dfsVisit(mth, list::add);` where inside:
+     ```java
+     BlockNode enterBlock = mth.getEnterBlock();
+     queue.addLast(Nullability.castToNonnull(enterBlock));
+     visited.set(Nullability.castToNonnull(mth.getEnterBlock()).getId());
+     ```
+   - `if (mth.getEnterBlock() == block) { ... }` (SSA, PHI placement, etc.)
+
+   These usages assume `getEnterBlock()` is non-null: they call methods and access fields directly on the result with no guards.
+
+2. Some utilities explicitly cast the value to non-null via `Nullability.castToNonnull(mth.getEnterBlock())`. This pattern is generally used where the design guarantees non-null, and the cast is there to satisfy static analysis, not to handle a possible null at runtime.
+
+3. The control-flow processing code (e.g., `BlockProcessor.processBlocksTree`, `DominatorTree.sortBlocks`, `FixMultiEntryLoops.process`, SSA transform, region maker, codegen helpers) all assume a valid CFG rooted at a non-null entry block. If `enterBlock` could be null at this stage, these central algorithms would routinely throw `NullPointerException`, which would surface early and often. The library code instead throws domain-specific exceptions for invalid graphs (e.g., "Found unreachable blocks") rather than ever guarding against a null `enterBlock`.
+
+4. There is no provided path that sets `enterBlock` to null or clears/unsets it after it is initialized. All code that manipulates basic blocks, loops, try/catch, SSA, and regions assumes a valid, already-established entry block.
+
+Given this:
+
+- `getEnterBlock()` simply returns the field.
+- The rest of the system relies on it being non-null whenever these shown visitors/processing steps run.
+- At the specific call sites you provided (all of which occur in the middle of normal CFG/SSA/region/codegen processing), the method is being used under the invariant that the `MethodNode` has a valid entry block.
+
+Therefore, at these specific call sites, `mth.getEnterBlock()` cannot be null without causing immediate, obvious failures elsewhere; the code is written under the assumption that it is always non-null in this phase of processing. There is no indication in the provided code of any scenario where these visitors/processors would be invoked on a `MethodNode` whose `enterBlock` is still null.
+
+So for this call site, the return value is effectively non-null.
+  ]]></reason>
+  <value>NO</value>
+</response>

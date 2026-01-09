@@ -1,0 +1,40 @@
+<response>
+  <reason><![CDATA[
+The method `ClassNode getParentClass()` simply returns the field `parentClass` with no additional logic:
+
+```java
+public ClassNode getParentClass() {
+    return parentClass;
+}
+```
+
+From the provided codebase, there are multiple call sites where `getParentClass()` is explicitly treated as potentially `null`:
+
+- `AndroidResourcesUtils.isResourceClass`:
+  ```java
+  ClassNode parentClass = cls.getParentClass();
+  return parentClass != null && parentClass.getShortName().equals("R");
+  ```
+  This null-check shows that `getParentClass()` can legally return `null`.
+
+- `ClassNode.visitParentClasses`:
+  ```java
+  ClassNode parentCls = currentCls.getParentClass();
+  while (parentCls != null && parentCls != currentCls) {
+      ...
+  }
+  ```
+  The loop condition also assumes `getParentClass()` may be `null`.
+
+In other parts of the code, the design pattern is that a *top-level* class uses itself as its own parent (i.e., `parentClass == this`) instead of `null`, and callers often rely on this (e.g., `getTopParentClass()` uses `parent == this` as the root condition). However, the existence of code that checks for `parentClass != null` demonstrates that there are legitimate cases where `parentClass` is actually `null` for some `ClassNode` instances.
+
+Since the method is a plain field getter with no guards and no guarantees in its implementation, and since other parts of the code explicitly handle the `null` case, the invocation
+
+```java
+ClassNode parent = getParentClass();
+```
+
+at this call site can produce `parent == null` depending on the particular `ClassNode` instance on which it is invoked. There is no evidence in the provided snippets that this specific call is restricted only to nodes where `parentClass` is guaranteed non-null.
+  ]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,43 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+	public void load() throws DecodeException {
+		if (loaded) {
+			// method already loaded
+			return;
+		}
+		try {
+			loaded = true;
+			if (noCode) {
+				regsCount = 0;
+				// TODO: registers not needed without code
+				initArguments(this.argTypes);
+				return;
+			}
+			if (codeReader == null) {
+				throw new DecodeException(this, "Code reader is null for method: " + mthInfo.getMethodShortId());
+			}
+
+			this.regsCount = codeReader.getRegistersCount();
+			this.argsStartReg = codeReader.getArgsStartReg();
+			initArguments(this.argTypes);
+			InsnDecoder decoder = new InsnDecoder(this);
+			this.instructions = decoder.process(codeReader);
+		} catch (Exception e) {
+			if (!noCode) {
+				unload();
+				noCode = true;
+				// load without code
+				load();
+				noCode = false;
+			}
+			throw new DecodeException(this, "Load method exception: "
+					+ e.getClass().getSimpleName() + ": " + e.getMessage(), e);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

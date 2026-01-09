@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private boolean connectElseIf(ICodeWriter code, IContainer els) throws CodegenException {
+		if (Nullability.castToNonnull(els).contains(AFlag.ELSE_IF_CHAIN) && els instanceof Region) {
+			List<IContainer> subBlocks = ((Region) els).getSubBlocks();
+			if (subBlocks.size() == 1) {
+				IContainer elseBlock = subBlocks.get(0);
+				if (elseBlock instanceof IfRegion) {
+					declareVars(code, elseBlock);
+					makeIf((IfRegion) elseBlock, code, false);
+					return true;
+				}
+			}
+		}
+		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,15 @@
+<response>
+    <success>false</success>
+    <methods>
+      <method>invert</method>
+      <method>mergeIfInfo</method>
+      <method>canSelectNext</method>
+      <method>getNextIfNodeInfo</method>
+      <method>isBadBranchBlock</method>
+      <method>isInversionNeeded</method>
+      <method>isEqualPaths</method>
+      <method>checkConditionBranches</method>
+      <method>isPathExists</method>
+      <method>canMerge</method>
+    </methods>
+</response>

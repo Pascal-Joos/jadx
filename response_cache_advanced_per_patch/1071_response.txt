@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Override
+	public InsnArg duplicate() {
+		InsnWrapArg copy = new InsnWrapArg(wrappedInsn.copyWithoutResult());
+		copy.setType(type != null ? type : ArgType.UNKNOWN);
+		return copyCommonParams(copy);
+	}
+  ```
+    ]]>
+  </code>
+</response>

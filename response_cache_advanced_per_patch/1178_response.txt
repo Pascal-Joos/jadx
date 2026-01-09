@@ -1,0 +1,26 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within this method alone, `writer` is explicitly checked for null:
+
+    if (writer == null) {
+        long size = is.readInt16();
+        is.skip(size - 2);
+        return;
+    }
+
+This null-check and early `return` guard all subsequent uses of `writer` in this method, including the line in question:
+
+    if (!isLastEnd) {
+        isLastEnd = true;
+        writer.add('>');
+    }
+
+Since the method would have already returned if `writer` were null, the control flow guarantees that `writer` is non-null at the point where `writer.add('>');` is executed.
+
+This conclusion does not depend on the internal behavior of other methods (`readInt16`, `readInt32`, `skip`, `getString`, `attachSourceLine`, `escapeXML`) because none of them reassign or mutate `writer` itself in the provided code. There is also no re-assignment to `writer` inside `parseCData()` after the null check.
+
+Therefore, along all code paths that reach `writer.add('>');`, `writer` cannot be null.]]></reason>
+    <value>NO</value>
+</response>
+```

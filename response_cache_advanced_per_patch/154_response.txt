@@ -1,0 +1,36 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private String getConstString(MethodNode mth, InsnNode insn, int arg) {
+		InsnArg strArg = insn.getArg(arg);
+		if (!strArg.isInsnWrap()) {
+			return null;
+		}
+		InsnNode constInsn = ((InsnWrapArg) strArg).getWrapInsn();
+		InsnType insnType = constInsn.getType();
+		if (insnType == InsnType.CONST_STR) {
+			return ((ConstStringNode) constInsn).getString();
+		}
+		if (insnType == InsnType.SGET) {
+			// revert const field inline :(
+			FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) constInsn).getIndex();
+			FieldNode fieldNode = mth.root().resolveField(fieldInfo);
+			if (fieldNode != null) {
+				EncodedValue constantValue = fieldNode.get(JadxAttrType.CONSTANT_VALUE);
+				if (constantValue == null) {
+					return null;
+				}
+				String str = (String) constantValue.getValue();
+				InsnArg newArg = InsnArg.wrapArg(new ConstStringNode(str));
+				insn.replaceArg(strArg, newArg);
+				return str;
+			}
+		}
+		return null;
+}
+  ```
+    ]]>
+  </code>
+</response>

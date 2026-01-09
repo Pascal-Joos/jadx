@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public boolean sameCodeVar(RegisterArg arg) {
+		SSAVar thisSVar = this.getSVar();
+		SSAVar argSVar = arg.getSVar();
+		if (thisSVar == null || argSVar == null) {
+			return false;
+		}
+		return thisSVar.getCodeVar() == argSVar.getCodeVar();
+}
+  ```
+    ]]>
+  </code>
+</response>

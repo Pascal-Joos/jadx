@@ -1,0 +1,27 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+  ClassNode currentCls = this;
+  ClassNode parentCls = currentCls.getParentClass();
+
+inside ClassNode.visitParentClasses, there is no guarantee that currentCls.getParentClass() is non-null.
+
+The getter is:
+
+  public ClassNode getParentClass() {
+      return parentClass;
+  }
+
+There is no null check or fallback; it simply returns the field parentClass. In the broader codebase, usage patterns show that:
+
+- Some code paths explicitly handle a null parent (e.g., AndroidResourcesUtils.isResourceClass checks `parentClass != null`).
+- Other places treat "no parent" via `parent == this`, but that is an additional convention and not enforced by getParentClass itself.
+- Nothing in the provided snippets enforces that parentClass is always non-null for all ClassNode instances.
+
+Since visitParentClasses immediately uses the result in a `while (parentCls != null && parentCls != currentCls)` loop, a null value is explicitly expected and used as the termination condition. Therefore, at this specific call site, currentCls.getParentClass() can legitimately evaluate to null, and parentCls is allowed to be null.
+
+Hence, getParentClass can return null here.
+]]></reason>
+  <value>YES</value>
+</response>

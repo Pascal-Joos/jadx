@@ -1,0 +1,24 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the shown method, there is no null-check on the parameter `insnArr`, nor any prior assignment that guarantees it is non-null. The method signature:
+
+    private void attachSourceLines(MethodNode mth, Map<Integer, Integer> lineMapping, InsnNode[] insnArr)
+
+accepts `insnArr` as an argument, and the body uses it directly:
+
+    InsnNode insn = insnArr[offset];
+
+Java allows `InsnNode[] insnArr` to be null at the call site. If `insnArr` is null when `attachSourceLines` is called, then `insnArr[offset]` will throw a `NullPointerException`. This is explicitly guarded by the `try { ... } catch (Exception e)` block, so a potential NPE is expected and handled:
+
+    } catch (Exception e) {
+        mth.addWarnComment("Error attach source line", e);
+    }
+
+Because we do not see the calling code, and there is no explicit contract or check here that forbids `insnArr` from being null, it is entirely possible (from this method’s perspective) that `insnArr` is null at runtime.
+
+Thus, along at least one feasible code path (where the caller passes null), the expression `insnArr` at `insnArr[offset]` can be null.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

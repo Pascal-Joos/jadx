@@ -1,0 +1,34 @@
+<response>
+    <reason><![CDATA[
+In all observed call sites, the `type` argument passed to `TypeGen.signature(ArgType type)` can be traced:
+
+1. `MethodInfo.makeShortId(String name, List<ArgType> argTypes, ArgType retType)`
+   - Calls `TypeGen.signature(arg)` for each `arg` in `argTypes`.
+   - Also calls `TypeGen.signature(retType)` only if `retType != null`.
+   - This method is used in:
+     - `MethodInfo.makeSignature(...)` with `argTypes` and `retType` taken from `MethodInfo`’s constructor arguments.
+     - `MethodInfo` constructor, which stores `argTypes` and `retType` provided when creating `MethodInfo`.
+   - There is no evidence here that any element of `argTypes` or `retType` is guaranteed non-null; they are passed from elsewhere and could in principle contain `null` (lists in Java can contain nulls, and there is no check preventing that). Thus, `TypeGen.signature` can be called with `null` through these paths.
+
+2. `FieldInfo.getFullId()`, `getShortId()`, `getRawFullId()`
+   - Each calls `TypeGen.signature(type)` where `type` is the `FieldInfo`’s `type` field.
+   - `FieldInfo.type` is not shown to be protected from being `null`; no checks are done before the call, so it may be `null` depending on how `FieldInfo` is constructed/used elsewhere.
+
+3. `EnumVisitor.removeEnumMethods(...)`
+   - Builds `"values()" + TypeGen.signature(ArgType.array(clsType))`.
+   - `ArgType.array(clsType)` presumably returns a non-null `ArgType` if called with non-null `clsType`; but without the `ArgType.array` declaration we cannot be certain there is no case where it might return `null`. However, this path is not necessary to justify possible null usage, as previous points already show a possibility.
+
+4. `ConstructorVisitor.processConstructor(...)`
+   - Builds `"<init>(" + (passThis ? TypeGen.signature(instanceArg.getInitType()) : "") + ")V"`.
+   - `instanceArg.getInitType()` could, depending on its implementation, be `null`. Again, no checks are done before passing it to `signature`.
+
+Across these usages:
+- There are no guards (null checks) before passing values into `TypeGen.signature`.
+- `TypeGen.signature` itself immediately dereferences `type` (`type.getPrimitiveType()`), so if any caller passes `null`, it will crash with a `NullPointerException`.
+- Because Java allows callers to pass `null` and there is no enforcement or check shown that forbids `null` in `argTypes`, `retType`, field `type`, init types, etc., the parameter `type` can be `null` at runtime.
+
+No called methods inside `signature` (`type.getPrimitiveType()`, `type.getObject()`, `type.getArrayElement()`) can influence whether `type` is `null` before the first dereference, because `type` is used directly without reassignment or prior validation.
+
+Therefore, based solely on the provided method body and call chains (and ignoring annotations), there is a real possibility that `type` receives `null` at runtime.]]></reason>
+    <value>YES</value>
+</response>

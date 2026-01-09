@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static MethodInfo fromDetails(RootNode root, ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
+		MethodInfo newMth = new MethodInfo(declClass, name, args, Nullability.castToNonnull(retType));
+		return root.getInfoStorage().putMethod(newMth);
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,8 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>useClassInternal</method>
+    <method>addClsName</method>
+    <method>useClass</method>
+  </methods>
+</response>

@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void dumpClassAlias(ClassNode cls) {
+		PackageNode pkg = getPackageNode(Nullability.castToNonnull(cls.getPackage()), false);
+
+		if (pkg != null) {
+			if (!cls.getFullName().equals(getClassFullName(cls))) {
+				LOG.info("Alias name for class '{}' is '{}'", cls.getFullName(), getClassFullName(cls));
+			}
+		} else {
+			LOG.error("Can't find package node for '{}'", cls.getPackage());
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

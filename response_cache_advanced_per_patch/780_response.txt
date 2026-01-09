@@ -1,0 +1,34 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone:
+
+public static boolean isClsKnown(RootNode root, ArgType cls) {
+    if (cls.isObject()) {
+        return root.getClsp().isClsKnown(cls.getObject());
+    }
+    return false;
+}
+
+there are no null checks on `root` or on the result of `root.getClsp()` before it is dereferenced. The method unconditionally calls `.isClsKnown(...)` on the result of `root.getClsp()` whenever `cls.isObject()` is true.
+
+Whether `root.getClsp()` can actually be null depends entirely on:
+- how `RootNode` is constructed and used, and
+- the contract/implementation of `RootNode.getClsp()`.
+
+The snippet does not show:
+- Any guarantee that `root` is always non-null when passed to `isClsKnown`.
+- Any guarantee that `getClsp()` is annotated as @NonNull, or is otherwise specified to never return null.
+- The implementation of `getClsp()` (e.g., does it lazily initialize and possibly return null, or does it always return a valid object after `RootNode` construction?).
+
+Without those details, we cannot soundly conclude that `root.getClsp()` is never null. From this method’s control flow alone, it is *possible* for `root.getClsp()` to be null and cause a NullPointerException when `cls.isObject()` is true.
+
+Therefore, the nullability of the expression cannot be determined from the given code fragment alone; it depends on external class contracts and initializations that have not been provided.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation of RootNode, especially the getClsp() method.]]></request>
+        <request><![CDATA[Provide any documentation/annotations (e.g., @NonNull/@Nullable) or invariants that specify whether RootNode or its clsp field can be null.]]></request>
+    </requests>
+</response>
+```

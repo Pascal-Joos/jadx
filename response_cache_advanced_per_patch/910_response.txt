@@ -1,0 +1,58 @@
+<response>
+    <reason><![CDATA[
+The parameter `from` of `checkConditionBranches(BlockNode from, BlockNode to)` is used immediately without any reassignment:
+
+```java
+private static boolean checkConditionBranches(BlockNode from, BlockNode to) {
+    return from.getCleanSuccessors().size() == 1 && from.getCleanSuccessors().contains(to);
+}
+```
+
+Inside this method, `from` is dereferenced (`from.getCleanSuccessors()`) with no null check, so if `from` were ever null, this method would throw a `NullPointerException`.
+
+We must therefore inspect all its call sites in the provided call chain.
+
+`checkConditionBranches` is called only from `mergeNestedIfNodes`:
+
+```java
+if (checkConditionBranches(Nullability.castToNonnull(curThen), curElse)
+        || checkConditionBranches(curElse, Nullability.castToNonnull(curThen))) {
+    return null;
+}
+```
+
+The arguments passed as `from` are:
+
+1. `Nullability.castToNonnull(curThen)`
+2. `curElse`
+
+`curThen` and `curElse` are defined in `mergeNestedIfNodes` as:
+
+```java
+BlockNode curThen = Nullability.castToNonnull(currentIf.getThenBlock());
+BlockNode curElse = currentIf.getElseBlock();
+```
+
+So `from` can be either:
+- `Nullability.castToNonnull(curThen)` — which is a call to an external method whose implementation is unknown and explicitly stated to have a default/unknown implementation; or
+- `curElse` — which comes from `currentIf.getElseBlock()`, whose internals we also don't see (only its getter).
+
+Per your rules, we must not assume:
+- that `Nullability.castToNonnull` actually enforces non-null or throws;
+- that `IfInfo.getElseBlock()` never returns null.
+
+Both `curThen` and `curElse` might therefore be null from the perspective of this analysis. Since `mergeNestedIfNodes` does not guard against `curElse` being null before calling:
+
+```java
+checkConditionBranches(curElse, Nullability.castToNonnull(curThen))
+```
+
+`curElse` can be null at that call site, making `from` null in that invocation. Similarly, `castToNonnull(curThen)` may just return null or pass through null, given we are told to treat it as having a default/unknown implementation, so we cannot rely on it to prevent null from reaching `checkConditionBranches`.
+
+Also, the broader call chain (`RegionMaker.processIf`, `IfMakerHelper.searchNestedIf`, etc.) does not show any definitive guarantees that `currentIf.getElseBlock()` or `currentIf.getThenBlock()` are non-null at all times; indeed, `RegionMaker.processIf` explicitly allows `elseBlock` to be null in its own logic, which supports the idea that else-blocks can legitimately be null in this codebase.
+
+Therefore, based solely on the visible code and honoring the requirement to ignore annotations and not assume unknown methods enforce non-null, there is a realistic execution path where `from` is null when `checkConditionBranches` is called, which would cause a `NullPointerException.
+
+So, the parameter `from` **can** be null.]]></reason>
+    <value>YES</value>
+</response>

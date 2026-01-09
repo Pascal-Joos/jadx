@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static Set<BlockNode> getAllPathsBlocks(BlockNode start, BlockNode end) {
+ 		Set<BlockNode> set = new HashSet<>();
+ 		set.add(start);
+ 		if (start != end) {
+ 			addPredecessors(set, end, Nullability.castToNonnull(start));
+ 		}
+ 		return set;
+}
+  ```
+    ]]>
+  </code>
+</response>

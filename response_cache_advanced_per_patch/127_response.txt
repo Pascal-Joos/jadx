@@ -1,0 +1,91 @@
+<response>
+  <reason><![CDATA[
+At the specific call site
+
+```java
+PackageNode pkg = getPackageNode(classInfo.getPackage(), true);
+```
+
+the second argument is `true`, so `create` is always `true`.
+
+Inside `getPackageNode`:
+
+```java
+private PackageNode getPackageNode(String fullPkgName, boolean create) {
+    if (fullPkgName.isEmpty() || fullPkgName.equals(CLASS_NAME_SEPARATOR)) {
+        return rootPackage;
+    }
+    PackageNode result = rootPackage;
+    PackageNode parentNode;
+    do {
+        String pkgName;
+        int idx = fullPkgName.indexOf(CLASS_NAME_SEPARATOR);
+
+        if (idx > -1) {
+            pkgName = fullPkgName.substring(0, idx);
+            fullPkgName = fullPkgName.substring(idx + 1);
+        } else {
+            pkgName = fullPkgName;
+            fullPkgName = "";
+        }
+        parentNode = result;
+        result = result.getInnerPackageByName(pkgName);
+        if (result == null && create) {
+            result = new PackageNode(pkgName);
+            parentNode.addInnerPackage(result);
+        }
+    } while (!fullPkgName.isEmpty() && result != null);
+
+    return result;
+}
+```
+
+Key points:
+
+1. **Early return branch**  
+   If
+   ```java
+   fullPkgName.isEmpty() || fullPkgName.equals(CLASS_NAME_SEPARATOR)
+   ```
+   then the method returns `rootPackage`.  
+   For this to return null, `rootPackage` itself would have to be null. From the rest of the code (all other call sites treat `rootPackage` as a valid package tree root and there is no null-check before using it), the design assumes `rootPackage` is a valid, non-null root node. There is no path in this method that assigns null to `rootPackage`, and `rootPackage` is never modified here. So this branch does not yield null.
+
+2. **Loop behavior with `create == true`**  
+   - `result` is initialized as `rootPackage` (assumed non-null).
+   - On each iteration:
+     ```java
+     result = result.getInnerPackageByName(pkgName);
+     if (result == null && create) {
+         result = new PackageNode(pkgName);
+         parentNode.addInnerPackage(result);
+     }
+     ```
+   - Since `create` is `true` at this call site, any time `getInnerPackageByName` returns null, a new `PackageNode` is created and assigned to `result`. That guarantees that after this `if` block, `result` is non-null for that iteration.
+
+   - The loop condition is:
+     ```java
+     } while (!fullPkgName.isEmpty() && result != null);
+     ```
+     With `create == true`, we've just argued `result` cannot be null at the end of a completed iteration. Thus:
+     - The loop will continue only while `!fullPkgName.isEmpty()` (because `result != null` is always true at that point).
+     - The only way to exit the loop is when `fullPkgName` becomes empty.
+
+   There is no path where `result` can become null at the loop condition when `create` is true: any null produced by `getInnerPackageByName` is immediately replaced by a new `PackageNode`.
+
+3. **Return statement**  
+   After the loop, the method returns `result`. From the reasoning above:
+   - In the early-return branch, `result` is not involved; `rootPackage` is returned (assumed non-null).
+   - In the loop path, `result` is guaranteed non-null at loop exit when `create` is true and `rootPackage` is non-null.
+
+Given the method body and the fact that we are analyzing the specific call site with `create == true`, the only way for the method to return null would be if `rootPackage` itself were null. That would contradict the implicit contract of this class (all other code uses `rootPackage` as the always-present root of the package tree and does not guard against null). Within this method, no code path ever sets `rootPackage` to null or allows `result` to remain null when `create` is true.
+
+Therefore, at the call site
+
+```java
+PackageNode pkg = getPackageNode(classInfo.getPackage(), true);
+```
+
+the returned `PackageNode` cannot be null.
+]]></reason>
+  <value>NO</value>
+</response>

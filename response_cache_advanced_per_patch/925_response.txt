@@ -1,0 +1,53 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public void makeIf(IfRegion region, ICodeWriter code, boolean newLine) throws CodegenException {
+		if (newLine) {
+			code.startLineWithNum(region.getSourceLine());
+		} else {
+			code.attachSourceLine(region.getSourceLine());
+		}
+		boolean comment = region.contains(AFlag.COMMENT_OUT);
+		if (comment) {
+			code.add("// ");
+		}
+
+		code.add("if (");
+		new ConditionGen(this).add(code, region.getCondition());
+		code.add(") {");
+		if (code.isMetadataSupported()) {
+			List<BlockNode> conditionBlocks = region.getConditionBlocks();
+			if (!conditionBlocks.isEmpty()) {
+				BlockNode blockNode = conditionBlocks.get(0);
+				InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);
+				InsnCodeOffset.attach(code, lastInsn);
+				CodeGenUtils.addCodeComments(code, mth, lastInsn);
+			}
+		}
+		makeRegionIndent(code, region.getThenRegion());
+		if (comment) {
+			code.startLine("// }");
+		} else {
+			code.startLine('}');
+		}
+
+		IContainer els = region.getElseRegion();
+		if (RegionUtils.notEmpty(els)) {
+			code.add(" else ");
+			if (connectElseIf(code, Nullability.castToNonnull(els))) {
+				return;
+			}
+			code.add('{');
+			makeRegionIndent(code, els);
+			if (comment) {
+				code.startLine("// }");
+			} else {
+				code.startLine('}');
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

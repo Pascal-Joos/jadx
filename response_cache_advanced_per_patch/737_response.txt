@@ -1,0 +1,73 @@
+<response>
+  <reason><![CDATA[
+At this call site the expression is simply:
+
+    mth.getBasicBlocks()
+
+where `getBasicBlocks()` is:
+
+```java
+public List<BlockNode> getBasicBlocks() {
+    return blocks;
+}
+```
+
+So the question reduces to: can `blocks` be null here?
+
+From the provided usages:
+
+1. Many callers assume a non‑null list and immediately do `for (BlockNode block : mth.getBasicBlocks())` or `mth.getBasicBlocks().size()` with no null checks. This is consistent with `blocks` being initialized to a non‑null list for normal methods that have been through `BlockSplitter.visit`, which calls `mth.initBasicBlocks()` and then populates and mutates that list.
+
+2. However, some code paths explicitly *allow* `getBasicBlocks()` to be null and branch on it:
+
+   - `DotGraphVisitor$DumpDotGraph.process`:
+     ```java
+     List<BlockNode> blocks = mth.getBasicBlocks();
+     if (blocks == null) {
+         InsnNode[] insnArr = mth.getInstructions();
+         if (insnArr == null) {
+             return;
+         }
+         ...
+         blocks = Collections.singletonList(block);
+     }
+     ```
+     This clearly shows that `getBasicBlocks()` may legitimately return `null` for some `MethodNode` instances, and the code relies on that.
+
+   - `MethodGen.addSimpleMethodCode`:
+     ```java
+     if (mth.getBasicBlocks() == null) {
+         code.startLine("// Blocks not ready for simple mode, using fallback");
+         addFallbackMethodCode(code, FALLBACK_MODE);
+         return;
+     }
+     ```
+     Again, this treats `null` as an expected state before blocks are prepared.
+
+   - `MarkMethodsForInline.process`:
+     ```java
+     if (mth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE)) {
+         if (mth.getBasicBlocks() == null) {
+             return null;
+         }
+         ...
+     }
+     ```
+     This is another explicit null check.
+
+   - `ReSugarCode.initClsEnumMap`:
+     ```java
+     if (clsInitMth == null || clsInitMth.isNoCode() || clsInitMth.getBasicBlocks() == null) {
+         return;
+     }
+     ```
+
+   - `BlockSplitter.removeJumpAttr` and `ModVisitor.removeStep` both guard on `mth.getBasicBlocks() == null` before iterating.
+
+These explicit `null` checks demonstrate that `blocks` is not guaranteed to be initialized for every `MethodNode` at every phase. The lifecycle is: some visitors (e.g., `BlockSplitter`) call `mth.initBasicBlocks()` and then `blocks` becomes a non‑null list; but before that happens, `blocks` can be `null`. Several visitors (e.g., `DotGraphVisitor.save`/`visit`, `MethodGen.addInstructions` in SIMPLE mode, `MarkMethodsForInline.process` on a separate `callMth`) can be invoked in contexts where the basic blocks have not yet been initialized, and they explicitly handle `null`.
+
+Since the question is about the specific call site `mth.getBasicBlocks()` in general (not tied to a particular visitor state where we could prove `initBasicBlocks()` has already been called), and we have multiple concrete usages that treat a `null` result as valid and possible, we must conclude that at this call site `getBasicBlocks()` can indeed return `null`.
+
+Therefore, `blocks` is not statically guaranteed to be non‑null here, and `getBasicBlocks()` can return `null` at this invocation.]]></reason>
+  <value>YES</value>
+</response>

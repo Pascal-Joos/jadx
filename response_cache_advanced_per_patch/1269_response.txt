@@ -1,0 +1,46 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Nullable
+	public String getValueString(ResourceEntry ri) {
+		ProtoValue protoValue = ri.getProtoValue();
+		if (protoValue != null) {
+			if (protoValue.getValue() != null) {
+				return protoValue.getValue();
+			}
+			List<ProtoValue> values = protoValue.getNamedValues();
+			if (values == null) {
+				return null;
+			}
+			List<String> strList = new ArrayList<>(values.size());
+			for (ProtoValue value : values) {
+				if (value.getName() == null) {
+					strList.add(value.getValue());
+				} else {
+					strList.add(value.getName() + '=' + value.getValue());
+				}
+			}
+			return strList.toString();
+		}
+		RawValue simpleValue = ri.getSimpleValue();
+		if (simpleValue != null) {
+			return decodeValue(simpleValue);
+		}
+		List<RawNamedValue> namedValues = ri.getNamedValues();
+		List<String> strList = new ArrayList<>(namedValues.size());
+		for (RawNamedValue value : namedValues) {
+			String nameStr = decodeNameRef(value.getNameRef());
+			String valueStr = decodeValue(value.getRawValue());
+			if (nameStr == null) {
+				strList.add(valueStr);
+			} else {
+				strList.add(nameStr + '=' + valueStr);
+			}
+		}
+		return strList.toString();
+}
+  ```
+    ]]>
+  </code>
+</response>

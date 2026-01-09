@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public boolean isInteger() {
+		ArgType immutableType = getImmutableType();
+		if (immutableType == null) {
+			return false;
+		}
+		switch (immutableType.getPrimitiveType()) {
+			case INT:
+			case BYTE:
+			case CHAR:
+			case SHORT:
+			case LONG:
+				return true;
+			default:
+				return false;
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

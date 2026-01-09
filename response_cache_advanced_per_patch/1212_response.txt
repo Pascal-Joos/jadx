@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void parseLibraryTypeChunk(long chunkStart) throws IOException {
+		LOG.trace("parsing library type chunk starting at offset {}", chunkStart);
+		if (is == null) {
+			throw new IOException("ParserStream not initialized");
+		}
+		is.checkInt16(12, "Unexpected header size");
+		int chunkSize = is.readInt32();
+		long expectedEndPos = chunkStart + chunkSize;
+		int count = is.readInt32();
+		for (int i = 0; i < count; i++) {
+			int packageId = is.readInt32();
+			String packageName = is.readString16Fixed(128);
+			LOG.info("Found resource shared library {}, pkgId: {}", packageName, packageId);
+			if (is.getPos() > expectedEndPos) {
+				throw new IOException("reading after chunk end");
+			}
+		}
+		if (is.getPos() != expectedEndPos) {
+			throw new IOException(String.format("Error reading library chunk at offset 0x%x", chunkStart));
+		}
+  }
+  ```
+    ]]>
+  </code>
+</response>

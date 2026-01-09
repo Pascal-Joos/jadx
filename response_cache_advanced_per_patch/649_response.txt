@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private String makeName(IContainer c) {
+			String name;
+			if (c instanceof BlockNode) {
+				name = "Node_" + ((BlockNode) c).getCId();
+			} else if (c instanceof IBlock) {
+				name = "Node_" + c.getClass().getSimpleName() + '_' + c.hashCode();
+			} else {
+				name = "cluster_" + Nullability.castToNonnull(c).getClass().getSimpleName() + '_' + Nullability.castToNonnull(c).hashCode();
+			}
+			return name;
+}
+  ```
+    ]]>
+  </code>
+</response>

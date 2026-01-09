@@ -1,0 +1,39 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void parseElementEnd() throws IOException {
+		if (is == null) {
+			throw new IOException("ParserStream is not initialized");
+		}
+		if (is.readInt16() != 0x10) {
+			die("ELEMENT END header is not 0x10");
+		}
+		if (is.readInt32() != 0x18) {
+			die("ELEMENT END header chunk is not 0x18 big");
+		}
+		int endLineNumber = is.readInt32();
+		int comment = is.readInt32();
+		int elementNS = is.readInt32();
+		int elementNameId = is.readInt32();
+		String elemName = deobfClassName(getString(elementNameId));
+		elemName = getValidTagAttributeName(elemName);
+		if (currentTag.equals(elemName) && isOneLine && !isLastEnd) {
+			writer.add("/>");
+		} else {
+			writer.startLine("</");
+			writer.attachSourceLine(endLineNumber);
+			// if (elementNS != -1) {
+			// writer.add(getString(elementNS)).add(':');
+			// }
+			writer.add(elemName).add('>');
+		}
+		isLastEnd = true;
+		if (writer.getIndent() != 0) {
+			writer.decIndent();
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

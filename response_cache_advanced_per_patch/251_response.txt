@@ -1,0 +1,6 @@
+```xml
+<response>
+    <reason><![CDATA[The expression at line "return null;" is a literal null value being returned directly, with no additional control flow, assignments, or method calls that could alter it. Therefore, the returned value is definitively null on all code paths in this method.]]></reason>
+    <value>YES</value>
+</response>
+```

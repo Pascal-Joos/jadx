@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public static void printExecTimes() {
+		System.out.println("Exec times:");
+		if (execTimes == null) {
+			initExecTimes();
+		}
+		execTimes.forEach((tag, time) -> System.out.println(" " + tag + ": " + time + "ms"));
+  }
+  ```
+    ]]>
+  </code>
+</response>

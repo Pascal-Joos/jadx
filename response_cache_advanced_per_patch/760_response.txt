@@ -1,0 +1,23 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public List<ArgType> getClassGenerics(ArgType type) {
+		if (root == null) {
+			return Collections.emptyList();
+		}
+		ClassNode classNode = root.resolveClass(type);
+		if (classNode != null) {
+			return classNode.getGenericTypeParameters();
+		}
+		ClspClass clsDetails = root.getClsp().getClsDetails(type);
+		if (clsDetails == null || clsDetails.getTypeParameters().isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<ArgType> generics = clsDetails.getTypeParameters();
+		return generics == null ? Collections.emptyList() : generics;
+}
+  ```
+    ]]>
+  </code>
+</response>

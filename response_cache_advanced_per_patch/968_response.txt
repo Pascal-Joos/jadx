@@ -1,0 +1,4 @@
+<response>
+    <reason><![CDATA[Based on the naming rules you provided, initializer methods are typically known framework lifecycle methods (e.g., onCreate, init) or any method whose name starts with "init" or "initialize" and is not a setter. The given method is named setTryBlock, follows the JavaBean setter pattern (starts with "set" and takes a single parameter used to assign a field), and therefore should be treated as a regular setter method, not an initializer method for NullAway’s purposes.]]></reason>
+    <value>NO</value>
+</response>

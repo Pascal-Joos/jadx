@@ -1,0 +1,16 @@
+<response>
+  <reason><![CDATA[
+At the specific call site
+
+  ArgType elType = arrType.getArrayElement();
+
+the invoked method is:
+
+  public ArgType getArrayElement() {
+      return null;
+  }
+
+There are no conditions or dependencies inside this implementation: every invocation of getArrayElement(), regardless of the receiver (here, arrType), directly returns null. Therefore, at this call site, the assigned value elType will always be null, and the method can (and in fact will) return null here.
+  ]]></reason>
+  <value>YES</value>
+</response>

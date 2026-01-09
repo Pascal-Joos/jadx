@@ -1,0 +1,18 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void removeJumpAttr(MethodNode mth) {
+		if (mth.getBasicBlocks() == null) {
+			return;
+		}
+		for (BlockNode block : mth.getBasicBlocks()) {
+			for (InsnNode insn : block.getInstructions()) {
+				insn.remove(AType.JUMP);
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

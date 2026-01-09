@@ -1,0 +1,41 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+protected void makeInsn(InsnNode insn, ICodeWriter code,  Flags flag) throws CodegenException {
+		if (Nullability.castToNonnull(insn).getType() == InsnType.REGION_ARG) {
+			return;
+		}
+		try {
+			if (flag == Flags.BODY_ONLY || flag == Flags.BODY_ONLY_NOWRAP) {
+				makeInsnBody(code, insn, flag == Flags.BODY_ONLY ? BODY_ONLY_FLAG : BODY_ONLY_NOWRAP_FLAGS);
+			} else {
+				if (flag != Flags.INLINE) {
+					code.startLineWithNum(insn.getSourceLine());
+					InsnCodeOffset.attach(code, insn);
+					if (insn.contains(AFlag.COMMENT_OUT)) {
+						code.add("// ");
+					}
+				}
+				RegisterArg resArg = insn.getResult();
+				if (resArg != null) {
+					SSAVar var = resArg.getSVar();
+					if (var == null || var.getUseCount() != 0 || insn.getType() != InsnType.CONSTRUCTOR) {
+						assignVar(code, insn);
+						code.add(" = ");
+					}
+				}
+				makeInsnBody(code, insn, EMPTY_FLAGS);
+				if (flag != Flags.INLINE) {
+					code.add(';');
+					CodeGenUtils.addCodeComments(code, mth, insn);
+				}
+			}
+		} catch (Exception e) {
+			throw new CodegenException(mth, "Error generate insn: " + insn, e);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

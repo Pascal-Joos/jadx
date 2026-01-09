@@ -1,0 +1,55 @@
+<response>
+  <reason><![CDATA[
+The method `MethodInlineAttr.getInsn()` simply returns the field `insn`:
+
+```java
+public InsnNode getInsn() {
+    return insn;
+}
+```
+
+There is no information in the provided code establishing any invariant that `insn` is always non-null for a `MethodInlineAttr` instance returned from `MarkMethodsForInline.process(callMth)`.
+
+From the call chain:
+
+```java
+MethodInlineAttr mia = MarkMethodsForInline.process(callMth);
+if (mia == null) {
+    // ...
+    return;
+}
+if (mia.notNeeded()) {
+    return;
+}
+inlineMethod(mth, callMth, mia, block, insn);
+```
+
+This only guarantees that `mia` itself is non-null and `mia.notNeeded()` is false when `inlineMethod` is entered. It does **not** guarantee anything about the internal state of `mia`, in particular whether `mia.insn` is initialized or non-null.
+
+Inside `inlineMethod` we see:
+
+```java
+InsnNode inlCopy = mia.getInsn().copyWithoutResult();
+...
+} else if (isAssignNeeded(mia.getInsn(), insn, callMth)) {
+...
+updateUsageInfo(mth, callMth, mia.getInsn());
+```
+
+`mia.getInsn()` is used multiple times, but:
+
+- There is no null-check on `mia.getInsn()` before dereferencing it (calling `copyWithoutResult()` or passing it to `isAssignNeeded` / `updateUsageInfo`).
+- The absence of a null-check in the caller does not prove non-null; it only means that if `getInsn()` returns null, a `NullPointerException` will occur. The question is whether `null` is *possible*, not whether it is handled.
+
+We have no implementation details for:
+
+- How `MethodInlineAttr` is constructed
+- How or when its `insn` field is set
+- What `MethodInlineAttr.inlineNotNeeded(mth)` does to `insn`
+- What `inlineMth(mth)` does to `insn`
+
+The instructions explicitly state that for methods whose source is not available (and for which no contract is given), we should not assume behavior beyond what is shown. Since no invariant such as “`insn` is always non-null for any `MethodInlineAttr` that reaches `inlineMethod`” is provided, and since `insn` is just a field that could be left uninitialized or explicitly set to null, it is entirely possible that `insn` is null in some cases.
+
+Therefore, at the specific call site `mia.getInsn()` inside `inlineMethod`, we cannot rule out that `getInsn()` may return null.]]></reason>
+  <value>YES</value>
+</response>

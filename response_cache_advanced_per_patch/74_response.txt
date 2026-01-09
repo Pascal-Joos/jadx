@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void fillSuperTypesCache() {
+  		if (nameMap == null) {
+  			throw new JadxRuntimeException("Classpath must be loaded first");
+  		}
+  		Map<String, ClspClass> nnNameMap = Nullability.castToNonnull(nameMap);
+  		Map<String, Set<String>> map = new HashMap<>(nnNameMap.size());
+  		Set<String> tmpSet = new HashSet<>();
+  		for (Map.Entry<String, ClspClass> entry : nnNameMap.entrySet()) {
+  			ClspClass cls = entry.getValue();
+  			tmpSet.clear();
+  			addSuperTypes(cls, tmpSet);
+  			Set<String> result;
+  			if (tmpSet.isEmpty()) {
+  				result = Collections.emptySet();
+  			} else {
+  				result = new HashSet<>(tmpSet);
+  			}
+  			map.put(cls.getName(), result);
+  		}
+  		superTypesCache = map;
+  }
+  ```
+    ]]>
+  </code>
+</response>

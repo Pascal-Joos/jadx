@@ -1,0 +1,28 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+@Override
+	public void visit(MethodNode mth) throws JadxException {
+		if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
+			return;
+		}
+		RegionMaker rm = new RegionMaker(mth);
+		RegionStack state = new RegionStack(mth);
+
+		// fill region structure
+		BlockNode startBlock = Utils.first(Nullability.castToNonnull(mth.getEnterBlock()).getCleanSuccessors());
+		mth.setRegion(rm.makeRegion(startBlock, state));
+
+		if (!mth.isNoExceptionHandlers()) {
+			IRegion expOutBlock = rm.processTryCatchBlocks(mth);
+			if (expOutBlock != null) {
+				mth.getRegion().add(expOutBlock);
+			}
+		}
+		postProcessRegions(mth);
+}
+  ```
+    ]]>
+  </code>
+</response>

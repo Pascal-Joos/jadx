@@ -1,0 +1,33 @@
+<response>
+  <reason><![CDATA[
+At this call site the receiver is a variable `bn` whose static type is `BlockNode`. The method implementation is:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+So the call `bn.getCleanSuccessors()` simply returns the field `cleanSuccessors` of that `BlockNode` instance.
+
+From the provided code, `getCleanSuccessors()` is treated everywhere as returning a non‑null `List<BlockNode>` that may be empty, but not null:
+
+- Callers unconditionally iterate over, or query, the list without any null checks, for example:
+  ```java
+  for (BlockNode node : block.getCleanSuccessors()) { ... }
+  List<BlockNode> successors = block.getCleanSuccessors();
+  if (successors.size() == 1) { ... }
+  BlockNode block = mth.getEnterBlock().getCleanSuccessors().get(0);
+  BlockNode startBlock = Utils.first(mth.getEnterBlock().getCleanSuccessors());
+  ```
+  None of these sites guard against `null`, which would be a pervasive NPE risk if `cleanSuccessors` could be null.
+
+- Where the structure of the graph is changed, the code calls `updateCleanSuccessors()` on affected blocks (e.g., in `BlockExceptionHandler.wrapBlocksWithTryCatch`), implying that `cleanSuccessors` is a maintained data structure, not an optional reference.
+
+- Utility methods such as `BlockUtils.getNextBlock` and many others assume `getCleanSuccessors()` returns a non‑null list and only check `isEmpty()` or `size()`, never `null`.
+
+There is no evidence in the provided code that `cleanSuccessors` is ever left uninitialized or explicitly set to `null`. Given normal Java object semantics, for `bn.getCleanSuccessors()` to return `null`, `bn.cleanSuccessors` itself would have to be null at runtime. That would contradict all the calling patterns shown.
+
+Therefore, at this specific call site `bn.getCleanSuccessors()`, the returned value is a `List<BlockNode>` that may be empty but is not null.]]></reason>
+  <value>NO</value>
+</response>

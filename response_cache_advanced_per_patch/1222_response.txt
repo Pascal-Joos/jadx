@@ -1,0 +1,24 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the body of readScriptOrVariantChar, the first thing it does is:
+
+    if (is == null) {
+        throw new IOException("ParserStream is not initialized");
+    }
+
+This is a direct null-check on the same variable is that is later used at:
+
+    long start = is.getPos();
+
+Given Java’s control flow, if is were null, the method would throw an IOException and execution would never reach the line long start = is.getPos();. Therefore, along any execution path that actually reaches that line, is is guaranteed to be non-null.
+
+The only caveats would be:
+- If is is not a field/local but some exotic construct allowing concurrent mutation (e.g., a mutable holder) and another thread could set it to null between the check and the call. However, in standard Java semantics for a field or local reference, the code as written guarantees non-nullness for the duration of this method’s execution path after the check.
+- Reflection or bytecode manipulation is not considered under normal reasoning.
+
+Under normal assumptions, is cannot be null at the point of evaluation of is.getPos().
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

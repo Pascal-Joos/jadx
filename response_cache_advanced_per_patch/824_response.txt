@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+ public InsnNode getFirstInsn() {
+ 		if (mode == Mode.COMPARE && compare != null) {
+ 			return Nullability.castToNonnull(compare).getInsn();
+ 		}
+ 		return args.get(0).getFirstInsn();
+}
+  ```
+    ]]>
+  </code>
+</response>

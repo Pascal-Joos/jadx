@@ -1,0 +1,26 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void applyPkgRenames(RootNode root, List<ICodeRename> renames) {
+		List<ClassNode> classes = root.getClasses(false);
+		renames.stream()
+				.filter(r -> r.getNodeRef().getType() == IJavaNodeRef.RefType.PKG)
+				.forEach(pkgRename -> {
+					String pkgFullName = pkgRename.getNodeRef().getDeclaringClass();
+					String pkgFullNameDot = pkgFullName + ".";
+					for (ClassNode cls : classes) {
+						ClassInfo clsInfo = cls.getClassInfo();
+						String pkg = clsInfo.getPackage();
+						if (pkg.equals(pkgFullName)) {
+							clsInfo.changePkg(cutLastPkgPart(clsInfo.getAliasPkg()) + '.' + pkgRename.getNewName());
+						} else if (pkg.startsWith(pkgFullNameDot)) {
+							clsInfo.changePkg(rebuildPkgMiddle(Nullability.castToNonnull(clsInfo.getAliasPkg()), pkgFullName, pkgRename.getNewName()));
+						}
+					}
+				});
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void parseResourceMap() throws IOException {
+		if (is == null) {
+			return;
+		}
+		if (is.readInt16() != 0x8) {
+			die("Header size of resmap is not 8!");
+		}
+		int size = is.readInt32();
+		int len = (size - 8) / 4;
+		resourceIds = new int[len];
+		for (int i = 0; i < len; i++) {
+			resourceIds[i] = is.readInt32();
+		}
+  }
+  ```
+    ]]>
+  </code>
+</response>

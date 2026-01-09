@@ -1,0 +1,21 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>expandTypeVar</method>
+    <method>getKnownTypeVarsAtMethod</method>
+    <method>getArgsStartPos</method>
+    <method>root</method>
+    <method>getTypeUtils</method>
+    <method>parse</method>
+    <method>consumeType</method>
+    <method>fromNode</method>
+    <method>consumeGenericTypeParameters</method>
+    <method>consumeMethodArgs</method>
+    <method>validateInnerType</method>
+    <method>updateTypeParameters</method>
+    <method>collectionMap</method>
+    <method>validateAndApplyTypes</method>
+    <method>getType</method>
+    <method>getSignature</method>
+  </methods>
+</response>

@@ -1,0 +1,21 @@
+<response>
+  <reason><![CDATA[
+The method `ResourceEntry.getNamedValues()` simply returns the field `namedValues`:
+
+```java
+public List<RawNamedValue> getNamedValues() {
+    return namedValues;
+}
+```
+
+There is no initialization or null-check shown on `namedValues` in this snippet. At the specific call site `ri.getNamedValues()` inside `ResXmlGen.addValue` and `ValuesParser.getValueString`, the code treats the result only as a `List` (calling `.isEmpty()`, `.get(0)`, iterating it, using `new ArrayList<>(namedValues.size())`) but never checks it for null beforehand.
+
+This *usage pattern* suggests that the author expects `namedValues` to be non-null, but it does not prove it. Whether `namedValues` is ever initialized to a non-null list (e.g., in `ResourceEntry`’s constructor, field declaration, or setter) is not shown. If `namedValues` is left uninitialized or explicitly set to null elsewhere, then `getNamedValues()` will return null at this call site, causing a `NullPointerException` on the subsequent list operations.
+
+Because the nullability of `namedValues` depends on how `ResourceEntry` is constructed and managed, and that information is not provided, we cannot deterministically conclude that `ri.getNamedValues()` can never be null at this call site. To decide confidently, we need to see how `namedValues` is declared and initialized in `ResourceEntry`.
+  ]]></reason>
+  <success>false</success>
+  <methods>
+    <method>ResourceEntry</method>
+  </methods>
+</response>

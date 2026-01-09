@@ -1,0 +1,12 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>makeIfInfo</method>
+    <method>getThenBlock</method>
+    <method>getElseBlock</method>
+    <method>getNextIf</method>
+    <method>isEqualPaths</method>
+    <method>followEmptyPath</method>
+    <method>isPathExists</method>
+  </methods>
+</response>

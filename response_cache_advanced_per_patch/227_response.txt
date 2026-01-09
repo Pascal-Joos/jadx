@@ -1,0 +1,4 @@
+<response>
+    <reason><![CDATA[The method name follows the standard JavaBean setter pattern (`setX`), and its body simply assigns the given parameter to a single field. By your criteria, methods that are considered initializer methods are either well-known framework lifecycle methods (e.g., `onCreate`, `init`) or methods whose names start with `init` or `initialize` and are not setters. This method clearly functions as a setter, not as a designated lifecycle/initializer method, so it should not be treated as an initializer method under the described NullAway assumptions.]]></reason>
+    <value>NO</value>
+</response>

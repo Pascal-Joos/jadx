@@ -1,0 +1,41 @@
+<response>
+  <reason><![CDATA[
+At this call site the method body is:
+
+```java
+public IfCondition getCondition() {
+    return condition;
+}
+```
+
+There is only a single return path, directly returning the field `condition`. Nothing in the provided code guarantees that `condition` is non‑null for every `TernaryInsn` instance.
+
+Looking at the usages:
+
+- In `SimplifyVisitor.simplifyTernary`:
+  ```java
+  IfCondition condition = insn.getCondition();
+  if (condition != null && condition.isCompare()) {
+      ...
+  } else {
+      insn.simplifyCondition();
+  }
+  ```
+  Here the code explicitly allows for `getCondition()` to be `null` and checks for it.
+
+- In multiple other places (`ArgsInfo.addArgs`, `DebugChecks.checkInsn`, `PrepareForCodeGen.removeParenthesis`, `BlockUtils.foundWrappedInsn`), the code calls:
+  ```java
+  ((TernaryInsn) insn).getCondition().getRegisterArgs()
+  ((TernaryInsn) insn).getCondition()
+  ```
+  without a null check. This shows that callers *assume* non‑null in some contexts, but it does not establish any invariant in `TernaryInsn` itself that `condition` must be non‑null.
+
+Because:
+- `condition` is a plain field being returned unchanged,
+- there is no constructor or setter shown that enforces a non‑null value,
+- and there is at least one caller that explicitly handles the `null` case,
+
+`ternaryInsn.getCondition()` can evaluate to `null` at this call site, depending solely on whether the `ternaryInsn` instance has a null `condition` field at runtime. The provided code does not rule that out.
+  ]]></reason>
+  <value>YES</value>
+</response>

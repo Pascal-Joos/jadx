@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private String makeNameForType(ArgType type) {
+		if (Nullability.castToNonnull(type).isPrimitive()) {
+			return Nullability.castToNonnull(type).getPrimitiveType().getShortName().toLowerCase();
+		}
+		if (Nullability.castToNonnull(type).isArray()) {
+			return makeNameForType(Nullability.castToNonnull(type).getArrayRootElement()) + "Arr";
+		}
+		return makeNameForObject(Nullability.castToNonnull(type));
+}
+  ```
+    ]]>
+  </code>
+</response>

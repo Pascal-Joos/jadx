@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static boolean isBadBranchBlock(IfInfo info, BlockNode block) {
+		// check if block at end of loop edge
+		if (Nullability.castToNonnull(block).contains(AFlag.LOOP_START) && Nullability.castToNonnull(block).getPredecessors().size() == 1) {
+			BlockNode pred = Nullability.castToNonnull(block).getPredecessors().get(0);
+			if (pred.contains(AFlag.LOOP_END)) {
+				List<LoopInfo> startLoops = Nullability.castToNonnull(block).getAll(AType.LOOP);
+				List<LoopInfo> endLoops = pred.getAll(AType.LOOP);
+				// search for same loop
+				for (LoopInfo startLoop : startLoops) {
+					for (LoopInfo endLoop : endLoops) {
+						if (startLoop == endLoop) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return !allPathsFromIf(Nullability.castToNonnull(block), info);
+}
+  ```
+    ]]>
+  </code>
+</response>

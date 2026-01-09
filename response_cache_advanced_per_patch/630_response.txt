@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static boolean isFirstInsn(MethodNode mth, InsnNode insn) {
+		BlockNode startBlock = followEmptyPath(mth.getEnterBlock());
+		if (startBlock != null && !startBlock.getInstructions().isEmpty()) {
+			return startBlock.getInstructions().get(0) == insn;
+		}
+		// handle branching with empty blocks
+		BlockNode block = getBlockByInsn(mth, insn);
+		if (block == null) {
+			throw new JadxRuntimeException("Insn not found in method: " + insn);
+		}
+		if (block.getInstructions().get(0) != insn) {
+			return false;
+		}
+		Set<BlockNode> allPathsBlocks = getAllPathsBlocks(Nullability.castToNonnull(mth.getEnterBlock()), block);
+		for (BlockNode pathBlock : allPathsBlocks) {
+			if (!pathBlock.getInstructions().isEmpty() && pathBlock != block) {
+				return false;
+			}
+		}
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

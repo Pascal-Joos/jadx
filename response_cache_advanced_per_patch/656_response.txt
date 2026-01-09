@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+At this call site (`mth.getEnterBlock()`), `MethodNode.enterBlock` is not guaranteed to be non‑null by the shown code or by any explicit invariant.
+
+Key observations:
+
+1. **Getter is a trivial field return**
+   ```java
+   public BlockNode getEnterBlock() {
+       return enterBlock;
+   }
+   ```
+   There is no null check or initialization here; the value entirely depends on how `enterBlock` is managed elsewhere.
+
+2. **No visible invariant enforcing non‑null**
+   Across the provided usages, code frequently *assumes* `enterBlock` is non‑null, evidenced by:
+   - Calls like `Nullability.castToNonnull(mth.getEnterBlock())`
+   - Direct dereferences: `mth.getEnterBlock().getId()`, `mth.getEnterBlock().getSuccessors().get(0)`, passing to `BlockUtils.getAllPathsBlocks`, `BlockUtils.visitSinglePath(mth.getEnterBlock(), ...)`, etc.
+   
+   However, these are *uses*, not guarantees. There is no shown constructor or `setEnterBlock` logic demonstrating that `enterBlock` is always initialized for every `MethodNode` that reaches these visitors.
+
+3. **Some code explicitly guards only against “no code”, not null**
+   For example:
+   ```java
+   if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
+       return;
+   }
+   ```
+   but then later uses `mth.getEnterBlock()` without checking for null. This means the authors *expect* `enterBlock` to be set together with basic blocks, but this expectation is not provably enforced in the given snippet.
+
+4. **`setEnterBlock` implementation is unknown**
+   You explicitly state that `setEnterBlock` exists but its source is unavailable and we must “make your best guess.” That means:
+   - We cannot confirm that `setEnterBlock` is always called before any of these visitors run.
+   - We cannot confirm that it never sets `enterBlock` to `null`.
+   Without that guarantee, the safest conclusion under the rules you gave is that `enterBlock` can be null.
+
+5. **Third‑party and partial context**
+   Because this is third‑party code and we lack the `MethodNode` constructor and `setEnterBlock` body, we cannot prove a global invariant like “every `MethodNode` with code has a non‑null enter block.” The existence of several `Nullability.castToNonnull` calls also suggests that the library writers considered nullability an issue and had to annotate/cast, which again shows lack of a strict non‑null invariant at the type level.
+
+Given the constraints (“default implementation” unknown, must not assume other methods’ behavior without declarations), there is no definitive guarantee that `enterBlock` is never null. Therefore, at this specific call site `mth.getEnterBlock()` **can** evaluate to null.]]></reason>
+  <value>YES</value>
+</response>

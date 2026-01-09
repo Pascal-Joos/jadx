@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+@Override
+	public void visit(MethodNode mth) {
+		if (mth.isNoCode() || mth.getSVars().isEmpty()) {
+			return;
+		}
+		mth.getSVars().forEach(var -> {
+			ArgType type = var.getTypeInfo().getType();
+			if (!Nullability.castToNonnull(type).isTypeKnown()) {
+				mth.addWarnComment("Type inference failed for: " + var.getDetailedVarInfo(mth));
+			}
+			ArgType codeVarType = var.getCodeVar().getType();
+			if (codeVarType == null) {
+				var.getCodeVar().setType(ArgType.UNKNOWN);
+			}
+		});
+}
+  ```
+    ]]>
+  </code>
+</response>

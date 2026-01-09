@@ -1,0 +1,52 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+void decode() throws IOException {
+ 		if (is == null) {
+ 			return;
+ 		}
+ 		int size = Nullability.castToNonnull(is).readInt32();
+ 		while (Nullability.castToNonnull(is).getPos() < size) {
+ 			int type = Nullability.castToNonnull(is).readInt16();
+ 			switch (type) {
+ 				case RES_NULL_TYPE:
+ 					// NullType is just doing nothing
+ 					break;
+ 				case RES_STRING_POOL_TYPE:
+ 					strings = parseStringPoolNoType();
+ 					valuesParser = new ValuesParser(strings, resNames);
+ 					break;
+ 				case RES_XML_RESOURCE_MAP_TYPE:
+ 					parseResourceMap();
+ 					break;
+ 				case RES_XML_START_NAMESPACE_TYPE:
+ 					parseNameSpace();
+ 					break;
+ 				case RES_XML_CDATA_TYPE:
+ 					parseCData();
+ 					break;
+ 				case RES_XML_END_NAMESPACE_TYPE:
+ 					parseNameSpaceEnd();
+ 					break;
+ 				case RES_XML_START_ELEMENT_TYPE:
+ 					parseElement();
+ 					break;
+ 				case RES_XML_END_ELEMENT_TYPE:
+ 					parseElementEnd();
+ 					break;
+ 
+ 				default:
+ 					if (namespaceDepth == 0) {
+ 						// skip padding on file end
+ 						return;
+ 					}
+ 					die("Type: 0x" + Integer.toHexString(type) + " not yet implemented");
+ 					break;
+ 			}
+ 		}
+}
+  ```
+    ]]>
+  </code>
+</response>

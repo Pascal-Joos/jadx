@@ -1,0 +1,67 @@
+<response>
+  <reason><![CDATA[
+At the call site in question, `s` is the loop variable in:
+
+```java
+for (BlockNode s : block.getCleanSuccessors()) {
+    if (s.getDomFrontier().get(endId) && s != out) {
+        ...
+    }
+}
+```
+
+So the expression being analyzed is `s.getDomFrontier()`.
+
+Relevant lifecycle of `domFrontier`:
+
+1. `BlockNode.getDomFrontier()` simply returns the field `domFrontier`.
+
+2. `DominatorTree.computeDominanceFrontier(mth)` initializes and finalizes this field:
+   - First, it explicitly sets all blocks' dominance frontiers to `null`:
+     ```java
+     for (BlockNode block : blocks) {
+         block.setDomFrontier(null);
+     }
+     ```
+   - It then computes dominance frontiers, using `addToDF`:
+     ```java
+     private static void addToDF(BlockNode block, BlockNode dfBlock, int blocksCount) {
+         BitSet df = block.getDomFrontier();
+         if (df == null) {
+             df = new BitSet(blocksCount);
+             block.setDomFrontier(df);
+         }
+         df.set(dfBlock.getId());
+     }
+     ```
+     This can leave some blocks with `domFrontier == null` if `addToDF` is never called for them.
+   - Finally, it normalizes all blocks:
+     ```java
+     for (BlockNode block : blocks) {
+         BitSet df = block.getDomFrontier();
+         if (df == null || df.isEmpty()) {
+             block.setDomFrontier(EmptyBitSet.EMPTY);
+         }
+     }
+     ```
+     After this pass, **every** basic block in `mth.getBasicBlocks()` has `domFrontier` set to a non-null `BitSet` (possibly `EmptyBitSet.EMPTY`).
+
+3. Where is `computeDominanceFrontier` called relative to this use?
+   - It is called from `BlockProcessor.processBlocksTree(mth)`:
+     ```java
+     DominatorTree.computeDominanceFrontier(mth);
+     registerLoops(mth);
+     processNestedLoops(mth);
+     ```
+   - `RegionMaker.insertContinueInSwitch` (where `s.getDomFrontier()` is called) is invoked from `RegionMaker.processSwitch`, which in turn is part of the region-building phase that happens **after** `processBlocksTree` has finished computing dominators and dominance frontiers.
+   - At this stage, `mth.getBasicBlocks()` are finalized (`mth.finishBasicBlocks()` is called unless disabled), so `s` must be one of these existing `BlockNode`s whose `domFrontier` has already been processed by `computeDominanceFrontier`.
+
+4. There is no later code shown that resets `domFrontier` to `null` after `computeDominanceFrontier` has run, nor is there code that creates new `BlockNode`s participating in `block.getCleanSuccessors()` without recomputing dominance frontier. `insertContinueInSwitch` uses `block.getCleanSuccessors()` of already-processed blocks.
+
+5. Other places in the codebase do perform null checks on `getDomFrontier()` (e.g., in `BlockUtils.getPathCross` and `IfMakerHelper.checkForTernaryInCondition`), but those callers run in contexts where `computeDominanceFrontier` may have been run with different timing or on blocks not yet normalized. For the specific call site inside `insertContinueInSwitch`, the dominator tree and dominance frontier have been fully computed and normalized beforehand.
+
+Therefore, for this specific call site, `s.getDomFrontier()` must return a non-null `BitSet` instance, so it cannot be `null`. Any block reachable as `s` in this loop has already had its `domFrontier` set to either a computed `BitSet` or `EmptyBitSet.EMPTY`.
+
+]]></reason>
+  <value>NO</value>
+</response>

@@ -1,0 +1,18 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the method fillImplementsCache, the first operation is an explicit null check:
+
+    if (nameMap == null) {
+        throw new JadxRuntimeException("Classpath must be loaded first");
+    }
+
+If nameMap is null, the method immediately throws an exception and execution does not proceed to the line:
+
+    Map<String, List<String>> map = new HashMap<>(nameMap.size());
+
+Therefore, along all execution paths that reach this line, nameMap is guaranteed to be non-null. The only way nameMap could be null is on a path where the exception is thrown before the HashMap constructor is called, so at the point of the expression nameMap.size(), nameMap cannot be null.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

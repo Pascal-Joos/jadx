@@ -1,0 +1,78 @@
+<response>
+  <reason><![CDATA[
+Analyze all return paths of ClassInfo.getAliasPkg():
+
+1. Method body:
+   public String getAliasPkg() {
+       if (isInner()) {
+           return parentClass.getAliasPkg();
+       }
+       return alias == null ? getPackage() : alias.getPkg();
+   }
+
+2. isInner():
+   public boolean isInner() {
+       return parentClass != null;
+   }
+
+So:
+- If parentClass != null ⇒ isInner() == true ⇒ return parentClass.getAliasPkg().
+- If parentClass == null ⇒ isInner() == false ⇒ return (alias == null ? getPackage() : alias.getPkg()).
+
+3. getPackage():
+   @NotNull
+   public String getPackage() {
+       if (parentClass != null) {
+           return parentClass.getPackage();
+       }
+       if (pkg == null) {
+           throw new JadxRuntimeException("Package is null for not inner class");
+       }
+       return pkg;
+   }
+
+We have:
+- If parentClass != null, getPackage() delegates to parentClass.getPackage().
+- If parentClass == null and pkg == null, an exception is thrown (no null return).
+- If parentClass == null and pkg != null, returns pkg (non-null by construction of this branch).
+
+However, neither the @NotNull annotation nor the implementation logically guarantee non-null in all cases, because:
+- When parentClass != null, getPackage() returns parentClass.getPackage(), which could in principle be null if some ancestor’s pkg field is null and its parentClass chain ultimately leads to a null parentClass with pkg == null. In that ultimate leaf case, an exception is thrown instead of returning null, so the method never explicitly returns null there.
+- But there is no explicit defensive check preventing pkg itself from being null at some ancestor where parentClass == null and pkg is (incorrectly) set to null. The code only checks pkg == null at the *current* object, not at all ancestors, yet each ancestor’s getPackage() uses the same logic. Collectively, any leaf with parentClass == null and pkg == null will lead to an exception, not a null return.
+
+Thus, for the getPackage() path, either:
+- a non-null String is returned, or
+- a JadxRuntimeException is thrown.
+There is no code path where getPackage() returns null.
+
+4. alias.getPkg():
+   class ClassAliasInfo {
+       public String getPkg() {
+           return pkg;
+       }
+   }
+
+Here, pkg is returned directly with no checks. There is no annotation or guarantee that ClassAliasInfo.pkg is non-null. Therefore alias.getPkg() can legally return null according to the provided code.
+
+5. Combine paths in getAliasPkg():
+- If isInner() == true:
+  return parentClass.getAliasPkg();
+  Since parentClass is another ClassInfo, its getAliasPkg() follows the same logic. This may:
+  - delegate again up the parentClass chain, or
+  - eventually call getPackage(), or
+  - eventually call alias.getPkg().
+  The only place where a null can be produced is the alias.getPkg() call (for some ClassInfo in the chain whose alias is non-null but alias.pkg is null). That value is directly returned, so null is possible.
+
+- If isInner() == false (parentClass == null):
+  return alias == null ? getPackage() : alias.getPkg();
+  - If alias == null ⇒ returns getPackage(), which is either a non-null String or throws an exception; it does not return null.
+  - If alias != null ⇒ returns alias.getPkg(), which can be null as explained.
+
+6. Exception paths:
+Any JadxRuntimeException thrown by getPackage() is an exception, not a null return, and must not be counted as a null return path per your rules.
+
+Conclusion:
+Because alias.getPkg() can directly return null, and this value is returned by getAliasPkg() without any further checks, there exist execution paths where getAliasPkg() returns null (specifically when alias != null and alias.pkg == null, at this or any ancestor in the parentClass chain reached via isInner()).
+  ]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public ArgType getType( InsnArg arg) {
+		for (TypeUpdateEntry update : updates) {
+			if (update.getArg() == arg) {
+				return update.getType();
+			}
+		}
+		return Nullability.castToNonnull(arg).getType();
+}
+  ```
+    ]]>
+  </code>
+</response>

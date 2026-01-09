@@ -1,0 +1,14 @@
+<response>
+  <reason><![CDATA[
+At this call site the receiver is a RegisterArg named `arg`. From all usages shown:
+
+- `arg` is always treated as an SSA-backed register; its `SSAVar` is created and wired during SSA transformation (`SSATransform.renameVarsInBlock`, `MethodNode.makeNewSVar`, etc.).
+- Many callers dereference `arg.getSVar()` without any null-check and immediately call methods such as `getUseList()`, `getAssign()`, `isUsedInPhi()`, `getCodeVar()`, etc. on that result (e.g. in `EnumVisitor.processEnumFieldByRegister`, `TypeSearchState.getArgType`, `TypeUpdate.updateTypeForSsaVar`, `DeboxingVisitor.canChangeTypeToPrimitive`, `LoopRegionVisitor.checkArrayForEach`, etc.).
+- There is a separate safe-access helper `VarNode.get(MethodNode mth, RegisterArg reg)` that explicitly checks `reg.getSVar() == null` before proceeding. This helper is used in places that may legitimately see un-SSA-ified registers (metadata / debug paths).
+- Conversely, on the main analysis and transformation paths (where the provided `arg` belongs), SSA is a precondition: `SSATransform.process(mth)` builds SVars for all register uses and later debug checks (`DebugChecks.checkMethod`) assume non-null `getSVar()` for all such arguments, throwing if it is null while `mth.getSVars()` is non-empty.
+
+Given this, for the concrete `arg` at this call site, we are in the SSA-processed, normal analysis/codegen path, not in the special metadata helper context where null is allowed. In that state, any `RegisterArg` in use must have a non-null `sVar` or the consistency checks would already have failed.
+
+Therefore, for this specific invocation `arg.getSVar()`, `sVar` cannot be null, and the method will not return null here.]]></reason>
+  <value>NO</value>
+</response>

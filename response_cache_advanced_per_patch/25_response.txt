@@ -1,0 +1,27 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within this method, the expression in question is `getCls(argType, names)` at the line conceptually equivalent to:
+
+    out.writeInt(getCls(argType, names).getId());
+
+The method `writeArgType` invokes `getCls(argType, names)` only in two branches:
+
+1. `else if (argType.isGeneric()) { ... }`
+2. `else if (argType.isObject()) { ... }`
+
+In both branches, the pattern is the same:
+
+    ClspClass cls = getCls(argType, names);
+    if (cls == null) {
+        throw new JadxRuntimeException("Cannot save type, class not found: " + argType);
+    }
+    out.writeInt(cls.getId());
+
+So, in every place where `getCls(argType, names)` is used to obtain a `ClspClass` before calling `getId()`, the result is first assigned to `cls` and explicitly checked for null. If it is null, the method throws `JadxRuntimeException` and never proceeds to `out.writeInt(cls.getId())`. Therefore, at the point of calling `getId()`, `cls` is guaranteed to be non‑null along all reachable code paths.
+
+The exact nullability of `getCls`’s return value is not statically guaranteed by its signature alone, but the surrounding null check ensures that any null value results in an exception *before* dereference. Hence the dereference `getCls(argType, names).getId()` (as actually used via `cls.getId()`) cannot observe a null reference in successful execution.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

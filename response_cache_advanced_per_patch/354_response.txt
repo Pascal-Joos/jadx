@@ -1,0 +1,12 @@
+<response>
+  <reason><![CDATA[
+The method body is:
+
+public WildcardBound getWildcardBound() {
+    return null;
+}
+
+There is a single return statement, and it explicitly returns null unconditionally. There are no other code paths, no conditions, and no calls to other methods that could change the return value. Therefore, this method can and will return null every time it is called based solely on its current implementation.
+  ]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,86 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    String aliasPkg = classInfo.getAliasPkg();
+
+the implementation is:
+
+```java
+public String getAliasPkg() {
+    if (isInner()) {
+        return parentClass.getAliasPkg();
+    }
+    return alias == null ? getPackage() : alias.getPkg();
+}
+```
+
+All return paths:
+
+1. `isInner() == true`:
+   - Returns `parentClass.getAliasPkg()`.
+   - `parentClass` is a `ClassInfo`. For top‑level classes, `parentClass` is `null`, so `isInner()` must be `false` in that case; thus this branch only executes when `parentClass` is non‑null.
+   - The same logic then applies recursively: each `parentClass.getAliasPkg()` call eventually reaches a top‑level class (where `isInner() == false`), so the base case is the non‑inner branch below.
+
+2. `isInner() == false`:
+   - Returns `alias == null ? getPackage() : alias.getPkg();`
+
+For the non‑inner case, `getAliasPkg()` returns either:
+
+- `getPackage()` when `alias == null`, or
+- `alias.getPkg()` when `alias != null`.
+
+Now look at how these values are used elsewhere, which constrains them to be non‑null:
+
+- `getAliasPkg()` is passed into string operations that require non‑null:
+  - `getAliasFullPath()`:
+    ```java
+    return Nullability.castToNonnull(getAliasPkg()).replace('.', File.separatorChar)
+           + File.separatorChar
+           + getAliasNameWithoutPackage().replace('.', '_');
+    ```
+    Here, `getAliasPkg()` is explicitly cast to non‑null, and then `.replace` is called. If `getAliasPkg()` could be `null`, this code would be unsafe and would defeat the purpose of `castToNonnull`.
+
+- `makeFullClsName` is used with `getAliasPkg()`:
+  ```java
+  return makeFullClsName(getAliasPkg(), getAliasShortName(), parentClass, true, false);
+  ```
+  Inside `makeFullClsName`:
+  ```java
+  return pkg.isEmpty() ? shortName : pkg + '.' + shortName;
+  ```
+  `pkg.isEmpty()` assumes `pkg` (i.e., `getAliasPkg()`) is non‑null; otherwise a `NullPointerException` would be inevitable.
+
+- `changePkg(String aliasPkg)` creates a `ClassAliasInfo`:
+  ```java
+  ClassAliasInfo newAlias = new ClassAliasInfo(aliasPkg, getAliasShortName());
+  ```
+  This constructor is later used to derive full alias names and paths; its `pkg` field is expected to be a valid (possibly empty) package string, not `null`.
+
+- `getPackage()` is used in many places as a normal package string:
+  - As the source for `PackageNode` lookup:
+    ```java
+    String fullPkgName = classInfo.getPackage();
+    pkg = getPackageNode(fullPkgName, true);
+    ```
+  - When checking package equality:
+    ```java
+    if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) { ... }
+    ```
+    Calls like `extClsInfo.getPackage().equals("java.lang")` rely on `getPackage()` never returning `null`; otherwise this would risk `NullPointerException` regularly.
+
+Because:
+
+- `getAliasPkg()` for non‑inner classes returns either `getPackage()` or `alias.getPkg()`,
+- the rest of the codebase consistently assumes both `getPackage()` and `alias.getPkg()` are non‑null strings (possibly empty but not `null`), and
+- inner classes just delegate to a non‑inner ancestor via `parentClass.getAliasPkg()`,
+
+`getAliasPkg()` is effectively guaranteed to return a non‑null `String` at every use, including this specific call:
+
+```java
+String aliasPkg = classInfo.getAliasPkg();
+```
+
+Therefore, this invocation cannot yield `null`.]]></reason>
+  <value>NO</value>
+</response>

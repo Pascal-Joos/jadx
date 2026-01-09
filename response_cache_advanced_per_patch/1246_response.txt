@@ -1,0 +1,20 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void decode(XmlNode n) throws IOException {
+		if (writer == null) {
+			writer = rootNode.makeCodeWriter();
+		}
+		if (writer != null && n.hasSource()) {
+			writer.attachSourceLine(n.getSource().getLineNumber());
+		}
+		writer.add(StringUtils.escapeXML(n.getText().trim()));
+		if (n.hasElement()) {
+			decode(n.getElement());
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

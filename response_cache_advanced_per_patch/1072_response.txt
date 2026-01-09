@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public LiteralArg negate() {
+		long neg;
+		if (isInteger()) {
+			neg = -literal;
+		} else if (type == ArgType.FLOAT) {
+			float val = Float.intBitsToFloat(((int) literal));
+			neg = Float.floatToIntBits(-val);
+		} else if (type == ArgType.DOUBLE) {
+			double val = Double.longBitsToDouble(literal);
+			neg = Double.doubleToLongBits(-val);
+		} else {
+			return null;
+		}
+		ArgType immutableType = getImmutableType();
+		return new LiteralArg(neg, immutableType != null ? immutableType : type);
+}
+  ```
+    ]]>
+  </code>
+</response>

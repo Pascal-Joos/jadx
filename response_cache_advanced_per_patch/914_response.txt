@@ -1,0 +1,30 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static int insnsCount(IContainer container) {
+		if (container instanceof IBlock) {
+			List<InsnNode> insnList = ((IBlock) container).getInstructions();
+			int count = 0;
+			for (InsnNode insn : insnList) {
+				if (insn.contains(AFlag.DONT_GENERATE)) {
+					continue;
+				}
+				count++;
+			}
+			return count;
+		}
+		if (container instanceof IRegion) {
+			IRegion region = (IRegion) container;
+			int count = 0;
+			for (IContainer block : region.getSubBlocks()) {
+				count += insnsCount(block);
+			}
+			return count;
+		}
+		throw new JadxRuntimeException(unknownContainerType(Nullability.castToNonnull(container)));
+}
+  ```
+    ]]>
+  </code>
+</response>

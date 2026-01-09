@@ -1,0 +1,4 @@
+<response>
+  <reason><![CDATA[The method body consists solely of `return null;` and has no other return paths or conditions. Therefore, whenever `getArrayElement()` is invoked, it will always return `null`. No other methods influence the return value, so no additional declarations are needed to reach this conclusion.]]></reason>
+  <value>YES</value>
+</response>

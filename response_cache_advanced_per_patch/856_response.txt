@@ -1,0 +1,40 @@
+<response>
+    <reason><![CDATA[
+In the call chain shown, `isBadBranchBlock` is called from `restructureIf` as:
+
+    boolean badThen = isBadBranchBlock(info, thenBlock);
+    boolean badElse = isBadBranchBlock(info, elseBlock);
+
+`thenBlock` and `elseBlock` come from `IfInfo.getThenBlock()` and `IfInfo.getElseBlock()`. The code in `restructureIf` explicitly checks both for null only in this conditional:
+
+    if (thenBlock != null && elseBlock != null
+            && thenBlock.contains(AFlag.RETURN)
+            && elseBlock.contains(AFlag.RETURN)) {
+        info.setOutBlock(null);
+        return info;
+    }
+
+Outside of that early-return branch, there is no general guarantee that `thenBlock` or `elseBlock` are non-null. For example:
+
+- If `thenBlock == null` and `elseBlock != null`, the above `if` condition is false and execution continues.
+- If `elseBlock == null` and `thenBlock != null`, the condition is also false and execution continues.
+- If both are null, the condition is false and execution continues.
+
+In all of these cases, `isBadBranchBlock` is still invoked with `thenBlock` and `elseBlock` whatever their values are:
+
+    boolean badThen = isBadBranchBlock(info, thenBlock);
+    boolean badElse = isBadBranchBlock(info, elseBlock);
+
+Thus, `block` in `isBadBranchBlock(IfInfo info, BlockNode block)` can be null at the call site.
+
+Inside `isBadBranchBlock`, `block` is dereferenced immediately:
+
+    if (block.contains(AFlag.LOOP_START) && block.getPredecessors().size() == 1) {
+
+so if a caller passes null, this method will throw a `NullPointerException`.
+
+No other methods inside `isBadBranchBlock` modify `block` (it is only read and passed to `allPathsFromIf(block, info)`), so its nullability is determined solely by the caller, which, as shown, does not prevent null.
+
+Therefore, based strictly on the provided context and ignoring annotations, the parameter `block` can be null.]]></reason>
+    <value>YES</value>
+</response>

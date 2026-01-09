@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void declareVarInRegion(IContainer region, CodeVar var) {
+		if (var.isDeclared()) {
+			LOG.warn("Try to declare already declared variable: {}", var);
+			return;
+		}
+		DeclareVariablesAttr dv = Nullability.castToNonnull(region).get(AType.DECLARE_VARIABLES);
+		if (dv == null) {
+			dv = new DeclareVariablesAttr();
+			Nullability.castToNonnull(region).addAttr(dv);
+		}
+		dv.addVar(var);
+		var.setDeclared(true);
+}
+  ```
+    ]]>
+  </code>
+</response>

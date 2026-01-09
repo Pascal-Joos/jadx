@@ -1,0 +1,56 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the body of checkForTernaryInCondition, the local variable nextElse is assigned exactly twice:
+
+1) Initialization:
+   IfInfo nextElse = getNextIf(currentIf, currentIf.getElseBlock());
+
+2) Re-assignment after search:
+   nextElse = searchNestedIf(nextElse);
+
+The only uses of nextElse in the critical expression are:
+
+- In the comparison:
+    if (nextThen.getThenBlock() == nextElse.getThenBlock()
+            && nextThen.getElseBlock() == nextElse.getElseBlock()) {
+
+- In the alternative comparison:
+    if (nextThen.getThenBlock() == nextElse.getElseBlock()
+            && nextThen.getElseBlock() == nextElse.getThenBlock()) {
+
+- And possibly passed into:
+    nextElse = IfInfo.invert(nextElse);
+    return mergeTernaryConditions(currentIf, nextThen, nextElse);
+
+To determine whether nextElse can be null at the comparison line, we examine the control flow:
+
+1) Immediately after initialization:
+   IfInfo nextThen = getNextIf(currentIf, currentIf.getThenBlock());
+   IfInfo nextElse = getNextIf(currentIf, currentIf.getElseBlock());
+   if (nextThen == null || nextElse == null) {
+       return null;
+   }
+
+At this point, if nextElse is null, the method returns immediately. Therefore, when execution continues past this if, nextElse is guaranteed non-null.
+
+2) Before the comparison, nextElse is reassigned:
+   nextThen = searchNestedIf(nextThen);
+   nextElse = searchNestedIf(nextElse);
+
+Here, the nullness of nextElse now depends on the contract of searchNestedIf. The method does not perform a subsequent null check on nextElse after calling searchNestedIf, and there is no other guard before using nextElse.getThenBlock() and nextElse.getElseBlock().
+
+Thus:
+- From this method alone, the *only* way nextElse could be null at the comparison is if searchNestedIf(...) is allowed to return null.
+- The code does not contain any defensive check after searchNestedIf to prevent that possibility.
+
+Because the implementation and contract of searchNestedIf are not provided, we cannot conclude from this snippet alone that searchNestedIf will always return a non-null IfInfo when given a non-null argument. If searchNestedIf can return null in any case, then nextElse can be null at the expression and would cause a NullPointerException when accessing nextElse.getThenBlock() / getElseBlock().
+
+Therefore, without additional information about searchNestedIf (and also about IfInfo.invert and getNextIf contracts, though they are already guarded by the explicit null-check), the nullability of nextElse at that expression cannot be definitively determined from this code fragment alone.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or documented contract of searchNestedIf(IfInfo) to determine whether it can ever return null when called with a non-null argument.]]></request>
+        <request><![CDATA[Optionally, provide the contract of getNextIf(...) if there are external guarantees beyond the explicit null-check already in this method.]]></request>
+    </requests>
+</response>
+```

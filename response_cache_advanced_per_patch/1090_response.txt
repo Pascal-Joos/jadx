@@ -1,0 +1,23 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private boolean tryToForceImmutableTypes(MethodNode mth) {
+		boolean fixed = false;
+		for (SSAVar ssaVar : mth.getSVars()) {
+			ArgType type = ssaVar.getTypeInfo().getType();
+			if (!Nullability.castToNonnull(type).isTypeKnown() && ssaVar.isTypeImmutable()) {
+				if (forceImmutableType(ssaVar)) {
+					fixed = true;
+				}
+			}
+		}
+		if (!fixed) {
+			return false;
+		}
+		return runTypePropagation(mth);
+}
+  ```
+    ]]>
+  </code>
+</response>

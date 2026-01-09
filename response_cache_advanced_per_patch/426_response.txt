@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public boolean equalRegisterAndType(RegisterArg arg) {
+		return regNum == arg.regNum && Objects.equals(type, arg.type);
+}
+  ```
+    ]]>
+  </code>
+</response>

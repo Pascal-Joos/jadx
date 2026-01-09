@@ -1,0 +1,29 @@
+<response>
+    <reason><![CDATA[
+The parameter `inner` of `isClassInnerFor(ClassInfo inner, ClassInfo parent)` is only used in this method and in recursive calls to the same method. Within the method body:
+
+- `inner` is never reassigned or modified.
+- The only dereference is `inner.isInner()`, called unconditionally at the beginning of the method.
+
+From the provided call chain, `isClassInnerFor` is only invoked from within `ClassGen.useClassInternal(...)` and `ClassGen.expandInnerClassName(...)`:
+
+```java
+if (isClassInnerFor(useCls, extClsInfo)) { ... }
+
+...
+
+if (parentCls == useCls || isClassInnerFor(useCls, parentCls)) { ... }
+```
+
+In both cases, the arguments passed as `inner` (`useCls` and `useCls` again) are local variables or method parameters that are treated as non-null within their methods. There are no null checks before passing them to `isClassInnerFor`, so nothing in the code guarantees at compile time that `inner` cannot be null.
+
+Since:
+- Java allows callers to pass `null` explicitly for any reference-type parameter,
+- There is no explicit null check on `inner` in `isClassInnerFor`,
+- The method will dereference `inner` via `inner.isInner()`,
+
+it is possible for a caller (current or future) to invoke `isClassInnerFor(null, someParent)`. In that case, the method would throw a `NullPointerException`. Therefore, ignoring annotations, `inner` can be null from the perspective of this method’s contract and potential call sites. The current callers do not prove non-nullness; they simply do not guard against null.
+
+Thus, there is a real possibility that `inner` receives `null` (and the method would crash if that happens).]]></reason>
+    <value>YES</value>
+</response>

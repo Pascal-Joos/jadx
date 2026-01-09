@@ -1,0 +1,35 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean removeRedundantElseBlock(MethodNode mth, IfRegion ifRegion) {
+		if (ifRegion.getElseRegion() == null
+				|| ifRegion.contains(AFlag.ELSE_IF_CHAIN)
+				|| ifRegion.getElseRegion().contains(AFlag.ELSE_IF_CHAIN)) {
+			return false;
+		}
+		if (!RegionUtils.hasExitBlock(Nullability.castToNonnull(ifRegion.getThenRegion()))) {
+			return false;
+		}
+		// code style check:
+		// will remove 'return;' from 'then' and 'else' with one instruction
+		// see #jadx.tests.integration.conditions.TestConditions9
+		if (mth.isVoidReturn()
+				&& insnsCount(ifRegion.getThenRegion()) == 2
+				&& insnsCount(ifRegion.getElseRegion()) == 2) {
+			return false;
+		}
+		IRegion parent = ifRegion.getParent();
+		Region newRegion = new Region(parent);
+		if (parent.replaceSubBlock(ifRegion, newRegion)) {
+			newRegion.add(ifRegion);
+			newRegion.add(ifRegion.getElseRegion());
+			ifRegion.setElseRegion(null);
+			return true;
+		}
+		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

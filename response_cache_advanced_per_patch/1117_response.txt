@@ -1,0 +1,111 @@
+```xml
+<response>
+    <reason><![CDATA[
+We are analyzing whether the local variable `d` used at:
+
+    d.set(block.getId());
+
+can possibly be null.
+
+1. Where does `d` come from?
+
+Inside the loop:
+
+    for (BlockNode block : blockNodes) {
+        if (block == exitBlock) {
+            continue;
+        }
+        BitSet d = map.get(block);
+        ...
+
+So `d` is exactly the value returned by `map.get(block)`.
+
+2. How is `map` populated?
+
+Before the fixpoint loop, we have:
+
+    Map<BlockNode, BitSet> map = new HashMap<>(blocksCount);
+
+    BitSet initSet = new BitSet(blocksCount);
+    for (BlockNode block : blockNodes) {
+        initSet.set(block.getId());
+    }
+
+    for (BlockNode block : blockNodes) {
+        BitSet postDoms = new BitSet(blocksCount);
+        postDoms.or(initSet);
+        map.put(block, postDoms);
+    }
+
+So for every `block` in `blockNodes`, `map.put(block, postDoms)` is called. Therefore, *provided that*:
+- `blockNodes` is the same collection (same elements) as used later in the fixpoint loop, and
+- `blockNodes` does not change between these two loops,
+
+then for each `block` iterated in the later loop, a mapping `block -> BitSet` has already been inserted into `map`. Under these assumptions, `map.get(block)` will not return null.
+
+3. Are there any removals or overwrites in `map` that could introduce null?
+
+Inside the fixpoint loop:
+
+    BitSet d = map.get(block);
+    ...
+    if (!changed && !d.equals(domSet)) {
+        changed = true;
+        map.put(block, d);
+    }
+
+This `map.put(block, d)` never stores null, because `d` was obtained from `map.get(block)` and only modified (bit operations) but not reassigned to null.
+
+After the fixpoint loop:
+
+    blockNodes.forEach(block -> {
+        BitSet postDoms = map.get(block);
+        postDoms.clear(block.getId());
+        if (postDoms.isEmpty()) {
+            map.put(block, EmptyBitSet.EMPTY);
+        }
+    });
+
+Again, only non-null values are put into the map:
+- `postDoms` was already in the map,
+- or is replaced with `EmptyBitSet.EMPTY`, which is presumably a non-null singleton.
+
+No code path writes `null` into `map`.
+
+4. Could `map.get(block)` be null because there was never a `put` for that key?
+
+This can only happen if one of the following is true:
+
+- `blockNodes` in the initialization loop and `blockNodes` in the fixpoint loop are *not* the same set of objects (e.g., different collection references or contents), or
+- `blockNodes` is mutated between the two loops, adding blocks that were not in the first loop.
+
+The method as shown uses the same `blockNodes` variable for:
+- initializing `map` (the second `for (BlockNode block : blockNodes)`),
+- iterating in the fixpoint loop,
+- and the final `forEach`.
+
+If the caller passes a *mutable* collection and mutates it concurrently (or between phases) to add a new `BlockNode` that was not inserted into `map` in the initialization loop, then in the fixpoint loop `map.get(block)` could return null for that new `BlockNode`. In that situation, `d` would be null and `d.set(...)` would cause a `NullPointerException`.
+
+The method itself does not protect against this (there is no null check on `d`, unlike how it checks `scPDoms != null` for successors). So safety relies on the contract/usage of `blockNodes`: that it is not changed in a way that introduces new blocks between initialization and the fixpoint computation.
+
+5. Considering typical intended semantics
+
+In normal, well-structured compiler/CFG analysis code (which this resembles), the implicit contract is usually:
+- `blockNodes` is the full set of blocks under consideration,
+- it is not modified during the analysis,
+- every `block` in `blockNodes` has a corresponding BitSet in `map`.
+
+Under that intended contract, `d` cannot be null.
+
+However, based solely on the code in this method and without assuming external, documented contracts about mutability or aliasing of `blockNodes`, there is a reachable code path:
+- Caller passes a mutable collection `blockNodes`.
+- Between the map-initialization loop and the fixpoint loop, new elements are added to `blockNodes`.
+- The fixpoint loop encounters such a new `block`, for which `map` has no entry.
+- `map.get(block)` returns null; `d` is null.
+
+Since the method does not enforce or check the invariant that all blocks in `blockNodes` are present in `map`, the possibility of `d` being null cannot be excluded purely from this code.
+
+Therefore, without additional guarantees about `blockNodes` from outside this snippet, `d` can be null in principle.]]></reason>
+    <value>YES</value>
+</response>
+```

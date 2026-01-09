@@ -1,0 +1,47 @@
+<response>
+    <reason><![CDATA[
+Based on the provided call chain and code, `removeConnection(BlockNode from, BlockNode to)` is always invoked with a `BlockNode` reference that originates from non-null sources and is never reassigned or modified before being passed.
+
+All calls to `removeConnection`:
+
+1. `BlockProcessor.mergeConstAndReturnBlocks`:
+   - Calls `BlockSplitter.removeConnection(pred, retBlock);`
+   - `pred` and `retBlock` come from `retBlock.getPredecessors()` and `mth.getPreExitBlocks()` / `Utils.getOne(...)`. These collections are of `BlockNode` elements already contained in the CFG; there is no reassignment of `pred` or `retBlock` to `null` before the call.
+
+2. `BlockSplitter.removeEmptyBlock`:
+   - `BlockSplitter.removeConnection(block, successor);`
+   - `block` is the parameter of `removeEmptyBlock` and is iterated from `mth.getBasicBlocks()`, which holds `BlockNode` instances.
+   - `successor` is obtained via `block.getSuccessors().get(0)`; list elements are `BlockNode` objects, and no null assignment occurs before the call.
+
+3. `BlockSplitter.insertBlockBetween`:
+   - `removeConnection(source, target);`
+   - `source` and `target` are method parameters; both are passed from callers (`insertBlocksForBreak`, `insertBlockForPredecessors`, `insertBlocksForContinue`, `FixMultiEntryLoops.fixLoop`) using `BlockNode` objects coming from loop metadata (`LoopInfo`, `SpecialEdgeAttr`) and CFG edges. No null reassignments occur before the call.
+
+4. `BlockSplitter.replaceConnection`:
+   - `removeConnection(source, oldDest);`
+   - `source` and `oldDest` are method parameters received from various callers (e.g., `splitReturn`, `insertBlockForPredecessors`, `splitLoops`, `searchBottomBlock`, `SimpleModeHelper.removeEmptyBlocks`). In all provided code, these arguments are taken from:
+     - `BlockNode` fields (`loop.getStart()`, `loop.getEnd()`, `edge.getSource()`, `edge.getTarget()`, `backEdge.getStart()`, `backEdge.getEnd()`, `subEntry.getEnd()`),
+     - Collections of `BlockNode` (`getPredecessors()`, `getSuccessors()`, local block lists),
+     and are never set to `null` before being passed.
+
+5. `SimpleModeHelper.removeEmptyBlocks`:
+   - `BlockSplitter.removeConnection(block, successor);`
+   - `block` comes from `mth.getBasicBlocks()`; `successor` from `block.getSuccessors().get(0)`. No null writes.
+
+6. `BlockExceptionHandler.removeTmpConnection`:
+   - `BlockSplitter.removeConnection(tmpEdgeAttr.getBlock(), block);`
+   - `tmpEdgeAttr` is checked for `null` before use; `tmpEdgeAttr.getBlock()` is assumed to be a valid `BlockNode` (no evidence of null assignment here).
+   - `block` is the non-null method parameter being iterated.
+
+7. `BlockExceptionHandler.removeExcHandler`:
+   - `BlockSplitter.removeConnection(mth.getEnterBlock(), excHandler.getHandlerBlock());`
+   - Both `mth.getEnterBlock()` and `excHandler.getHandlerBlock()` are required to be valid CFG nodes for normal operation of the decompiler; in the given code they are not guarded by null checks, implying they are expected non-null in this path.
+
+Within `removeConnection` itself, the parameter `from` is not modified or reassigned; it is only dereferenced (`from.getSuccessors()`), which would indeed crash if it were null. However, across all shown callers, `from` is always passed as a `BlockNode` extracted from existing CFG structures, never as a literal `null` or as a value possibly reassigned to `null`.
+
+No other methods that could modify or null out these variables between their acquisition and the `removeConnection` calls are invoked in between. The variables passed (`pred`, `retBlock`, `block`, `successor`, `source`, `target`, etc.) are used directly in the calls without intermediate transformation that could introduce null.
+
+Under these conditions and given only the provided implementations, there is no execution path where `from` is null at the point of calling `removeConnection`.
+    ]]></reason>
+    <value>NO</value>
+</response>

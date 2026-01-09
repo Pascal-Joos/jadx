@@ -1,0 +1,71 @@
+```xml
+<response>
+    <reason><![CDATA[
+We are checking whether the *variable* `nextThen` itself can be null at the point of the line:
+
+    if (nextThen.getThenBlock() == nextElse.getThenBlock()
+
+Inside the method:
+
+@Nonnull
+private static IfInfo checkForTernaryInCondition(IfInfo currentIf) {
+    IfInfo nextThen = getNextIf(currentIf, currentIf.getThenBlock());
+    IfInfo nextElse = getNextIf(currentIf, currentIf.getElseBlock());
+    if (nextThen == null || nextElse == null) {
+        return null;
+    }
+    if (!nextThen.getFirstIfBlock().getDomFrontier().equals(nextElse.getFirstIfBlock().getDomFrontier())) {
+        return null;
+    }
+    nextThen = searchNestedIf(nextThen);
+    nextElse = searchNestedIf(nextElse);
+    if (nextElse == null) {
+        return null;
+    }
+    if (nextThen.getThenBlock() == nextElse.getThenBlock()
+            && nextThen.getElseBlock() == nextElse.getElseBlock()) {
+        return mergeTernaryConditions(currentIf, nextThen, nextElse);
+    }
+    ...
+
+Code-path analysis regarding `nextThen`:
+
+1. `nextThen` is first assigned from `getNextIf(...)`. This can return null, but there is an immediate check:
+
+       if (nextThen == null || nextElse == null) {
+           return null;
+       }
+
+   So if `nextThen` is null *here*, the method returns and execution never reaches the later line.
+
+2. After that, `nextThen` is only reassigned via:
+
+       nextThen = searchNestedIf(nextThen);
+
+   There is no null check on the result of `searchNestedIf(nextThen)`. Thus, if `searchNestedIf` can ever return null, `nextThen` can become null at this point.
+
+3. The only later null check is:
+
+       if (nextElse == null) {
+           return null;
+       }
+
+   This checks only `nextElse`, not `nextThen`. So there is no subsequent guard that would prevent `nextThen` from being null when we call:
+
+       if (nextThen.getThenBlock() == nextElse.getThenBlock()
+
+4. Therefore, whether `nextThen` can be null at that line entirely depends on the *contract* and implementation of `searchNestedIf(IfInfo)`:
+
+   - If `searchNestedIf` is guaranteed (by design/implementation) never to return null when given a non-null argument, then `nextThen` cannot be null there.
+   - If `searchNestedIf` may return null (e.g., when no nested-if is found), then `nextThen` can be null and the dereference `nextThen.getThenBlock()` is a potential NPE.
+
+From the code shown, there is no annotation (`@Nonnull`) or explicit null check ensuring `searchNestedIf` is non-null-returning. Without seeing its implementation or contract, we cannot soundly conclude that `nextThen` is non-null.
+
+Thus, based solely on the provided method, and without additional guarantees about `searchNestedIf`, it is not possible to prove that `nextThen` is non-null at that line.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the signature and implementation (or documented contract) of searchNestedIf(IfInfo) to determine whether it can return null.]]></request>
+        <request><![CDATA[Optionally provide annotations (@Nullable/@Nonnull) or documentation for searchNestedIf and getNextIf if available.]]></request>
+    </requests>
+</response>
+```

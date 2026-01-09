@@ -1,0 +1,37 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within this method, the only potential source of null for the expression at
+`return nameMap.containsKey(fullName);` is the variable `nameMap` itself.
+
+The method body is:
+
+public boolean isClsKnown(String fullName) {
+    if (nameMap == null) {
+        throw new JadxRuntimeException("Classpath must be loaded first");
+    }
+    return nameMap.containsKey(fullName);
+}
+
+Control-flow analysis:
+
+1. On entry, `nameMap` may be null or non-null.
+2. The first statement checks `if (nameMap == null)`:
+   - If `nameMap` is null, the method always throws `JadxRuntimeException` and
+     never reaches the `return nameMap.containsKey(fullName);` line.
+   - If execution reaches the return statement, it is only via the `else` branch
+     of that `if` (implicit), meaning `nameMap != null` is guaranteed at that
+     point.
+3. Therefore, on all reachable (non-exceptional) paths to the expression
+   `nameMap.containsKey(fullName)`, `nameMap` is not null.
+
+Assuming standard Java semantics (no reflection, no unsafe memory manipulation,
+no data races that mutate `nameMap` between the null check and the call),
+`nameMap` cannot be null at the line `return nameMap.containsKey(fullName);`.
+
+Hence, the expression `nameMap` at that line cannot be null on any normal
+execution path.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

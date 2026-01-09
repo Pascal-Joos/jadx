@@ -1,0 +1,15 @@
+<response>
+    <reason><![CDATA[
+Based on your stated criteria, initializer methods are either:
+- Specific framework lifecycle methods (e.g., onCreate, init in known APIs), or
+- Methods whose names start with "init" or "initialize" and are not setters.
+
+The provided method is named `setBasicBlocks`, which:
+- Clearly follows the conventional setter naming pattern (`setXxx`).
+- Does not start with "init" or "initialize".
+- Therefore falls under "setter method", which you explicitly do not want to treat as an initializer, regardless of the fact that it initializes fields.
+
+Thus, according to your own rules and naming-based heuristic, this method should not be considered an initializer method for NullAway.
+    ]]></reason>
+    <value>NO</value>
+</response>

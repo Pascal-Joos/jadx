@@ -1,0 +1,68 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private LoopRegion makeLoopRegion(IRegion curRegion, LoopInfo loop, List<BlockNode> exitBlocks) {
+		for (BlockNode block : exitBlocks) {
+			if (block.contains(AType.EXC_HANDLER)) {
+				continue;
+			}
+			InsnNode lastInsn = BlockUtils.getLastInsn(block);
+			if (lastInsn == null || lastInsn.getType() != InsnType.IF) {
+				continue;
+			}
+			List<LoopInfo> loops = block.getAll(AType.LOOP);
+			if (!loops.isEmpty() && loops.get(0) != loop) {
+				// skip nested loop condition
+				continue;
+			}
+			LoopRegion loopRegion = new LoopRegion(curRegion, loop, block, block == loop.getEnd());
+			boolean found;
+			if (block == loop.getStart() || block == loop.getEnd()
+					|| BlockUtils.isEmptySimplePath(loop.getStart(), block)) {
+				found = true;
+			} else if (block.getPredecessors().contains(loop.getStart())) {
+				loopRegion.setPreCondition(loop.getStart());
+				// if we can't merge pre-condition this is not correct header
+				found = loopRegion.checkPreCondition();
+			} else {
+				found = false;
+			}
+			if (found) {
+				List<LoopInfo> list = mth.getAllLoopsForBlock(block);
+				if (list.size() >= 2) {
+					// bad condition if successors going out of all loops
+					boolean allOuter = true;
+					List<BlockNode> cleanSuccessors = block.getCleanSuccessors();
+					if (cleanSuccessors == null) {
+						return null;
+					}
+					for (BlockNode outerBlock : cleanSuccessors) {
+						List<LoopInfo> outLoopList = mth.getAllLoopsForBlock(outerBlock);
+						outLoopList.remove(loop);
+						if (!outLoopList.isEmpty()) {
+							// goes to outer loop
+							allOuter = false;
+							break;
+						}
+					}
+					if (allOuter) {
+						found = false;
+					}
+				}
+			}
+			if (found && !checkLoopExits(loop, block)) {
+				found = false;
+			}
+			if (found) {
+				return loopRegion;
+			}
+		}
+		// no exit found => endless loop
+		return null;
+}
+  ```
+    ]]>
+  </code>
+</response>

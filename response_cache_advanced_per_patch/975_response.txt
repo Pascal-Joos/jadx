@@ -1,0 +1,73 @@
+<response>
+  <reason><![CDATA[
+At the call site in `extractFinally`:
+
+```java
+// ...
+// earlier in method
+boolean hasInnerBlocks = !tryBlock.getInnerTryBlocks().isEmpty();
+// ...
+List<BlockNode> tryBlocks = allHandler.getTryBlock().getBlocks();
+```
+
+`allHandler` is an `ExceptionHandler` chosen from `tryBlock.getHandlers()` in `processTryBlock`:
+
+```java
+for (ExceptionHandler excHandler : tryBlock.getHandlers()) {
+    if (excHandler.isCatchAll()) {
+        allHandler = excHandler;
+        // ...
+        break;
+    }
+}
+if (allHandler != null && reThrowInsn != null) {
+    if (extractFinally(mth, tryBlock, allHandler)) {
+        // ...
+    }
+}
+```
+
+Thus:
+- `allHandler` is guaranteed non-null when `extractFinally` is called.
+- However, `ExceptionHandler.getTryBlock()` simply returns the field `tryBlock`:
+
+```java
+public TryCatchBlockAttr getTryBlock() {
+    return tryBlock;
+}
+```
+
+There is no check or assignment shown that guarantees this field is non-null. The provided code only ensures:
+- `allHandler` is in `tryBlock.getHandlers()`.
+- `allHandler` has at least one block with a `THROW` instruction.
+
+None of this proves that `allHandler.tryBlock` is always initialized or non-null. The presence of `ExcHandlerAttr.getTryBlock()`:
+
+```java
+public TryCatchBlockAttr getTryBlock() {
+    return handler.getTryBlock();
+}
+```
+
+also indicates that callers generally expect a nullable result and simply propagate it.
+
+In `extractFinally`, there is an earlier use:
+
+```java
+TryCatchBlockAttr handlerTryBlock = allHandler.getTryBlock();
+if (handlerTryBlock != null) {
+    handlerTryBlock.removeHandler(allHandler);
+}
+```
+
+which explicitly treats `getTryBlock()` as potentially null. The later call site
+
+```java
+List<BlockNode> tryBlocks = allHandler.getTryBlock().getBlocks();
+```
+
+does not perform a null check, but that is a potential NPE site; it does not change the fact that `getTryBlock()` itself can return null.
+
+Because we are not given any constructor or mutator for `ExceptionHandler` that would enforce `tryBlock` being non-null in all cases where `allHandler` is used here, we must consider `tryBlock` as possibly null. Therefore, at this specific call site, `allHandler.getTryBlock()` can be null and could cause a NullPointerException when `.getBlocks()` is invoked.]]></reason>
+  <value>YES</value>
+</response>

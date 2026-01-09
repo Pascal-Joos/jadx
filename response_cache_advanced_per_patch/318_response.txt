@@ -1,0 +1,35 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the shown method, `genericTypes` is assigned as:
+
+    List<ArgType> genericTypes = type.getGenericTypes();
+
+There is no null check on `genericTypes` before it is passed to `notEmpty`:
+
+    if (type.isGeneric() && notEmpty(genericTypes)) {
+
+Whether `genericTypes` can be null depends entirely on the contract and implementation of `ArgType.getGenericTypes()` and of `notEmpty(...)`.
+
+- If `getGenericTypes()` is specified/implemented to never return null (e.g., returns an empty list when there are no generics), then `genericTypes` cannot be null, and the code is safe.
+- If `getGenericTypes()` may return null, then the code *relies* on `notEmpty(genericTypes)` being null-safe. For example, a typical null-safe `notEmpty` implementation would be:
+
+      boolean notEmpty(List<?> list) {
+          return list != null && !list.isEmpty();
+      }
+
+  In this common case, even if `genericTypes` is null, the `if (type.isGeneric() && notEmpty(genericTypes))` condition will be false, and the `for (ArgType argType : genericTypes)` loop will not execute. Thus, `genericTypes` will never be dereferenced when null.
+
+However, from the snippet shown, we do not see the implementation or contract of:
+- `ArgType.getGenericTypes()`
+- `notEmpty(List<?> list)`
+
+Therefore we cannot be certain whether `genericTypes` can *ever* be null at runtime, nor whether `notEmpty` safely guards against null. Without that information, the possibility of `genericTypes` being null cannot be ruled out or confirmed purely from this method body.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or contract of ArgType.getGenericTypes() (does it ever return null, or does it guarantee a non-null list?).]]></request>
+        <request><![CDATA[Provide the implementation of notEmpty(...) to confirm whether it is null-safe when passed a null list.]]></request>
+    </requests>
+</response>
+```

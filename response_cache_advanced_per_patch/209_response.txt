@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public ArgType getElementType() {
+ 		return arrayData == null ? null : Nullability.castToNonnull(arrayData).getElementType();
+}
+  ```
+    ]]>
+  </code>
+</response>

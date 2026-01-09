@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static void addEdgeInsn( Edge edge, InsnNode insn) {
+		addEdgeInsn(Nullability.castToNonnull(edge).getSource(), Nullability.castToNonnull(edge).getTarget(), insn);
+}
+  ```
+    ]]>
+  </code>
+</response>

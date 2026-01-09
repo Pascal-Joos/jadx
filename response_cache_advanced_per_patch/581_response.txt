@@ -1,0 +1,27 @@
+```xml
+<response>
+    <reason><![CDATA[
+Based solely on the provided method:
+
+public RegisterArg getResult() {
+    return result;
+}
+
+there is no information about:
+- where and how the field/variable `result` is initialized,
+- whether it is ever assigned null,
+- whether any constructor or factory method guarantees a non-null invariant for `result`,
+- any annotations (e.g., @NonNull, @Nullable) or external contracts.
+
+Because none of the code paths that assign to `result` are shown, I cannot determine whether all executions of this method are guaranteed to see `result` as non-null, or whether some paths may leave it null (e.g., default field value, reset method, partial initialization, or error conditions).
+
+Therefore, it is not possible to conclude that `result` can or cannot be null with the information given.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show the declaration of the `result` field/variable (including its type, annotations, and whether it is static or instance-level).]]></request>
+        <request><![CDATA[Show all constructors and methods that assign a value to `result`, including any reset/cleanup methods.]]></request>
+        <request><![CDATA[Indicate whether there are any external contracts or framework guarantees (e.g., dependency injection, validation layers) that ensure `result` is non-null before `getResult()` is called.]]></request>
+    </requests>
+</response>
+```

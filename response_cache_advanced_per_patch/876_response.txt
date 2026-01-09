@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static boolean checkConditionBranches(BlockNode from, BlockNode to) {
+		return Nullability.castToNonnull(from).getCleanSuccessors().size() == 1 && Nullability.castToNonnull(from).getCleanSuccessors().contains(to);
+}
+  ```
+    ]]>
+  </code>
+</response>

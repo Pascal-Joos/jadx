@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static boolean isPathExists(BlockNode start, BlockNode end) {
+		if (start == end
+				|| Nullability.castToNonnull(end).isDominator(start)
+				|| start.getCleanSuccessors().contains(end)) {
+			return true;
+		}
+		if (start.getPredecessors().contains(end)) {
+			return false;
+		}
+		return traverseSuccessorsUntil(start, end, new BitSet(), true);
+}
+  ```
+    ]]>
+  </code>
+</response>

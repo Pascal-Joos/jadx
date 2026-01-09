@@ -1,0 +1,7 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>getElseRegion</method>
+    <method>notEmpty</method>
+  </methods>
+</response>

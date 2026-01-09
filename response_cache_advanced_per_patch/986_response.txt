@@ -1,0 +1,43 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+ClassInfo argClsInfo = ClassInfo.fromType(cls.root(), argType);
+if (argClsInfo.isInner()
+        && cls.getFullName().startsWith(argClsInfo.getParentClass().getFullName())) {
+    return true;
+}
+```
+
+`argClsInfo` is obtained via `ClassInfo.fromType`:
+
+```java
+public static ClassInfo fromType(RootNode root, ArgType type) {
+    ArgType clsType = checkClassType(type);
+    ClassInfo cls = root.getInfoStorage().getCls(clsType);
+    if (cls != null) {
+        return cls;
+    }
+    ClassInfo newClsInfo = new ClassInfo(root, clsType, true);
+    return root.getInfoStorage().putCls(newClsInfo);
+}
+```
+
+This always returns a non-null `ClassInfo` instance (either found in the storage or newly created).
+
+For that `argClsInfo`, we have:
+
+```java
+public boolean isInner() {
+    return parentClass != null;
+}
+```
+
+The call to `getParentClass()` is guarded by `argClsInfo.isInner()`. That condition is true only when `parentClass != null`. Therefore, at this call site, when `argClsInfo.getParentClass()` is evaluated, `parentClass` is guaranteed to be non-null.
+
+Although `parentClass` can be null in general (e.g., after `notInner` or for top-level classes), in this specific code path the method is only called under the `isInner()` check, which enforces non-nullity.
+
+Thus, `argClsInfo.getParentClass()` cannot be null at this specific call site.]]></reason>
+  <value>NO</value>
+</response>

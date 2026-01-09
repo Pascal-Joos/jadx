@@ -1,0 +1,35 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void save(OutputStream output) throws IOException {
+		if (classes == null) {
+			throw new JadxRuntimeException("Missing classes");
+		}
+		DataOutputStream out = new DataOutputStream(output);
+		out.writeBytes(JADX_CLS_SET_HEADER);
+		out.writeByte(VERSION);
+
+		Map<String, ClspClass> names = new HashMap<>(classes.length);
+		out.writeInt(classes.length);
+		for (ClspClass cls : classes) {
+			String clsName = cls.getName();
+			writeString(out, clsName);
+			names.put(clsName, cls);
+		}
+		for (ClspClass cls : classes) {
+			writeArgTypesArray(out, cls.getParents(), names);
+			writeArgTypesList(out, cls.getTypeParameters(), names);
+			List<ClspMethod> methods = cls.getSortedMethodsList();
+			out.writeShort(methods.size());
+			for (ClspMethod method : methods) {
+				writeMethod(out, method, names);
+			}
+		}
+		int methodsCount = Stream.of(classes).mapToInt(c -> c.getMethodsMap().size()).sum();
+		LOG.info("Classes: {}, methods: {}, file size: {} bytes", classes.length, methodsCount, out.size());
+}
+  ```
+    ]]>
+  </code>
+</response>
