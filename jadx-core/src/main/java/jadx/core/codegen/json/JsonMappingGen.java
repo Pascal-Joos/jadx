@@ -86,7 +86,7 @@ public class JsonMappingGen {
 			jsonMethod.setName(methodInfo.getName());
 			jsonMethod.setAlias(methodInfo.getAlias());
 			jsonMethod.setOffset("0x" + Long.toHexString(method.getMethodCodeOffset()));
-			jsonCls.getMethods().add(jsonMethod);
+			Nullability.castToNonnull(jsonCls.getMethods()).add(jsonMethod);
 		}
 	}
 
