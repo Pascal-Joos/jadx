@@ -11,6 +11,8 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
@@ -100,7 +102,7 @@ public class ResXmlGen {
 				cw.add(">");
 
 				cw.incIndent();
-				for (ProtoValue value : protoValue.getNamedValues()) {
+				for (ProtoValue value : Nullability.castToNonnull(protoValue.getNamedValues())) {
 					addProtoItem(cw, itemTag, ri.getTypeName(), value);
 				}
 				cw.decIndent();
