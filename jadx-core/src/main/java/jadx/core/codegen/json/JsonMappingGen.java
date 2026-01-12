@@ -69,7 +69,7 @@ public class JsonMappingGen {
 			}
 			addFields(cls, jsonCls);
 			addMethods(cls, jsonCls);
-			mapping.getClasses().add(jsonCls);
+			Nullability.castToNonnull(mapping.getClasses()).add(jsonCls);
 		}
 	}
 
