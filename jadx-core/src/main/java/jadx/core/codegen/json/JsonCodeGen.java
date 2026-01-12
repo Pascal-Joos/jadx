@@ -114,7 +114,7 @@ public class JsonCodeGen {
 				continue;
 			}
 			JsonClass innerJsonCls = processCls(innerCls, classGen);
-			jsonCls.getInnerClasses().add(innerJsonCls);
+			Nullability.castToNonnull(jsonCls.getInnerClasses()).add(innerJsonCls);
 		}
 	}
 
