@@ -310,7 +310,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 		String attrName = getValidTagAttributeName(getAttributeName(attributeName));
 		writer.add(attrName).add("=\"");
-		String decodedAttr = ManifestAttributes.getInstance().decode(attrName, attrValData);
+		ManifestAttributes manifestAttributes = ManifestAttributes.getInstance();
+		String decodedAttr = manifestAttributes != null ? manifestAttributes.decode(attrName, attrValData) : null;
 		if (decodedAttr != null) {
 			memorizePackageName(attrName, decodedAttr);
 			if (isDeobfCandidateAttr(shortNsName, attrName)) {
