@@ -228,7 +228,7 @@ public class BlockUtils {
 	}
 
 	public static boolean isExitBlock(@Nullable BlockNode block) {
-		List<BlockNode> successors = block.getSuccessors();
+		List<BlockNode> successors = Nullability.castToNonnull(block).getSuccessors();
 		if (successors.isEmpty()) {
 			return true;
 		}
