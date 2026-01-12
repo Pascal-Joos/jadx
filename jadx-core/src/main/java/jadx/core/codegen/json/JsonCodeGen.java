@@ -160,7 +160,7 @@ public class JsonCodeGen {
 			jsonMth.setAccessFlags(mth.getAccessFlags().rawValue());
 			jsonMth.setLines(fillMthCode(mth, mthGen));
 			jsonMth.setOffset("0x" + Long.toHexString(mth.getMethodCodeOffset()));
-			jsonCls.getMethods().add(jsonMth);
+			Nullability.castToNonnull(jsonCls.getMethods()).add(jsonMth);
 		}
 	}
 
