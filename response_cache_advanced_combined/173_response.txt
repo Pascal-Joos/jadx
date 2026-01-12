@@ -1,0 +1,62 @@
+<response>
+  <reason><![CDATA[
+At this call site, `classInfo.getAliasPkg()` is invoked on a `ClassInfo` instance. The implementation is:
+
+```java
+public String getAliasPkg() {
+    if (isInner()) {
+        return parentClass.getAliasPkg();
+    }
+    return alias == null ? getPackage() : alias.getPkg();
+}
+```
+
+To be null, one of the following must happen:
+
+1. For non-inner classes (`isInner() == false`):
+   - `alias == null` and `getPackage()` returns null, or
+   - `alias != null` and `alias.getPkg()` returns null.
+
+2. For inner classes (`isInner() == true`):
+   - `parentClass.getAliasPkg()` returns null.
+
+However, all uses of `getAliasPkg()` in the provided code treat it as non-null and as a proper package string:
+
+- `RenameVisitor.checkPackage` calls:
+  ```java
+  String aliasPkg = classInfo.getAliasPkg();
+  if (args.isRenameValid() && Nullability.castToNonnull(aliasPkg).isEmpty()) {
+      classInfo.changePkg(Consts.DEFAULT_PACKAGE_NAME);
+      ...
+  }
+  ```
+  Here, `Nullability.castToNonnull(aliasPkg)` is called immediately. That implies `aliasPkg` is expected to be non-null; otherwise, this would be a potential NPE. If `aliasPkg` could be null at this point, the codebase would be unsafe. The intent is clearly that "empty package" is expressed as `""`, not `null`. The `changePkg` call then sets `alias` such that future `getAliasPkg()` calls return a non-null string.
+
+- `ClassInfo.getAliasFullPath`:
+  ```java
+  return Nullability.castToNonnull(getAliasPkg()).replace('.', File.separatorChar)
+          + File.separatorChar
+          + getAliasNameWithoutPackage().replace('.', '_');
+  ```
+  This method is used in several places (e.g., `SaveCode.save`, `JsonMappingGen`, `DotGraphVisitor`). It again wraps `getAliasPkg()` in `Nullability.castToNonnull`, signalling the design guarantee that the logical contract is "not null" and that "no package" maps to an empty string.
+
+- `Deobfuscator.getPkgAlias`:
+  When `classInfo.hasAliasPkg()` is true, it uses:
+  ```java
+  String[] aliasParts = classInfo.getAliasPkg().split("\\.");
+  ```
+  `split` would throw if `getAliasPkg()` were null, so this code also assumes non-null.
+
+- The "default package" logic (`Consts.DEFAULT_PACKAGE_NAME`) is used when `getAliasPkg()` is logically empty, not null.
+
+Given:
+- The strong, repeated assumptions across the codebase that `getAliasPkg()` is non-null.
+- The absence of any code path that deliberately assigns `null` as a package name (instead empty string or default package name is used).
+- Inner classes simply delegate to `parentClass.getAliasPkg()`, and top-level classes ultimately fall back to `getPackage()` or `alias.getPkg()`, both expected to be valid, non-null package strings under this design.
+
+Under these constraints, at this specific call site `classInfo.getAliasPkg()` is not expected to ever be null in a valid, non-broken program state. A null here would contradict multiple callers’ non-null assumptions and lead to immediate NPEs in other parts of the code; the design is clearly that "no package" is represented as `""`, not `null`.
+
+Therefore, for this call site, the result is treated and relied upon as non-null.
+  ]]></reason>
+  <value>NO</value>
+</response>

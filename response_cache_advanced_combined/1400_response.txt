@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void processEnumCls(ClassNode cls, EnumField field, ClassNode innerCls) {
+		// remove constructor, because it is anonymous class
+		for (MethodNode innerMth : innerCls.getMethods()) {
+			if (innerMth.getAccessFlags().isConstructor()) {
+				innerMth.add(AFlag.DONT_GENERATE);
+			}
+		}
+		field.setCls(innerCls);
+		if (!Nullability.castToNonnull(innerCls.getParentClass()).equals(cls)) {
+			// not inner
+			cls.addInlinedClass(innerCls);
+			innerCls.add(AFlag.DONT_GENERATE);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

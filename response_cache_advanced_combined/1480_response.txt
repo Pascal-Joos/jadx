@@ -1,0 +1,49 @@
+<response>
+  <reason><![CDATA[
+The call site in question is simply:
+
+```java
+mth.getBasicBlocks()
+```
+
+with `MethodNode.getBasicBlocks()` implemented as:
+
+```java
+public List<BlockNode> getBasicBlocks() {
+    return blocks;
+}
+```
+
+From this method alone, `blocks` can be either null or non‑null; there is no local initialization or guarantee here.
+
+Looking at the broader usage in the provided code, many callers defensively check for null before using `getBasicBlocks()`:
+
+- `ConstInlineVisitor.process`:
+  ```java
+  if (mth.getBasicBlocks() == null) {
+      return;
+  }
+  ```
+- `ProcessKotlinInternals.processMth`:
+  ```java
+  if (mth.isNoCode() || mth.getBasicBlocks() == null) {
+      return;
+  }
+  ```
+- `MarkMethodsForInline.process`:
+  ```java
+  if (mth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE)) {
+      if (mth.getBasicBlocks() == null) {
+          return null;
+      }
+      ...
+  }
+  ```
+- Many others use `isEmpty()` only where they implicitly rely on non‑nullness in that phase.
+
+There is no global invariant shown that `blocks` is always non‑null for any `MethodNode`. In fact, several pieces of code explicitly handle the `null` case (e.g., `DotGraphVisitor.DumpDotGraph.process` builds synthetic blocks when `getBasicBlocks()` returns null), proving that `blocks` can legitimately be null at runtime.
+
+Because `getBasicBlocks()` is just a field getter and there is no shown guarantee that `blocks` is initialized before this particular call, the specific invocation `mth.getBasicBlocks()` can evaluate to null. The extensive presence of null checks in the codebase is further evidence that null is an expected possibility.
+  ]]></reason>
+  <value>YES</value>
+</response>

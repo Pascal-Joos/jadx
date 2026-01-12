@@ -1,0 +1,22 @@
+<response>
+  <reason><![CDATA[
+At the call site, `getCls(argType, names)` resolves to:
+
+```java
+private static ClspClass getCls(ArgType clsType, Map<String, ClspClass> names) {
+    return getCls(clsType.getObject(), names);
+}
+```
+
+This method always returns the result of the *other* overload `getCls(String, Map<String, ClspClass>)`, which is not shown. There are no other return paths: no conditional branches, no explicit `null` literals, and no default/fallback return.
+
+The returned value therefore depends entirely on what `getCls(String, Map<String, ClspClass>)` does with `clsType.getObject()` and `names`. Since that method’s implementation is not provided, we cannot determine whether it might:
+- look up the class name in `names` and return `null` when not found, or
+- always return a non-null `ClspClass` (e.g., throwing if not found).
+
+Because of this missing declaration, we cannot conclude whether `getCls(argType, names)` can or cannot return `null` at this call site. To decide, we must analyze the implementation of the string-based overload.]]></reason>
+  <success>false</success>
+  <methods>
+    <method>getCls</method>
+  </methods>
+</response>

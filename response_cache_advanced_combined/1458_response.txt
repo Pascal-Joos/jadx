@@ -1,0 +1,47 @@
+<response>
+  <reason><![CDATA[
+At this call site, the receiver is a local variable named `mth` of type `MethodNode`, and the invocation is simply `mth.getBasicBlocks()`. The implementation of `getBasicBlocks()` is:
+
+```java
+public List<BlockNode> getBasicBlocks() {
+    return blocks;
+}
+```
+
+so whether this can return null depends entirely on the field `blocks` inside that `MethodNode` instance.
+
+From the provided code, we can see:
+
+- Many callers explicitly *allow* for `getBasicBlocks()` to be `null`, e.g.:
+
+  ```java
+  if (mth.getBasicBlocks() == null) {
+      return;
+  }
+  ```
+
+  (ConstInlineVisitor.process, ProcessKotlinInternals.processMth, ModVisitor.removeStep, BlockSplitter.removeJumpAttr, etc.)
+
+- Other callers only check `.isEmpty()` and therefore implicitly assume it is *not* null:
+
+  ```java
+  if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
+      return;
+  }
+  ```
+
+  (CleanRegions.process, RegionMakerVisitor.visit, BlockProcessor.visit, etc.)
+
+This mixed usage shows that across the codebase `blocks` is allowed to be either:
+
+- `null` (before or outside CFG initialization), or  
+- a non-null `List<BlockNode>` (possibly empty) once initialized (e.g. after `mth.initBasicBlocks()` and related setup).
+
+Crucially, nothing in the given snippets guarantees that for **every** `MethodNode mth` passed to all these visitors `blocks` has been initialized first. The existence of explicit `null` checks around other call sites is evidence that the authors expect `getBasicBlocks()` to sometimes be `null` at the moment a method is called, depending on pipeline ordering or method properties (`isNoCode()`, etc.).
+
+Because the question is about this specific expression `mth.getBasicBlocks()` in general code (not tied to a single concrete visitor/state sequence that would prove `blocks` is initialized beforehand), the only safe conclusion from the provided code is that `blocks` *can* be `null` at some call sites, and there is no invariant shown that rules out null for this particular one.
+
+Therefore, at this call site, the result can be null.
+  ]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,51 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to know whether the local variable `d` at the line `d.set(block.getId());` can ever be null.
+
+1. `map` initialization:
+   - `map` is created as: `Map<BlockNode, BitSet> map = new HashMap<>(blocksCount);`
+   - For each `block` in `blockNodes`, the code does:
+        BitSet postDoms = new BitSet(blocksCount);
+        postDoms.or(initSet);
+        map.put(block, postDoms);
+   - Therefore, after this loop, for every `block` in `blockNodes`, `map.get(block)` returns a non-null `BitSet` (because each of those keys has been associated with a `new BitSet(...)` value).
+
+2. Relation between `block` in the main loop and `blockNodes`:
+   - The later loop is:
+        do {
+            ...
+            for (BlockNode block : blockNodes) {
+                if (block == exitBlock) {
+                    continue;
+                }
+                BitSet d = map.get(block);
+                ...
+                d.set(block.getId());
+                ...
+            }
+        } while (changed);
+   - This for-each loop iterates over the exact same `blockNodes` collection that was used earlier to populate `map`. So every `block` encountered here is guaranteed to be a key previously inserted into `map`.
+
+3. Possible mutation of `map`:
+   - Inside the `do` loop, `map` is only modified by:
+        map.put(block, d);
+     but `d` here is the same reference obtained from `map.get(block)` earlier in the same iteration. It is never assigned null, nor is any `map.put` call performed with a null value. There is also no `map.remove` anywhere.
+   - After the fixpoint loop, `blockNodes.forEach(block -> { ... })` may do:
+        map.put(block, EmptyBitSet.EMPTY);
+     but `EmptyBitSet.EMPTY` is still a non-null `BitSet` (by design/usage). No null is ever stored as a value into `map`.
+
+4. External influences:
+   - There is no visible path where `map` is shared with external code that could insert null values or remove keys.
+   - The code does use `Nullability.castToNonnull(d)`, suggesting a static analysis utility, but this does not change runtime behavior, only casts for analysis/annotations.
+
+5. Specific line in question:
+   - `BitSet d = map.get(block);`
+   - Given the initial population of `map` for all `blockNodes`, the controlled updates inside the method, and that the loop iterates over the same `blockNodes`, `map.get(block)` cannot be null at this point under the method's own logic and assumptions (i.e., that `blockNodes` is the same collection throughout and that `exitBlock` is in `blockNodes` and was also initialized).
+   - Therefore, at `d.set(block.getId());`, `d` is guaranteed to be a non-null `BitSet` as long as the caller respects the implicit contract that `blockNodes` is exactly the set of blocks used to initialize `map` and is not modified concurrently.
+
+Conclusion: Under normal, intended use of this method (no concurrent modifications to `blockNodes` or `map`, and no external tampering), `d` cannot be null at `d.set(block.getId());`.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

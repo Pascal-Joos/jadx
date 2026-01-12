@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void useType(ICodeWriter code, ArgType type) {
+		PrimitiveType stype = Nullability.castToNonnull(type).getPrimitiveType();
+		if (stype == null) {
+			code.add(Nullability.castToNonnull(type).toString());
+		} else if (stype == PrimitiveType.OBJECT) {
+			if (Nullability.castToNonnull(type).isGenericType()) {
+				code.add(Nullability.castToNonnull(type).getObject());
+			} else {
+				useClass(code, Nullability.castToNonnull(type));
+			}
+		} else if (stype == PrimitiveType.ARRAY) {
+			useType(code, Nullability.castToNonnull(type).getArrayElement());
+			code.add("[]");
+		} else {
+			code.add(stype.getLongName());
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

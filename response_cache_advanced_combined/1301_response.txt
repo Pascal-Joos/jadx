@@ -1,0 +1,44 @@
+<response>
+  <reason><![CDATA[
+At the call site `cls.getParents()`, `cls` is an instance of `jadx.core.clsp.ClspClass`, whose method
+
+```java
+public ArgType[] getParents() {
+    return parents;
+}
+```
+
+simply returns the field `parents` without any checks or modification. There is no assignment to `parents` shown that would guarantee it is non-null, nor any defensive initialization in `getParents()` itself.
+
+In the provided usages:
+
+- In `ClsSet.save`:
+  ```java
+  writeArgTypesArray(out, cls.getParents(), names);
+  ```
+  `cls.getParents()` is passed directly; no null check is performed before the call, and nothing here constrains `parents` to be non-null.
+
+- In `TypeUtils.visitSuperTypes`:
+  ```java
+  for (ArgType superType : Nullability.castToNonnull(clspClass.getParents())) {
+  ```
+  The code explicitly wraps `clspClass.getParents()` with `Nullability.castToNonnull(...)`, which is a strong indication that `getParents()` may return null and must be treated as potentially nullable.
+
+- In `OverrideMethodVisitor.addSuperType`:
+  ```java
+  for (ArgType parentType : Nullability.castToNonnull(clsDetails.getParents())) {
+  ```
+  Again, `castToNonnull` is used, implying `getParents()` might be null.
+
+- In `MethodUtils.processMethodArgsOverloaded` (the CLSP branch):
+  ```java
+  for (ArgType parent : Nullability.castToNonnull(clsDetails.getParents())) {
+  ```
+  Same pattern as above.
+
+- In `ClspGraph`, there are other overloads of `getParents()` (one returning a `Set<ArgType>`), but that is a different method signature and does not constrain the `ArgType[] getParents()` implementation or its field `parents`.
+
+Across all these sites, there is no evidence that `parents` is always initialized to a non-null array, and several call sites treat the result as possibly null (requiring `Nullability.castToNonnull`). Since `getParents()` is a trivial accessor returning `parents`, and the field can be null, the call `cls.getParents()` at these sites can indeed produce a null value.
+  ]]></reason>
+  <value>YES</value>
+</response>

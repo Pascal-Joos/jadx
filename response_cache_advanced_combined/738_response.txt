@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static void process(MethodNode mth) {
+		if (mth.getBasicBlocks() == null) {
+			return;
+		}
+		List<InsnNode> toRemove = new ArrayList<>();
+		for (BlockNode block : mth.getBasicBlocks()) {
+			toRemove.clear();
+			for (InsnNode insn : block.getInstructions()) {
+				checkInsn(mth, insn, toRemove);
+			}
+			InsnRemover.removeAllAndUnbind(mth, block, toRemove);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,29 @@
+```xml
+<response>
+    <reason><![CDATA[
+insnElementType is initialized as:
+
+    ArgType insnElementType = insnArrayType != null ? insnArrayType.getArrayElement() : null;
+
+So it can be null in two situations:
+1. insnArrayType is null → ternary sets insnElementType to null.
+2. insnArrayType is non-null but insnArrayType.getArrayElement() returns null.
+
+Now examine the specific use:
+
+    if (insnElementType != null
+            && !elType.isTypeKnown()
+            && insnElementType.isPrimitive()
+            && elType.contains(insnElementType.getPrimitiveType())) {
+
+In Java, the conditional && operator short-circuits left to right. The very first conjunct is:
+
+    insnElementType != null
+
+Because this is evaluated first, the remaining conditions (including insnElementType.isPrimitive()) are only evaluated if insnElementType != null is true. Therefore, at the exact point of evaluation of insnElementType.isPrimitive(), the Java language guarantees that insnElementType is non-null on that execution path.
+
+While insnElementType may be null at other program points (e.g., just after assignment, or in later code when used without a null-check), for this specific expression at this specific line, it cannot be null due to the preceding null-check in the same if condition and short-circuit semantics.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

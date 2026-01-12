@@ -1,0 +1,6 @@
+<response>
+    <reason><![CDATA[
+The method name `simplifyCondition` does not start with `init` or `initialize`, and it is not one of the known framework lifecycle/initializer methods (e.g., `onCreate`, `init` on servlet/filter/processor interfaces). Although it mutates/initializes a field (`condition`), by the criteria you described for NullAway, that alone does not make it an initializer method. It appears to be a normal business-logic/helper method, not a designated initialization entry point that is guaranteed to run before all other non-constructor methods.
+    ]]></reason>
+    <value>NO</value>
+</response>

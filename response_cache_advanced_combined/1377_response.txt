@@ -1,0 +1,48 @@
+<response>
+  <reason><![CDATA[
+The call site is `thisArg.getSVar()` inside `SSATransform.markThisArgs`:
+
+```java
+private static void markThisArgs(RegisterArg thisArg) {
+    if (thisArg != null) {
+        markOneArgAsThis(thisArg);
+        thisArg.getSVar().getUseList().forEach(SSATransform::markOneArgAsThis);
+    }
+}
+```
+
+`thisArg` is the method’s `this` argument. It is created during decoding/SSA setup as a real register argument with an SSA variable, and later `SSATransform.process(mth)` explicitly calls:
+
+```java
+markThisArgs(mth.getThisArg());
+```
+
+SSA invariants enforced elsewhere:
+
+- `InitCodeVariables.initCodeVar(MethodNode mth, RegisterArg regArg)`:
+  ```java
+  SSAVar ssaVar = regArg.getSVar();
+  if (ssaVar == null) {
+      ssaVar = mth.makeNewSVar(regArg);
+  }
+  ```
+  This guarantees that any method/this/arg register eventually gets a non‑null `SSAVar`.
+
+- `DebugChecks.checkVar`:
+  ```java
+  SSAVar sVar = reg.getSVar();
+  if (sVar == null) {
+      if (Utils.notEmpty(mth.getSVars())) {
+          throw new JadxRuntimeException("Null SSA var in " + insn + ", mth: " + mth);
+      }
+      return;
+  }
+  ```
+  Once SSA vars exist in the method (which they do when `markThisArgs` runs), any `RegisterArg` used in an instruction must have a non‑null `SSAVar`, otherwise execution fails with an exception rather than proceeding with a null `SSAVar`.
+
+Also, many other places assume non‑null `getSVar()` for `this` and other arguments (e.g., `markOneArgAsThis`, `TypeInferenceVisitor`, `RegionGen.makeLoop`), and would otherwise throw or corrupt SSA state. The SSA pipeline ensures `thisArg` is fully wired up before `markThisArgs` is applied.
+
+Therefore, at this specific call site, `thisArg.getSVar()` is guaranteed to be non‑null; if it were null, the decompiler would throw rather than treat it as a null value. The method `getSVar()` cannot return null here.
+]]></reason>
+  <value>NO</value>
+</response>

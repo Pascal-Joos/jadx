@@ -1,0 +1,46 @@
+<response>
+  <reason><![CDATA[
+The call site is always on a `MethodNode mth` that has already gone through basic-block construction and validation, and all provided usages treat `mth.getEnterBlock()` as non-null:
+
+1. Many call sites immediately dereference the result without any null checks, e.g.:
+   - `mth.getEnterBlock().getCleanSuccessors().get(0);`
+   - `mth.getEnterBlock().getId();`
+   - `BlockSplitter.removeConnection(mth.getEnterBlock(), excHandler.getHandlerBlock());`
+   If `getEnterBlock()` could be null in these contexts, they would throw a `NullPointerException`, and there are no guards against this, indicating the internal invariant is that `enterBlock` is always non-null once blocks exist.
+
+2. The CFG and dominance utilities assume a non-null entry:
+   - `BlockUtils.dfsVisit` does:
+     ```java
+     BlockNode enterBlock = mth.getEnterBlock();
+     queue.addLast(Nullability.castToNonnull(enterBlock));
+     visited.set(mth.getEnterBlock().getId());
+     ```
+     Using `Nullability.castToNonnull` and immediately accessing `getId()` shows that, by design, `enterBlock` must not be null when `dfsVisit` is used (which is how sorted blocks and many analyses are built).
+   - `DominatorTree.sortBlocks` calls `BlockUtils.dfsVisit(mth, ...)` and throws only on *unreachable blocks*, not on a missing enter block, reinforcing that the entry block is expected to exist.
+
+3. Methods that operate before or instead of basic blocks (e.g. in `DotGraphVisitor.DumpDotGraph`) explicitly handle the case where `mth.getBasicBlocks()` is `null` by creating a synthetic `enterBlock`:
+   ```java
+   BlockNode enterBlock = mth.getEnterBlock();
+   ...
+   if (blocks == null) {
+       ...
+       enterBlock = block; // synthetic non-null enterBlock
+       blocks = Collections.singletonList(block);
+   }
+   ```
+   This shows that when they need to work without a normal CFG, they *ensure* `enterBlock` is non-null, not allow it to be null.
+
+4. Other high-level checks ensure the method actually has code/blocks before these call sites are used:
+   - Visitors like `RegionMakerVisitor.visit`, `DotGraphVisitor.visit/save`, and others first check conditions like:
+     ```java
+     if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
+         return;
+     }
+     ```
+     Only when a method has code and basic blocks do they proceed to use `mth.getEnterBlock()`. Within this state of the object, the internal representation of `MethodNode` is expected to include a valid entry block.
+
+Given all this, for the provided call sites (all of which are within internal analysis / transformation code that presupposes a well-formed CFG), the `enterBlock` field is an established invariant and is not null. There is no code path shown that sets `enterBlock` to null once basic blocks exist, and several methods would plainly crash if it could be null, which would be a fundamental bug in Jadx. The codebase is structured around the assumption that such a situation does not occur.
+
+Therefore, at the shown call sites `mth.getEnterBlock()` cannot be null.]]></reason>
+  <value>NO</value>
+</response>

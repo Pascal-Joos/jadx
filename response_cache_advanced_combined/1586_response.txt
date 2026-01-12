@@ -1,0 +1,30 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@SuppressWarnings({ "ForLoopReplaceableByWhile", "ForLoopReplaceableByForEach" })
+	private boolean tryInsertCasts(MethodNode mth) {
+		int added = 0;
+		List<SSAVar> mthSVars = mth.getSVars();
+		int varsCount = mthSVars.size();
+		for (int i = 0; i < varsCount; i++) {
+			SSAVar var = mthSVars.get(i);
+			ArgType type = var.getTypeInfo().getType();
+			if (!Nullability.castToNonnull(type).isTypeKnown() && !var.isTypeImmutable()) {
+				added += tryInsertVarCast(mth, var);
+			}
+		}
+		if (added != 0) {
+			if (Consts.DEBUG_TYPE_INFERENCE) {
+				mth.addDebugComment("Additional " + added + " cast instructions added to help type inference");
+			}
+			InitCodeVariables.rerun(mth);
+			initTypeBounds(mth);
+			return runTypePropagation(mth);
+		}
+		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

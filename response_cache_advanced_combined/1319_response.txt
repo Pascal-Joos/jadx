@@ -1,0 +1,69 @@
+<response>
+  <reason><![CDATA[
+We analyze `ClassNode.getPackage()`:
+
+```java
+class jadx.core.dex.nodes.ClassNode {
+    public String getPackage() {
+        return clsInfo.getAliasPkg();
+    }
+}
+```
+
+Its return value is exactly whatever `clsInfo.getAliasPkg()` returns. So we must check `ClassInfo.getAliasPkg()` and all methods it depends on.
+
+```java
+class jadx.core.dex.info.ClassInfo {
+    public String getAliasPkg() {
+        if (isInner() && parentClass != null) {
+            return parentClass.getAliasPkg();
+        }
+        return alias == null ? getPackage() : alias.getPkg();
+    }
+
+    @NotNull
+    public String getPackage() {
+        if (parentClass != null) {
+            return parentClass.getPackage();
+        }
+        if (pkg == null) {
+            throw new JadxRuntimeException("Package is null for not inner class");
+        }
+        return pkg;
+    }
+}
+```
+
+```java
+class jadx.core.dex.info.ClassAliasInfo {
+    public String getPkg() {
+        return pkg;
+    }
+}
+```
+
+Paths in `getAliasPkg()`:
+
+1. `if (isInner() && parentClass != null) { return parentClass.getAliasPkg(); }`
+
+   Here, the result depends on `parentClass.getAliasPkg()`. The implementation of `parentClass.getAliasPkg()` is not provided. Even though it's likely another `ClassInfo`, we are explicitly instructed not to assume behavior without its full declaration. It might be overridden or behave differently, and could potentially return `null`.
+
+2. `return alias == null ? getPackage() : alias.getPkg();`
+
+   - If `alias == null`, it returns `getPackage()`. This method is annotated `@NotNull` and:
+     - If `parentClass != null`, it returns `parentClass.getPackage()`. Again this depends on `parentClass.getPackage()`, whose exact implementation in the `parentClass` instance is not shown (it could be another implementation).
+     - If `parentClass == null` and `pkg == null`, it throws an exception instead of returning, so no null is returned in that branch.
+     - Otherwise, it returns `pkg`, which, by logic and `@NotNull`, is intended non-null, but the annotation is not a hard guarantee at runtime.
+
+   - If `alias != null`, it returns `alias.getPkg()`, which is just `return pkg;` from `ClassAliasInfo`. That `pkg` field is not guaranteed to be non-null by any provided checks or annotations, so it could be `null`.
+
+Therefore, from the provided code alone:
+
+- In the `alias != null` branch, `alias.getPkg()` can be `null` if `alias.pkg` is `null`.
+- In the inner-class branch or parent delegation branches, we depend on `parentClass.getAliasPkg()` / `parentClass.getPackage()`, whose full declarations are not given, so they might return `null`.
+
+Because there are feasible code paths where a `null` can be propagated (via `alias.getPkg()` or via parent methods we cannot fully inspect), `ClassNode.getPackage()` can return `null`.
+
+]]></reason>
+  <value>YES</value>
+</response>

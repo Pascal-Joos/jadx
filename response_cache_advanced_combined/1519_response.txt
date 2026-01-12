@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static boolean isEmptySyntheticPath(BlockNode b1, BlockNode b2) {
+		BlockNode n1 = followEmptyPath(b1);
+		BlockNode n2 = followEmptyPath(b2);
+		return Nullability.castToNonnull(n1) == n2 || isEqualReturnBlocks(Nullability.castToNonnull(n1), n2);
+}
+  ```
+    ]]>
+  </code>
+</response>

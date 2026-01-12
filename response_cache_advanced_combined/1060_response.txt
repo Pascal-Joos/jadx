@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    ArgType type = var.getTypeInfo().getType();
+
+the executed method is:
+
+```java
+class jadx.core.dex.visitors.typeinference.TypeInfo {
+    @NotNull
+    public ArgType getType() {
+        return type;
+    }
+}
+```
+
+So the question reduces to: can `TypeInfo.type` be null at this moment?
+
+From all the provided usages:
+
+- Code frequently does `var.getTypeInfo().getType()` and then immediately calls instance methods on the result, such as:
+  - `resolvedType.isTypeKnown()`
+  - `currentType.isTypeKnown()`
+  - `if (resolvedType.equals(ssaVar.getTypeInfo().getType()))`
+  - `Nullability.castToNonnull(ssaVar.getTypeInfo().getType()).equals(candidateType)`
+- There are many comparisons and logical conditions using `getType()` with no null-checks anywhere in the type inference pipeline.
+- `TypeInfo.getType()` itself is annotated with `@NotNull`, and the rest of the code clearly relies on this contract: it treats the result as never-null and does not defensively guard against null.
+- When an "unknown" type is needed, the code uses the non-null sentinel `ArgType.UNKNOWN` or other known `ArgType` constants, not `null`. For example:
+  - `return ArgType.UNKNOWN;` in `RegisterArg.getType()` when `sVar == null`
+  - Many places compare against `ArgType.UNKNOWN` instead of checking for null.
+
+Given this design:
+
+- A `null` `type` value inside `TypeInfo` would immediately cause `NullPointerException` in multiple existing call sites (including several provided in your snippets), since they dereference methods on `getType()` without any null checks.
+- The entire type-inference machinery consistently assumes a non-null `ArgType` and uses `UNKNOWN` as the "no information" value.
+
+Therefore, at this specific call site, under the assumptions of this codebase and its annotations, `var.getTypeInfo().getType()` is not expected to be null; the system is designed around `getType()` always returning a non-null `ArgType` (possibly `ArgType.UNKNOWN`), and other code relies on that invariant.
+
+So, according to both the `@NotNull` contract and the actual usage patterns, this invocation cannot legitimately return null. Any violation would be a broader invariant break causing failures elsewhere, not a normal/expected behavior at this site.]]></reason>
+  <value>NO</value>
+</response>

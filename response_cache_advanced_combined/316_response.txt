@@ -1,0 +1,25 @@
+<response>
+  <reason><![CDATA[At the call site
+
+List<ArgType> actualTypes = clsType.getGenericTypes();
+
+the invoked method is ArgType.getGenericTypes(). The only implementation of this method shown at depth 0 is:
+
+public List<ArgType> getGenericTypes() {
+    return null;
+}
+
+This method unconditionally returns null on its single return path, with no dependence on parameters or other methods.
+
+Although there is an overriding implementation in ArgType$OuterGenericObject:
+
+@Override
+public List<ArgType> getGenericTypes() {
+    return innerType.getGenericTypes();
+}
+
+we have no information that clsType is specifically an instance of OuterGenericObject at this call site; it is typed as ArgType. Therefore, the most general conclusion is that calling getGenericTypes() on an ArgType reference can return null, and the base implementation explicitly does so.
+
+Thus, at this specific call site, the result of clsType.getGenericTypes() can be null.]]></reason>
+  <value>YES</value>
+</response>

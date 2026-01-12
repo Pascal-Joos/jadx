@@ -1,0 +1,74 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void makeLoop(LoopRegion region, ICodeWriter code) throws CodegenException {
+		code.startLineWithNum(region.getSourceLine());
+		LoopLabelAttr labelAttr = region.getInfo().getStart().get(AType.LOOP_LABEL);
+		if (labelAttr != null) {
+			code.add(mgen.getNameGen().getLoopLabel(labelAttr)).add(": ");
+		}
+
+		IfCondition condition = region.getCondition();
+		if (condition == null) {
+			// infinite loop
+			code.add("while (true) {");
+			makeRegionIndent(code, region.getBody());
+			code.startLine('}');
+			return;
+		}
+		InsnNode condInsn = condition.getFirstInsn();
+		InsnCodeOffset.attach(code, condInsn);
+
+		ConditionGen conditionGen = new ConditionGen(this);
+		LoopType type = region.getType();
+		if (type != null) {
+			if (type instanceof ForLoop) {
+				ForLoop forLoop = (ForLoop) type;
+				code.add("for (");
+				makeInsn(forLoop.getInitInsn(), code, Flags.INLINE);
+				code.add("; ");
+				conditionGen.add(code, condition);
+				code.add("; ");
+				makeInsn(forLoop.getIncrInsn(), code, Flags.INLINE);
+				code.add(") {");
+				CodeGenUtils.addCodeComments(code, mth, condInsn);
+				makeRegionIndent(code, region.getBody());
+				code.startLine('}');
+				return;
+			}
+			if (type instanceof ForEachLoop) {
+				ForEachLoop forEachLoop = (ForEachLoop) type;
+				code.add("for (");
+				declareVar(code, Nullability.castToNonnull(forEachLoop.getVarArg()));
+				code.add(" : ");
+				addArg(code, forEachLoop.getIterableArg(), false);
+				code.add(") {");
+				CodeGenUtils.addCodeComments(code, mth, condInsn);
+				makeRegionIndent(code, region.getBody());
+				code.startLine('}');
+				return;
+			}
+			throw new JadxRuntimeException("Unknown loop type: " + type.getClass());
+		}
+		if (region.isConditionAtEnd()) {
+			code.add("do {");
+			CodeGenUtils.addCodeComments(code, mth, condInsn);
+			makeRegionIndent(code, region.getBody());
+			code.startLineWithNum(region.getSourceLine());
+			code.add("} while (");
+			conditionGen.add(code, condition);
+			code.add(");");
+		} else {
+			code.add("while (");
+			conditionGen.add(code, condition);
+			code.add(") {");
+			CodeGenUtils.addCodeComments(code, mth, condInsn);
+			makeRegionIndent(code, region.getBody());
+			code.startLine('}');
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

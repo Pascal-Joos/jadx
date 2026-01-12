@@ -1,0 +1,9 @@
+<response>
+    <success>false</success>
+    <methods>
+      <method>followEmptyPath</method>
+      <method>getBranchBlock</method>
+      <method>isEqualPaths</method>
+      <method>isEqualReturnBlocks</method>
+    </methods>
+</response>

@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public long getMethodCodeOffset() {
+		return noCode || codeReader == null ? 0 : codeReader.getCodeOffset();
+}
+  ```
+    ]]>
+  </code>
+</response>

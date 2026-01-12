@@ -1,0 +1,26 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static BlockNode getTopSplitterBlock(MethodNode mth, BlockNode top) {
+		if (top == mth.getEnterBlock()) {
+			BlockNode fixedTop = mth.getEnterBlock().getSuccessors().get(0);
+			return BlockSplitter.blockSplitTop(mth, fixedTop);
+		}
+		BlockNode existPredTopSplitter = BlockUtils.getBlockWithFlag(top.getPredecessors(), AFlag.EXC_TOP_SPLITTER);
+		if (existPredTopSplitter != null) {
+			return existPredTopSplitter;
+		}
+		// try to reuse exists splitter on empty simple path below top block
+		if (Nullability.castToNonnull(top.getCleanSuccessors()).size() == 1 && top.getInstructions().isEmpty()) {
+			BlockNode otherTopSplitter = BlockUtils.getBlockWithFlag(top.getCleanSuccessors(), AFlag.EXC_TOP_SPLITTER);
+			if (otherTopSplitter != null && otherTopSplitter.getPredecessors().size() == 1) {
+				return otherTopSplitter;
+			}
+		}
+		return BlockSplitter.blockSplitTop(mth, top);
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,63 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void parseElement() throws IOException {
+     		if (firstElement) {
+     			firstElement = false;
+     		} else if (writer != null) {
+     			Nullability.castToNonnull(writer).incIndent();
+     		}
+     		if (is.readInt16() != 0x10) {
+     			die("ELEMENT HEADER SIZE is not 0x10");
+     		}
+     		// TODO: Check element chunk size
+     		is.readInt32();
+     		int elementBegLineNumber = is.readInt32();
+     		int comment = is.readInt32();
+     		int startNS = is.readInt32();
+     		int startNSName = is.readInt32(); // actually is elementName...
+     		if (writer != null && !isLastEnd && !"ERROR".equals(currentTag)) {
+     			Nullability.castToNonnull(writer).add('>');
+     		}
+     		isOneLine = true;
+     		isLastEnd = false;
+     		currentTag = deobfClassName(getString(startNSName));
+     		currentTag = getValidTagAttributeName(currentTag);
+     		if (writer == null) {
+     			return;
+     		}
+     		Nullability.castToNonnull(writer).startLine('<').add(currentTag);
+     		Nullability.castToNonnull(writer).attachSourceLine(elementBegLineNumber);
+     		int attributeStart = is.readInt16();
+     		if (attributeStart != 0x14) {
+     			die("startNS's attributeStart is not 0x14");
+     		}
+     		int attributeSize = is.readInt16();
+     		if (attributeSize != 0x14) {
+     			die("startNS's attributeSize is not 0x14");
+     		}
+     		int attributeCount = is.readInt16();
+     		int idIndex = is.readInt16();
+     		int classIndex = is.readInt16();
+     		int styleIndex = is.readInt16();
+     		if (writer != null && nsMap != null && ("manifest".equals(currentTag) || Nullability.castToNonnull(writer).getIndent() == 0)) {
+     			for (Map.Entry<String, String> entry : Nullability.castToNonnull(nsMap).entrySet()) {
+     				String nsValue = getValidTagAttributeName(entry.getValue());
+     				Nullability.castToNonnull(writer).add(" xmlns");
+     				if (nsValue != null && !nsValue.trim().isEmpty()) {
+     					Nullability.castToNonnull(writer).add(':');
+     					Nullability.castToNonnull(writer).add(nsValue);
+     				}
+     				Nullability.castToNonnull(writer).add("=\"").add(StringUtils.escapeXML(entry.getKey())).add('"');
+     			}
+     		}
+     		boolean attrNewLine = attributeCount != 1 && ATTR_NEW_LINE;
+     		for (int i = 0; i < attributeCount; i++) {
+     			parseAttribute(i, attrNewLine);
+     		}
+}
+  ```
+    ]]>
+  </code>
+</response>

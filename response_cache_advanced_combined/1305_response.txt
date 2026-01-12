@@ -1,0 +1,29 @@
+<response>
+  <reason><![CDATA[
+The call in question is:
+
+```java
+AnonymousClassAttr attr = cls.get(AType.ANONYMOUS_CLASS);
+```
+
+The implementation of `get` is:
+
+```java
+@Override
+public <T extends IJadxAttribute> T get(IJadxAttrType<T> type) {
+    return storage.get(type);
+}
+```
+
+`storage` is some attribute map; its `get(type)` simply returns whatever value is currently associated with that key, or `null` if no such attribute is present.
+
+From the call site, we know only that:
+- `cls` is a `ClassNode` (which extends `AttrNode`).
+- The attribute type key is `AType.ANONYMOUS_CLASS`.
+- Other code paths frequently check `cls.get(AType.ANONYMOUS_CLASS)` (or similar) against `null` before using it, which shows that the design explicitly allows absence of the attribute.
+
+In the provided code, there is no guarantee that every `ClassNode` has an `ANONYMOUS_CLASS` attribute set. In fact, many classes will not be anonymous at all and thus will not have this attribute in `storage`. In that case, `storage.get(AType.ANONYMOUS_CLASS)` will return `null`, and therefore `cls.get(AType.ANONYMOUS_CLASS)` can return `null` at this call site.
+
+Nothing in the call context or in the surrounding logic you provided constrains `cls` to be a class that is definitely marked anonymous, nor is there any preceding `addAttr` shown that would ensure the mapping is present. Therefore, at this specific call site, the return value can be `null`.]]></reason>
+  <value>YES</value>
+</response>

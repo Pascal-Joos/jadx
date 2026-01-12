@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public String getAliasFullPath() {
+		return Nullability.castToNonnull(getAliasPkg()).replace('.', File.separatorChar)
+				+ File.separatorChar
+				+ getAliasNameWithoutPackage().replace('.', '_');
+}
+  ```
+    ]]>
+  </code>
+</response>

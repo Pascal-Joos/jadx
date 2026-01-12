@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public boolean isClsKnown(String fullName) {
+  		if (nameMap == null) {
+  			throw new JadxRuntimeException("Classpath must be loaded first");
+  		}
+  		return Nullability.castToNonnull(nameMap).containsKey(fullName);
+  }
+  ```
+    ]]>
+  </code>
+</response>

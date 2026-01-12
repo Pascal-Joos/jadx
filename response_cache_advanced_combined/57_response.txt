@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private ClspClass getClspClass(ArgType clsType) {
+		if (nameMap == null) {
+			return null;
+		}
+		ClspClass clspClass = nameMap.get(clsType.getObject());
+		if (clspClass == null) {
+			missingClasses.add(clsType.getObject());
+		}
+		return clspClass;
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private RawNamedValue parseValueMap() throws IOException {
+  		if (is == null) {
+  			return null;
+  		}
+  		int nameRef = Nullability.castToNonnull(is).readInt32();
+  		return new RawNamedValue(nameRef, parseValue());
+  }
+  ```
+    ]]>
+  </code>
+</response>

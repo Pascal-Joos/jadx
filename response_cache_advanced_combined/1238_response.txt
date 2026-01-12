@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void decode(XmlAttribute a) {
+		writer.add(' ');
+		String namespace = a.getNamespaceUri();
+		if (nsMap != null && !namespace.isEmpty()) {
+			writer.add(nsMap.get(namespace)).add(':');
+		}
+		String name = a.getName();
+		String value = deobfClassName(a.getValue());
+		writer.add(name).add("=\"").add(value).add('\"');
+		memorizePackageName(name, value);
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,10 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>isEqualReturnBlocks</method>
+    <method>isEmptySyntheticPath</method>
+    <method>followEmptyPath</method>
+    <method>getBranchBlock</method>
+    <method>castToNonnull</method>
+  </methods>
+</response>

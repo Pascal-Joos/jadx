@@ -1,0 +1,35 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    ArgType type = var.getTypeInfo().getType();
+
+the executed method is:
+
+```java
+class jadx.core.dex.visitors.typeinference.TypeInfo {
+    @NotNull
+    public ArgType getType() {
+        return type;
+    }
+}
+```
+
+So the nullability of the result depends solely on the field `type` inside `TypeInfo`.
+
+Within the provided code base, every usage of `getType()` assumes it is non‑null: it is passed into methods expecting non‑null (`Nullability.castToNonnull(type)`), compared, and dereferenced (`type.isTypeKnown()`, `type.isPrimitive()`, `type.isObject()`, used in `toString()`, etc.) without any null checks. Callers treat the returned `ArgType` as always present and often fall back to `ArgType.UNKNOWN` when they need a sentinel, not `null`.
+
+However, you did not provide the implementation of `TypeInfo` itself (construction, initialization, and any mutators of the `type` field). There is no guarantee shown that:
+
+- `type` is initialized to a non‑null value in all constructors, and
+- `type` is never later set to `null`.
+
+The `@NotNull` annotation documents intent but does not enforce non‑nullness at runtime. Without seeing how `type` is initialized and maintained, we cannot rule out `null` being stored in `type` due to a bug, incomplete initialization, or some edge path.
+
+Because the specific call site `var.getTypeInfo().getType()` is just a direct field read through this simple accessor, its ability to return `null` is exactly the same as whether `TypeInfo.type` can ever be `null`. That question cannot be answered confidently without the rest of the `TypeInfo` implementation.
+  ]]></reason>
+  <success>false</success>
+  <methods>
+    <method>TypeInfo</method>
+  </methods>
+</response>

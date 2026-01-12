@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void preProcess() {
+		for (ClassNode cls : root.getClasses()) {
+			String pkg = cls.getPackage();
+			if (pkg != null) {
+				Collections.addAll(reservedClsNames, pkg.split("\\."));
+			}
+		}
+		for (ClassNode cls : root.getClasses()) {
+			preProcessClass(cls);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private String readScriptOrVariantChar(int length) throws IOException {
+ 		if (is == null) {
+ 			throw new IOException("ParserStream is not initialized");
+ 		}
+ 		long start = Nullability.castToNonnull(is).getPos();
+ 		StringBuilder sb = new StringBuilder(16);
+ 		for (int i = 0; i < length; i++) {
+ 			short ch = (short) Nullability.castToNonnull(is).readInt8();
+ 			if (ch == 0) {
+ 				break;
+ 			}
+ 			sb.append((char) ch);
+ 		}
+ 		Nullability.castToNonnull(is).skipToPos(start + length, "readScriptOrVariantChar");
+ 		return sb.toString();
+}
+  ```
+    ]]>
+  </code>
+</response>

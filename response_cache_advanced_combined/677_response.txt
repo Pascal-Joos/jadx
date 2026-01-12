@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void processDebugInfo(MethodNode mth, IDebugInfo debugInfo) {
+		InsnNode[] insnArr = mth.getInstructions();
+		attachSourceLines(mth, debugInfo.getSourceLineMapping(), Nullability.castToNonnull(insnArr));
+		attachDebugInfo(mth, debugInfo.getLocalVars(), insnArr);
+		setMethodSourceLine(mth, insnArr);
+}
+  ```
+    ]]>
+  </code>
+</response>

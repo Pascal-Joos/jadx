@@ -1,0 +1,49 @@
+<response>
+  <reason><![CDATA[
+Inside followEmptyPath:
+
+```java
+public static BlockNode followEmptyPath(BlockNode start) {
+    while (true) {
+        BlockNode next = getNextBlockOnEmptyPath(Nullability.castToNonnull(start));
+        if (next == null) {
+            return start;
+        }
+        start = next;
+    }
+}
+```
+
+The only return statement is `return start;`. `start` is the parameter (or a value assigned from it) and is never assigned null inside the loop; it is always either the original `start` or some `next` value.
+
+At the specific call site:
+
+```java
+BlockNode exit = exitEdge.getTarget();
+BlockNode exitEnd = BlockUtils.followEmptyPath(exit);
+```
+
+we know:
+
+1. `exit` comes from `exitEdge.getTarget()`. If `exit` were null, then the internal call
+   ```java
+   getNextBlockOnEmptyPath(Nullability.castToNonnull(start));
+   ```
+   would be passed a null into `castToNonnull`, which, by its name and typical contract, implies it will not silently accept null; it would throw (or at least not return) a null value. A thrown exception is explicitly not to be treated as a “null return” per your guidelines.
+
+2. For followEmptyPath to return null, `start` itself would have to be null at the moment of `return start;`. This cannot happen:
+   - On entry, `start` is `exit`.
+   - Each iteration either:
+     - sees `next == null` and returns the current `start` (which is non-null, having just been successfully passed through `castToNonnull(start)`), or
+     - assigns `start = next`, where `next` was a non-null value returned by `getNextBlockOnEmptyPath(…)`.
+
+Thus, as long as the method completes normally (i.e., without an exception), `start` is guaranteed non-null at the only return point. Therefore, the specific invocation
+
+```java
+BlockNode exitEnd = BlockUtils.followEmptyPath(exit);
+```
+
+cannot yield a null value; it either returns a non-null BlockNode or the method call fails via exception before returning.
+  ]]></reason>
+  <value>NO</value>
+</response>

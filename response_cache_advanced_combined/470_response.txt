@@ -1,0 +1,6 @@
+<response>
+    <reason><![CDATA[
+The method name is `lock`, which does not start with "init" or "initialize" and is not one of the well-known framework lifecycle/init methods listed (e.g., `onCreate`, `init`). Per your criteria, only those named patterns or explicitly documented framework initializer methods should be treated as initializer methods. Although this method sets several fields, it conceptually represents a state transition (locking) rather than an initialization phase that NullAway should treat as an initializer. Therefore, it should not be considered an initializer method under the rules you described.
+    ]]></reason>
+    <value>NO</value>
+</response>

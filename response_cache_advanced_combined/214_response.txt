@@ -1,0 +1,22 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method body alone, there is no explicit guarantee that `implMthInfo` (the field of `this`) is non-null:
+
+- `implMthInfo` is used directly as the receiver in `implMthInfo.equals(...)`.
+- There is no preceding null check on `implMthInfo` in this method.
+- The `super.isSame(obj)` call does not, by its signature alone, imply anything about `implMthInfo`’s nullability (we have no information that it initializes or validates `implMthInfo`).
+- `Nullability.castToNonnull(other.implMthInfo)` only provides a static/annotation-level guarantee for the *parameter* of `equals`, not for `this.implMthInfo`.
+- Without seeing the constructor(s), field declaration of `implMthInfo`, or any class invariants, we cannot deduce that `implMthInfo` is always initialized to a non-null value before `isSame` is called.
+
+Therefore, from the given snippet and in the absence of additional class or framework contracts, it is entirely possible that `implMthInfo` is null at runtime, which would cause a `NullPointerException` at `implMthInfo.equals(...)`.
+
+Because this depends on how `implMthInfo` is declared and initialized elsewhere (e.g., `final` field set in all constructors, non-null by API contract, etc.), more information is needed to reach a definitive yes/no conclusion.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the declaration of the field `implMthInfo` in `InvokeCustomNode` (including any annotations such as @Nonnull/@Nullable and whether it is final).]]></request>
+        <request><![CDATA[Provide all constructors (and any factory methods) that create `InvokeCustomNode` instances, showing how `implMthInfo` is initialized.]]></request>
+        <request><![CDATA[If applicable, provide any class or framework documentation stating that `implMthInfo` is guaranteed to be non-null.]]></request>
+    </requests>
+</response>
+```

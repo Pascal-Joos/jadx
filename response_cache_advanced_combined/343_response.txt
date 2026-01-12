@@ -1,0 +1,17 @@
+<response>
+  <reason><![CDATA[
+The implementation of ArgType.getPrimitiveType() is:
+
+```java
+public PrimitiveType getPrimitiveType() {
+    return null;
+}
+```
+
+There are no branches or conditions; the only return statement always returns null.  
+At the call site `getPrimitiveType()` (i.e., any invocation of this method on an ArgType instance), the result will therefore be null.
+
+Other code that uses this return value (e.g., passing it to `Nullability.castToNonnull`, switching on it, or dereferencing it) may crash at runtime, but that does not change the fact that the method itself can and does return null at this call site.
+  ]]></reason>
+  <value>YES</value>
+</response>

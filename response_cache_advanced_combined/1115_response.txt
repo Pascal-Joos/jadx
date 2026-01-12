@@ -1,0 +1,75 @@
+```xml
+<response>
+    <reason><![CDATA[
+We are checking whether the variable `d` at the call site `d.and(scPDoms);` can be null.
+
+Relevant portion:
+
+    for (BlockNode block : blockNodes) {
+        BitSet d = map.get(block);
+        if (!changed) {
+            domSet.clear();
+            domSet.or(d);
+        }
+        for (BlockNode scc : block.getSuccessors()) {
+            BitSet scPDoms = map.get(scc);
+            if (scPDoms != null) {
+                d.and(scPDoms);
+            }
+        }
+
+Key points:
+
+1. How `map` is populated:
+   - `map` is initialized and then fully populated for every `block` in `blockNodes` before the loop where `d` is used:
+
+        for (BlockNode block : blockNodes) {
+            BitSet postDoms = new BitSet(blocksCount);
+            postDoms.or(initSet);
+            map.put(block, postDoms);
+        }
+
+   This ensures that for every `block` in `blockNodes`, `map.get(block)` returns a non-null `BitSet` at this point.
+
+2. Use of `d` inside the main fixpoint loop:
+   - Inside the `do { ... } while (changed);` loop, for each `block` in `blockNodes` (except `exitBlock`), we do:
+
+        BitSet d = map.get(block);
+
+     Since `block` comes from `blockNodes`, and all entries for `blockNodes` were inserted into `map` before, `map.get(block)` should return a non-null value as long as:
+     - We never put `null` into `map`, and
+     - We never remove entries from `map`.
+
+   - The only subsequent `map.put` that occurs inside this loop is:
+
+        if (!changed && !d.equals(domSet)) {
+            changed = true;
+            map.put(block, d);
+        }
+
+     This only ever re-inserts the same non-null `d` back into `map`. At no point is `null` stored in `map`.
+
+3. Post-processing after the loop:
+   - After the loop, we have:
+
+        blockNodes.forEach(block -> {
+            BitSet postDoms = map.get(block);
+            postDoms.clear(block.getId());
+            if (postDoms.isEmpty()) {
+                map.put(block, EmptyBitSet.EMPTY);
+            }
+        });
+
+     This code runs only after the `do/while` loop has completed, so it cannot affect the value of `d` during the `d.and(scPDoms);` calls within that loop. Even here, `map.put` uses `EmptyBitSet.EMPTY`, not `null`.
+
+4. External assumptions:
+   - The analysis assumes:
+     * `blockNodes` is the same collection as used to initialize `map` (or a subset thereof).
+     * No other concurrent thread is mutating `map` or `blockNodes`.
+   - Under normal single-threaded method semantics (no external mutation of `map` inside this method), `map.get(block)` cannot return null for any `block` in `blockNodes`.
+
+Given these points, `d` is always assigned from `map.get(block)` where `block` is guaranteed to have been associated with a non-null `BitSet` earlier in the method, and no path puts `null` into `map` for those keys. Therefore, `d` cannot be null at the line `d.and(scPDoms);` under the method’s internal logic and reasonable assumptions about the inputs (consistent `blockNodes` and no external mutations).
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

@@ -1,0 +1,51 @@
+<response>
+  <reason><![CDATA[
+At the call site `clspClass.getParents()`, the method simply returns the field `parents`:
+
+```java
+public ArgType[] getParents() {
+    return parents;
+}
+```
+
+There is no initialization or invariant shown that guarantees `parents` is non-null. The surrounding code indicates that `parents` is treated as possibly null in some usages, and as non-null in others, which implies that `null` is an expected and representable state for this field.
+
+Specifically:
+
+- In `ClsSet.save(...)`:
+  ```java
+  for (ClspClass cls : Nullability.castToNonnull(classes)) {
+      writeArgTypesArray(out, cls.getParents(), names);
+  }
+  ```
+  `cls.getParents()` is passed directly, with no null check or cast. This does not prove non-nullness; it only shows that `writeArgTypesArray` must itself be able to handle a null array (common pattern in this codebase).
+
+- In `OverrideMethodVisitor.addSuperType(...)`:
+  ```java
+  for (ArgType parentType : Nullability.castToNonnull(clsDetails.getParents())) {
+      ...
+  }
+  ```
+  Here, `clsDetails.getParents()` is explicitly wrapped in `Nullability.castToNonnull`, which exists exactly to protect against a potentially null value. If `getParents()` were guaranteed non-null, this cast would be unnecessary.
+
+- In `MethodUtils.processMethodArgsOverloaded(...)`:
+  ```java
+  for (ArgType parent : Nullability.castToNonnull(clsDetails.getParents())) {
+      ...
+  }
+  ```
+  Again, `castToNonnull` is used, signaling that `getParents()` may be null.
+
+- In `ClspGraph.searchCommonParent(...)`:
+  ```java
+  Set<ArgType> parents = cls.getParents();
+  if (parents == null) {
+      return null;
+  }
+  ```
+  This code path explicitly expects that `cls.getParents()` can be null, and handles it.
+
+Taken together, these usages show that the design of `ClspClass` allows `parents` to be null and that other parts of the code defend against that. Since the provided field declaration and constructor/initializer for `parents` are not shown, there is no basis to claim a non-null guarantee. Therefore, for the specific invocation `clspClass.getParents()` the returned value can legally be `null.
+  ]]></reason>
+  <value>YES</value>
+</response>

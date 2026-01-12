@@ -1,0 +1,57 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void makeSimpleLambda(ICodeWriter code, InvokeCustomNode customNode) {
+ 		try {
+ 			InsnNode callInsn = customNode.getCallInsn();
+ 			MethodInfo implMthInfo = customNode.getImplMthInfo();
+ 			if (implMthInfo == null) {
+ 				throw new JadxRuntimeException("Missing impl method info for invoke-custom");
+ 			}
+ 			int implArgsCount = implMthInfo.getArgsCount();
+ 			if (implArgsCount == 0) {
+ 				code.add("()");
+ 			} else {
+ 				code.add('(');
+ 				int callArgsCount = Nullability.castToNonnull(callInsn).getArgsCount();
+ 				int startArg = callArgsCount - implArgsCount;
+ 				if (customNode.getHandleType() != MethodHandleType.INVOKE_STATIC
+ 						&& customNode.getArgsCount() > 0
+ 						&& customNode.getArg(0).isThis()) {
+ 					Nullability.castToNonnull(callInsn).getArg(0).add(AFlag.THIS);
+ 				}
+ 				if (startArg >= 0) {
+ 					for (int i = startArg; i < callArgsCount; i++) {
+ 						if (i != startArg) {
+ 							code.add(", ");
+ 						}
+ 						addArg(code, Nullability.castToNonnull(callInsn).getArg(i));
+ 					}
+ 				} else {
+ 					code.add("/* ERROR: " + startArg + " */");
+ 				}
+ 				code.add(')');
+ 			}
+ 			code.add(" -> {");
+ 			if (fallback) {
+ 				code.add(" // ").add(implMthInfo.toString());
+ 			}
+ 			code.incIndent();
+ 			code.startLine();
+ 			if (!implMthInfo.getReturnType().isVoid()) {
+ 				code.add("return ");
+ 			}
+ 			makeInsn(Nullability.castToNonnull(callInsn), code, Flags.INLINE);
+ 			code.add(";");
+ 
+ 			code.decIndent();
+ 			code.startLine('}');
+ 		} catch (Exception e) {
+ 			throw new JadxRuntimeException("Failed to generate 'invoke-custom' instruction: " + e.getMessage(), e);
+ 		}
+}
+  ```
+    ]]>
+  </code>
+</response>

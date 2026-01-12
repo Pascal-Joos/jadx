@@ -1,0 +1,70 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+BlockNode handlerBlock = allHandler.getHandlerBlock();
+```
+
+`getHandlerBlock()` simply returns the field `handlerBlock`:
+
+```java
+public BlockNode getHandlerBlock() {
+    return handlerBlock;
+}
+```
+
+There is no initialization or invariant shown that guarantees `handlerBlock` is non‑null.
+
+Across the provided codebase, other call sites explicitly treat `getHandlerBlock()` as possibly null:
+
+- `RegionMaker.processTryCatchBlocks`:
+  ```java
+  BlockNode handlerBlock = handler.getHandlerBlock();
+  if (handlerBlock != null) {
+      ...
+  } else {
+      mth.addDebugComment("No exception handler block: " + handler);
+  }
+  ```
+- `ProcessTryCatchRegions.isHandlerPath`:
+  ```java
+  BlockNode handlerBlock = h.getHandlerBlock();
+  if (handlerBlock != null
+          && !handlerBlock.contains(AFlag.REMOVE)
+          && RegionUtils.hasPathThroughBlock(handlerBlock, cont)) {
+      return true;
+  }
+  ```
+- `BlockUtils.mergeExcHandlerDomFrontier`:
+  ```java
+  BlockNode handlerBlock = handler.getHandlerBlock();
+  if (handlerBlock == null) {
+      mth.addDebugComment("Null handler block in: " + handler);
+      return;
+  }
+  ```
+
+These usages demonstrate that the authors expect `handlerBlock` to sometimes be null.
+
+For the specific call site you asked about, inside `MarkFinallyVisitor.extractFinally`:
+
+```java
+private static boolean extractFinally(MethodNode mth, TryCatchBlockAttr tryBlock, ExceptionHandler allHandler) {
+    BlockNode handlerBlock = allHandler.getHandlerBlock();
+    List<BlockNode> handlerBlocks =
+            new ArrayList<>(BlockUtils.collectBlocksDominatedByWithExcHandlers(mth, handlerBlock, handlerBlock));
+    ...
+}
+```
+
+there is no preceding null check on `allHandler.getHandlerBlock()`. The only constraints on `allHandler` are:
+
+- It is selected in `processTryBlock` as the first handler where `excHandler.isCatchAll()` is true.
+- `processTryBlock` does not check that `excHandler.getHandlerBlock()` is non‑null before assigning it to `allHandler`.
+
+Nothing in the provided code proves that a "catch-all" `ExceptionHandler` must always have a non‑null `handlerBlock`. Since other parts of the codebase explicitly log and handle the case where `getHandlerBlock()` is null, it is possible (by the design of this class) that `allHandler.getHandlerBlock()` is null here as well.
+
+Therefore, at this specific call site, `getHandlerBlock()` can return null.]]></reason>
+  <value>YES</value>
+</response>

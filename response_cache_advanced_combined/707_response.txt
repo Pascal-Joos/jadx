@@ -1,0 +1,34 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void removeSynchronized(MethodNode mth) {
+		Region startRegion = mth.getRegion();
+		if (startRegion == null) {
+			return;
+		}
+		List<IContainer> subBlocks = startRegion.getSubBlocks();
+		if (!subBlocks.isEmpty() && subBlocks.get(0) instanceof SynchronizedRegion) {
+			SynchronizedRegion synchRegion = (SynchronizedRegion) subBlocks.get(0);
+			InsnNode synchInsn = synchRegion.getEnterInsn();
+			if (!synchInsn.getArg(0).isThis()) {
+				LOG.warn("In synchronized method {}, top region not synchronized by 'this' {}", mth, synchInsn);
+				return;
+			}
+			// replace synchronized block with inner region
+			startRegion.getSubBlocks().set(0, synchRegion.getRegion());
+			// remove 'monitor-enter' instruction
+			InsnRemover.remove(mth, synchInsn);
+			// remove 'monitor-exit' instruction
+			for (InsnNode exit : synchRegion.getExitInsns()) {
+				InsnRemover.remove(mth, exit);
+			}
+			// run region cleaner again
+			CleanRegions.process(mth);
+			// assume that CodeShrinker will be run after this
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

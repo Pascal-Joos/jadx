@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  	public boolean isSame(InsnNode obj) {
+  		if (this == obj) {
+  			return true;
+  		}
+  		if (!(obj instanceof TernaryInsn) || !super.isSame(obj)) {
+  			return false;
+  		}
+  		TernaryInsn that = (TernaryInsn) obj;
+  		if (condition == null) {
+  			return that.condition == null;
+  		}
+  		return that.condition != null && Nullability.castToNonnull(condition).equals(that.condition);
+}
+  ```
+    ]]>
+  </code>
+</response>

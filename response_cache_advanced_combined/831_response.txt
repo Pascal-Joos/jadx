@@ -1,0 +1,23 @@
+<response>
+    <reason><![CDATA[
+The parameter `cond` of `IfCondition.invert(IfCondition cond)` is dereferenced immediately (`cond.getMode()`) with no null check, so if it is ever null the method will crash with a `NullPointerException`.
+
+From the provided call chain:
+
+- `ConditionRegion.invertCondition()` calls `IfCondition.invert(condition)` only after checking `if (condition != null)`, so in that path `cond` is guaranteed non‑null.
+- `TernaryInsn.invert()` calls `IfCondition.invert(condition)` without null checks, but `condition` is a field set via:
+  - `TernaryInsn(IfCondition condition, ...)` constructor, which directly assigns `this.condition = condition` or `this.condition = IfCondition.invert(condition)`. There is no guarantee here that the constructor argument `condition` itself is non‑null; nothing in this code enforces that.
+  - The static factory `ModVisitor.makeBooleanConvertInsn(...)` creates a non‑null `IfCondition` via `IfCondition.fromIfNode(ifNode)`, so calls originating from that path are safe. However, this does not cover all possible construction sites of `TernaryInsn`.
+- `IfInfo.invert(IfInfo info)` calls `IfCondition.invert(info.getCondition())` with no null check. The nullability of `info.getCondition()` is not enforced by the shown code.
+- Various other uses (e.g., `IfCondition.simplify`, `IfRegion`, `IfMakerHelper`, `TernaryMod`) all call `IfCondition.invert(...)` assuming their `IfCondition` arguments/fields are non‑null, but none structurally prevent a caller from passing null into an initial `IfCondition` or `IfInfo`.
+
+Crucially, none of the provided method bodies enforce that:
+- `IfCondition` instances are always created non‑null, or
+- `IfInfo.getCondition()` can never return null, or
+- `TernaryInsn` constructor is never called with a null `condition` from somewhere else in the codebase.
+
+Given the instructions to ignore annotations and to consider that callers might pass null, and since no global invariants or validations are visible that forbid null being passed into `invert`, it is possible for `cond` to be null from a general correctness standpoint. If that happens, the method would indeed crash.
+
+Therefore, based solely on the given code and the stated assumptions, there is a possibility that `cond` can receive null.]]></reason>
+    <value>YES</value>
+</response>

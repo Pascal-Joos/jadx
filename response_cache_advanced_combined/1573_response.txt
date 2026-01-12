@@ -1,0 +1,35 @@
+<response>
+  <reason><![CDATA[
+At the specific call site `ssaVar.getTypeInfo().getType()` the returned value is the `type` field of `TypeInfo`:
+
+```java
+class TypeInfo {
+  @NotNull
+  public ArgType getType() {
+    return type;
+  }
+}
+```
+
+From all provided usages:
+
+- Code consistently assumes `getType()` is non‑null and calls methods on it immediately, e.g.:
+  - `ArgType currentType = ssaVar.getTypeInfo().getType(); if (currentType.isTypeKnown()) { ... }`
+  - `if (typeInfo.getType().isTypeKnown()) { ... }`
+  - `sb.append(' ').append(typeInfo.getType());`
+- When a "no type" situation is needed, the code uses the sentinel value `ArgType.UNKNOWN` rather than `null` (for example in `RegisterArg.getType()` and in several type-inference visitors).
+- In `FinishTypeInference.visit`, for each SSA var:
+  ```java
+  ArgType type = var.getTypeInfo().getType();
+  if (!type.isTypeKnown()) {
+      mth.addWarnComment("Type inference failed for: " + var.getDetailedVarInfo(mth));
+  }
+  ```
+  Here `type` is immediately dereferenced without any null checks, which would be unsafe if `getType()` could legally return null after all inference passes.
+
+Across the provided code, every place that needs to represent an "unknown" or "unset" type uses `ArgType.UNKNOWN` or other `ArgType` constants, not null. There is no code path shown that assigns `null` to the `TypeInfo.type` field; instead, unknown/placeholder states are modeled with non‑null `ArgType` instances.
+
+Given this design and the `@NotNull` contract on `getType()`, plus the pervasive assumption that its result is non‑null (no null checks anywhere while methods like `isTypeKnown()` are called directly), the `type` field is intended and required to be non‑null at all times. Therefore, at this call site `ssaVar.getTypeInfo().getType()` the return value is an `ArgType` instance and not `null.
+  ]]></reason>
+  <value>NO</value>
+</response>

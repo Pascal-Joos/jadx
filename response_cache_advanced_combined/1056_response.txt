@@ -1,0 +1,53 @@
+<response>
+  <reason><![CDATA[
+At the specific call site `typeInfo.getType()`, the returned value is `typeInfo.type`.
+
+From the provided code, every place that reads or writes types around this API uses non-null `ArgType` instances and falls back to `ArgType.UNKNOWN` or other concrete `ArgType` constants, never `null`:
+
+- In `RegisterArg.getType()`:
+  ```java
+  if (sVar != null) {
+      return sVar.getTypeInfo().getType();
+  }
+  return ArgType.UNKNOWN;
+  ```
+  The fallback is `ArgType.UNKNOWN`, not `null`, and if `sVar != null`, it delegates to `SSAVar.getTypeInfo().getType()`, i.e., this same `TypeInfo.getType()` call chain.
+
+- In `TypeSearch.fillTypeCandidates(SSAVar ssaVar)`:
+  ```java
+  ArgType immutableType = ssaVar.getImmutableType();
+  if (immutableType != null) {
+      varInfo.markResolved(immutableType);
+      return;
+  }
+  ArgType currentType = ssaVar.getTypeInfo().getType();
+  if (currentType.isTypeKnown()) {
+      varInfo.markResolved(currentType);
+      return;
+  }
+  ...
+  if (size == 0) {
+      varInfo.setCurrentType(ArgType.UNKNOWN);
+  } else if (size == 1) {
+      varInfo.setCurrentType(candidateTypes.iterator().next());
+  } else {
+      varInfo.setCurrentType(ArgType.UNKNOWN);
+  }
+  ```
+  Unknown or “unset” states are represented by `ArgType.UNKNOWN`, not by `null`.
+
+- In many other usages (`tryInsertCasts`, `tryToForceImmutableTypes`, `processIncompatiblePrimitives`, `checkAndSplitConstInsn`, `deduceType`, `checkTypes`, `tryRemoveGenerics`, `runMultiVariableSearch`, `FinishTypeInference.visit`, etc.), `getTypeInfo().getType()` is immediately dereferenced (`.isTypeKnown()`, `.equals(...)`, `.isPrimitive()`, `.isObject()`, etc.) without any null checks. This would systematically throw `NullPointerException` if `getType()` could ever be `null`.
+
+The design uses `ArgType.UNKNOWN` as the “no information” sentinel instead of `null`, and the absence of any null-handling at all the call sites that you've provided is strong evidence that `typeInfo.type` is always initialized to a non-null `ArgType`.
+
+Given:
+- The `@NotNull` annotation on `TypeInfo.getType()`,
+- The consistent use of non-null `ArgType` instances (with `ArgType.UNKNOWN` as the default),
+- Numerous callers that assume a non-null return and immediately dereference it,
+
+`typeInfo.getType()` cannot be `null` at this call site under the intended design. If it were, the rest of the code would frequently crash, which is inconsistent with how this API is used everywhere in the given snippets.
+
+Therefore, at this specific call site, the method does not return `null.
+  ]]></reason>
+  <value>NO</value>
+</response>

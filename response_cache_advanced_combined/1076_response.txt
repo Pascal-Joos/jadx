@@ -1,0 +1,46 @@
+<response>
+  <reason><![CDATA[
+At the specific call site
+
+```java
+ArgType currentType = ssaVar.getTypeInfo().getType();
+```
+
+the expression `ssaVar.getTypeInfo().getType()` calls:
+
+```java
+class TypeInfo {
+  @NotNull
+  public ArgType getType() {
+    return type;
+  }
+}
+```
+
+There are no other return paths; it always returns the field `type`.
+
+Throughout the provided code, all uses of `TypeInfo.getType()` treat its result as a non-null `ArgType` and compare it against known non-null constants such as `ArgType.UNKNOWN`. For example:
+
+```java
+if (resolvedType.equals(ssaVar.getTypeInfo().getType())) { ... }
+...
+ArgType type = var.getTypeInfo().getType();
+if (!type.isTypeKnown() && !var.isTypeImmutable()) { ... }
+...
+if (!Nullability.castToNonnull(typeInfo.getType()).isTypeKnown()) { ... }
+```
+
+These usages assume that `getType()` never returns null, and no null checks appear around this call. The `@NotNull` annotation on `getType()` explicitly documents its contract as non-null. In all the given code, the “unknown” or “unset” state is represented by the non-null singleton `ArgType.UNKNOWN`, not by `null`. Therefore, the internal `type` field is expected to always hold a valid `ArgType` instance, including `ArgType.UNKNOWN` instead of `null`.
+
+Since:
+- `getType()` has a single return statement `return type;`
+- The contract is annotated `@NotNull`
+- The surrounding logic consistently models “no concrete type” as `ArgType.UNKNOWN`, not null
+- No code path shown writes `null` into this `type` field or checks it for null
+
+there is no evidence in the provided call chain that `type` can be null at this site, and all design signals point to it being non-null.
+
+Thus at this specific call site, the method cannot return null.
+]]></reason>
+  <value>NO</value>
+</response>

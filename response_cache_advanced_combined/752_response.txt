@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private List<ArgType> getNarrowTypes(ArgType type) {
+		if (type.isTypeKnown()) {
+			if (type.isObject()) {
+				if (type.equals(ArgType.OBJECT)) {
+					// a lot of objects to return
+					return Collections.singletonList(ArgType.OBJECT);
+				}
+				RootNode root = mth.root();
+				if (root == null) {
+					return Collections.emptyList();
+				}
+				List<String> impList = root.getClsp().getImplementations(type.getObject());
+				return impList.stream().map(ArgType::object).collect(Collectors.toList());
+			}
+		} else {
+			return expandUnknownType(type);
+		}
+		return Collections.emptyList();
+}
+  ```
+    ]]>
+  </code>
+</response>

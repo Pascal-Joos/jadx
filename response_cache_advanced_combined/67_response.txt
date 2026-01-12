@@ -1,0 +1,26 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	public String getCommonAncestor(String clsName, String implClsName) {
+		if (nameMap == null) {
+			throw new JadxRuntimeException("Classpath must be loaded first");
+		}
+		if (clsName.equals(implClsName)) {
+			return clsName;
+		}
+		ClspClass cls = nameMap.get(implClsName);
+		if (cls == null) {
+			missingClasses.add(clsName);
+			return null;
+		}
+		if (isImplements(clsName, implClsName)) {
+			return implClsName;
+		}
+		Set<String> anc = getSuperTypes(clsName);
+		return searchCommonParent(anc, cls);
+	}
+  ```
+    ]]>
+  </code>
+</response>

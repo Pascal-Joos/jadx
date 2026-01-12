@@ -1,0 +1,45 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void writeArgType(DataOutputStream out, ArgType argType, Map<String, ClspClass> names) throws IOException {
+		if (argType == null) {
+			out.writeByte(-1);
+			return;
+		}
+		if (argType.isPrimitive()) {
+			out.writeByte(TypeEnum.PRIMITIVE.ordinal());
+			out.writeByte(argType.getPrimitiveType().getShortName().charAt(0));
+		} else if (argType.getOuterType() != null) {
+			out.writeByte(TypeEnum.OUTER_GENERIC.ordinal());
+			writeArgType(out, argType.getOuterType(), names);
+			writeArgType(out, argType.getInnerType(), names);
+		} else if (argType.getWildcardType() != null && argType.getWildcardBound() != null) {
+			out.writeByte(TypeEnum.WILDCARD.ordinal());
+			ArgType.WildcardBound bound = argType.getWildcardBound();
+			out.writeByte(bound.getNum());
+			if (bound != ArgType.WildcardBound.UNBOUND) {
+				writeArgType(out, argType.getWildcardType(), names);
+			}
+		} else if (argType.isGeneric()) {
+			out.writeByte(TypeEnum.GENERIC.ordinal());
+			out.writeInt(getCls(argType, names).getId());
+			writeArgTypesList(out, argType.getGenericTypes(), names);
+		} else if (argType.isGenericType()) {
+			out.writeByte(TypeEnum.GENERIC_TYPE_VARIABLE.ordinal());
+			writeString(out, argType.getObject());
+			writeArgTypesList(out, argType.getExtendTypes(), names);
+		} else if (argType.isObject()) {
+			out.writeByte(TypeEnum.OBJECT.ordinal());
+			out.writeInt(getCls(argType, names).getId());
+		} else if (argType.isArray()) {
+			out.writeByte(TypeEnum.ARRAY.ordinal());
+			writeArgType(out, argType.getArrayElement(), names);
+		} else {
+			throw new JadxRuntimeException("Cannot save type: " + argType);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,41 @@
+<response>
+  <reason><![CDATA[
+At this call site, `elseResArg` is the result of `elseInsn` inside `TernaryMod.makeTernaryInsn`:
+
+```java
+InsnNode thenInsn = tb.getInstructions().get(0);
+InsnNode elseInsn = eb.getInstructions().get(0);
+
+RegisterArg thenResArg = thenInsn.getResult();
+RegisterArg elseResArg = elseInsn.getResult();
+if (thenResArg != null && elseResArg != null) {
+    PhiInsn thenPhi = thenResArg.getSVar().getOnlyOneUseInPhi();
+    PhiInsn elsePhi = elseResArg.getSVar().getOnlyOneUseInPhi();
+    ...
+    InsnRemover.unbindResult(mth, elseInsn);
+    ...
+}
+```
+
+So the relevant facts:
+
+1. The dereference `elseResArg.getSVar()` happens inside the `if (thenResArg != null && elseResArg != null)` block, so at that point `elseResArg` is guaranteed non‑null.
+2. `elseResArg` is obtained from `elseInsn.getResult()` in a normal, SSA‑built method body. By the time regions and ternary transformations run, SSA variables have been constructed by `SSATransform` and validated by `DebugChecks.checkMethod`.
+3. `DebugChecks.checkVar` explicitly treats a `null` `SSAVar` as an error when SSA vars exist:
+   ```java
+   SSAVar sVar = reg.getSVar();
+   if (sVar == null) {
+       if (Utils.notEmpty(mth.getSVars())) {
+           throw new JadxRuntimeException("Null SSA var in " + insn + ", mth: " + mth);
+       }
+       return;
+   }
+   ```
+   In this pipeline, `TernaryMod` runs after SSA transform and its checks. That means any live `RegisterArg` in `mth` that still has a result should have a non‑null `sVar`; otherwise the method would already have thrown and not reached this code.
+4. Many other visitors assume non‑null `getSVar()` on results in the same stage (e.g. `LoopRegion.checkPreCondition`, `PrepareForCodeGen.removeInstructions`, `ProcessVariables$1`, etc.). The consistent use plus the debug checks show that a `RegisterArg` result without an `SSAVar` is considered an invalid state, not a normal `null` case.
+
+Therefore, at this specific call site, in a successfully processed method, `elseResArg.getSVar()` cannot be `null`. If it were, the debug checks would have already failed with an exception before `TernaryMod.makeTernaryInsn` executes, rather than returning `null` here.
+
+]]></reason>
+  <value>NO</value>
+</response>

@@ -1,0 +1,32 @@
+<response>
+    <reason><![CDATA[
+From the provided call chain:
+
+- `addToDF` is only called from `DominatorTree.computeDominanceFrontier`.
+- In `computeDominanceFrontier`, the `block` argument to `addToDF` is the local variable `runner` in:
+
+  ```java
+  for (BlockNode pred : preds) {
+      BlockNode runner = pred;
+      while (runner != idom) {
+          addToDF(runner, block, blocksCount);
+          runner = runner.getIDom();
+      }
+  }
+  ```
+
+- `runner` is initialized from `pred`, which comes from `block.getPredecessors()`. A `null` element in this list, or `getPredecessors()` returning a list containing `null`, would result in `runner` being `null` and thus a `null` being passed to `addToDF`.
+
+- There is no check in `computeDominanceFrontier` that `pred` (or `runner`) is non-null before passing it to `addToDF`.
+
+- Inside `addToDF`, the parameter `block` is immediately dereferenced:
+
+  ```java
+  BitSet df = block.getDomFrontier();
+  ```
+
+  If `block` were `null`, this would cause a `NullPointerException`.
+
+Given that callers are free to pass `null` (there is no defensive check) and there is no guarantee in the shown code that the predecessors list cannot contain `null`, it is possible in principle for `block` to be `null` in `addToDF`. Therefore, we must treat the parameter as potentially nullable in this context.]]></reason>
+    <value>YES</value>
+</response>

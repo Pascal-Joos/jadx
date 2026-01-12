@@ -1,0 +1,17 @@
+<response>
+    <reason><![CDATA[
+The parameter insnArr of attachDebugInfo is directly obtained from mth.getInstructions() in processDebugInfo:
+
+    InsnNode[] insnArr = mth.getInstructions();
+    attachSourceLines(mth, debugInfo.getSourceLineMapping(), Nullability.castToNonnull(insnArr));
+    attachDebugInfo(mth, debugInfo.getLocalVars(), insnArr);
+
+There is no other reassignment or modification of insnArr before it is passed to attachDebugInfo. The only operation on it is the call to Nullability.castToNonnull in another method call, which does not affect what is actually passed to attachDebugInfo (the original insnArr reference is passed, not the result of castToNonnull).
+
+Therefore, the nullability of insnArr fully depends on what mth.getInstructions() may return. Since we do not have the declaration/implementation of MethodNode.getInstructions(), we cannot determine whether it can return null. Because of this missing information, we cannot safely conclude whether insnArr can or cannot be null.
+    ]]></reason>
+    <success>false</success>
+    <methods>
+      <method>getInstructions</method>
+    </methods>
+</response>

@@ -1,0 +1,37 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void modifySyntheticMethod(ClassNode cls, MethodNode mth, InsnNode insn, List<RegisterArg> args) {
+		if (insn.getType() == InsnType.CONSTRUCTOR) {
+			ConstructorInsn constr = (ConstructorInsn) insn;
+			if (constr.isThis() && !args.isEmpty()) {
+				// remove first arg for non-static class (references to outer class)
+				RegisterArg firstArg = args.get(0);
+				if (firstArg.getType().equals(Nullability.castToNonnull(cls.getParentClass()).getClassInfo().getType())) {
+					SkipMethodArgsAttr.skipArg(mth, 0);
+				}
+				// remove unused args
+				int argsCount = args.size();
+				for (int i = 0; i < argsCount; i++) {
+					RegisterArg arg = args.get(i);
+					SSAVar sVar = arg.getSVar();
+					if (sVar != null && sVar.getUseCount() == 0) {
+						SkipMethodArgsAttr.skipArg(mth, i);
+					}
+				}
+				MethodInfo callMth = constr.getCallMth();
+				MethodNode callMthNode = cls.root().resolveMethod(callMth);
+				if (callMthNode != null) {
+					mth.addAttr(new MethodReplaceAttr(callMthNode));
+					mth.add(AFlag.DONT_GENERATE);
+					// code generation order should be already fixed for marked methods
+					UsageInfoVisitor.replaceMethodUsage(callMthNode, mth);
+				}
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,29 @@
+<response>
+  <reason><![CDATA[
+In ResTableParser.parsePackage(), the local variable `typeStrings` is initialized as:
+
+```java
+String[] typeStrings = null;
+if (typeStringsOffset != 0) {
+    is.skipToPos(typeStringsOffset, "Expected typeStrings string pool");
+    typeStrings = parseStringPool();
+}
+...
+PackageChunk pkg = new PackageChunk(id, name, typeStrings, keyStrings);
+```
+
+If `typeStringsOffset == 0`, the `if` block is skipped and `typeStrings` remains `null`. That `null` is then passed into the `PackageChunk` constructor and stored in the `typeStrings` field (the value returned by `getTypeStrings()`).
+
+Later, in `parseTypeChunk` and `parseEntry`, the same `pkg` instance is used and `pkg.getTypeStrings()` is invoked:
+
+```java
+String typeName = pkg.getTypeStrings()[id - 1];
+...
+String typeName = pkg.getTypeStrings()[typeId - 1];
+```
+
+There is no check that `typeStringsOffset` was non-zero, nor any null check before these array index operations. Therefore, it is entirely possible (when `typeStringsOffset == 0`) that `pkg.getTypeStrings()` returns `null` at these call sites, which would then lead to a `NullPointerException` when indexing.
+
+Since `typeStringsOffset` can legitimately be zero (the code explicitly handles that case without throwing), and no further constraints or guards are shown that would prevent this, the result of `pkg.getTypeStrings()` at `pkg.getTypeStrings()` can be `null`.]]></reason>
+  <value>YES</value>
+</response>

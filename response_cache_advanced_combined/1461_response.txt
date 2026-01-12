@@ -1,0 +1,91 @@
+<response>
+  <reason><![CDATA[
+At this call site the receiver is a `MethodNode` instance `mth`, and `getBasicBlocks()` simply returns the field `blocks`:
+
+```java
+public List<BlockNode> getBasicBlocks() {
+    return blocks;
+}
+```
+
+So the question reduces to: can `mth.blocks` be null when `mth.getBasicBlocks()` is called in the shown usages?
+
+From the provided code we see both patterns around `getBasicBlocks()`:
+
+1. Callers that explicitly handle null:
+   - `ConstInlineVisitor.process`:
+     ```java
+     if (mth.getBasicBlocks() == null) {
+         return;
+     }
+     for (BlockNode block : mth.getBasicBlocks()) { ... }
+     ```
+   - `ProcessKotlinInternals.processMth`:
+     ```java
+     if (mth.isNoCode() || mth.getBasicBlocks() == null) {
+         return;
+     }
+     ```
+   - `DotGraphVisitor$DumpDotGraph.process` (simple mode branch):
+     ```java
+     List<BlockNode> blocks = mth.getBasicBlocks();
+     if (blocks == null) {
+         InsnNode[] insnArr = mth.getInstructions();
+         if (insnArr == null) {
+             return;
+         }
+         ...
+     }
+     ```
+   - `MarkMethodsForInline.process`:
+     ```java
+     if (mth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE)) {
+         if (mth.getBasicBlocks() == null) {
+             return null;
+         }
+         ...
+     }
+     ```
+   - `ReSugarCode.initClsEnumMap`:
+     ```java
+     if (clsInitMth == null || clsInitMth.isNoCode() || clsInitMth.getBasicBlocks() == null) {
+         return;
+     }
+     ```
+   - `ExtractFieldInit.moveStaticFieldsInit`:
+     ```java
+     if (classInitMth == null
+             || !classInitMth.getAccessFlags().isStatic()
+             || classInitMth.isNoCode()
+             || classInitMth.getBasicBlocks() == null) {
+         return;
+     }
+     ```
+
+   These callers would not contain such null checks if `blocks` were guaranteed to be non-null; they explicitly support the state where basic blocks are not yet initialized and `getBasicBlocks()` returns null.
+
+2. Callers that assume non-null but guard on emptiness:
+   - Many visitors use:
+     ```java
+     if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
+         return;
+     }
+     ```
+     or
+     ```java
+     if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
+         return;
+     }
+     ```
+     These are reached only after the CFG has been built (via `BlockSplitter.visit`, which calls `mth.initBasicBlocks()`); in that phase, `blocks` has been set to a (possibly empty) list.
+
+Critically, nothing in the provided code enforces that `blocks` is always non-null for every `MethodNode`; there is a life-cycle:
+
+- Before `initBasicBlocks()` is called (early phases or when a method has no structured CFG), `blocks` may be left null.
+- Several methods explicitly test for `getBasicBlocks() == null` and branch accordingly. That is strong evidence that `null` is an expected, legal value.
+
+Since `getBasicBlocks()` has no internal null-checks or lazy initialization and just returns the field, and you asked about the specific invocation `mth.getBasicBlocks()` with no stronger preconditions provided at that call site, we must conclude that at some call sites `blocks` can indeed be null and those callers are coded to handle that.
+
+Therefore, for this specific call expression `mth.getBasicBlocks()` (in general, as shown in the snippets) the result can be null; its nullability depends solely on whether `blocks` has been initialized before the call, and the surrounding code explicitly accounts for the null case.]]></reason>
+  <value>YES</value>
+</response>

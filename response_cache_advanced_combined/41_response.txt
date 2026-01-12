@@ -1,0 +1,35 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	public IMethodDetails getMethodDetails(MethodInfo methodInfo) {
+		ClspClass cls = nameMap.get(methodInfo.getDeclClass().getRawName());
+		if (cls == null) {
+			return null;
+		}
+		ClspMethod clspMethod = getMethodFromClass(cls, methodInfo);
+		if (clspMethod != null) {
+			return clspMethod;
+		}
+		// deep search
+		Set<ArgType> parents = cls.getParents();
+		if (parents == null) {
+			return null;
+		}
+		for (ArgType parent : parents) {
+			ClspClass clspParent = getClspClass(parent);
+			if (clspParent != null) {
+				ClspMethod methodFromParent = getMethodFromClass(clspParent, methodInfo);
+				if (methodFromParent != null) {
+					return methodFromParent;
+				}
+			}
+		}
+		// unknown method
+		return new SimpleMethodDetails(methodInfo);
+}
+  ```
+    ]]>
+  </code>
+</response>

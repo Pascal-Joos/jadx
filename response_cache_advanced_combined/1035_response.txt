@@ -1,0 +1,26 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+static void confirmMerge(IfInfo info) {
+		if (Nullability.castToNonnull(info).getMergedBlocks().size() > 1) {
+			for (BlockNode block : Nullability.castToNonnull(info).getMergedBlocks()) {
+				if (block != Nullability.castToNonnull(info).getFirstIfBlock()) {
+					block.add(AFlag.ADDED_TO_REGION);
+				}
+			}
+		}
+		if (!Nullability.castToNonnull(info).getSkipBlocks().isEmpty()) {
+			for (BlockNode block : Nullability.castToNonnull(info).getSkipBlocks()) {
+				block.add(AFlag.ADDED_TO_REGION);
+			}
+			Nullability.castToNonnull(info).getSkipBlocks().clear();
+		}
+		for (InsnNode forceInlineInsn : Nullability.castToNonnull(info).getForceInlineInsns()) {
+			forceInlineInsn.add(AFlag.FORCE_ASSIGN_INLINE);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

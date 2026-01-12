@@ -1,0 +1,20 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private ArgType validateClsType(ClassNode cls, ArgType candidateType, ArgType currentType) {
+		if (candidateType == null || !candidateType.isObject()) {
+			cls.addWarnComment("Incorrect class signature, class is not object: " + SignatureParser.getSignature(cls));
+			return null;
+		}
+		if (Objects.equals(candidateType.getObject(), cls.getClassInfo().getType().getObject())) {
+			cls.addWarnComment("Incorrect class signature, class is equals to this class: " + SignatureParser.getSignature(cls));
+			return currentType;
+		}
+		return candidateType;
+	}
+  ```
+    ]]>
+  </code>
+</response>

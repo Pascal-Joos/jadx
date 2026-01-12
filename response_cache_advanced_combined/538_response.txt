@@ -1,0 +1,45 @@
+<response>
+  <reason><![CDATA[
+At the call site in `DominatorTree.computeDominanceFrontier`:
+
+```java
+BlockNode idom = block.getIDom();
+...
+BlockNode runner = pred;
+while (runner != idom) {
+    addToDF(runner, block, blocksCount);
+    runner = runner.getIDom();  // <- call site in question
+}
+```
+
+`runner` is initialized to `pred`, where `pred` comes from:
+
+```java
+List<BlockNode> preds = block.getPredecessors();
+if (preds.size() >= 2) {
+    BlockNode idom = block.getIDom();
+    for (BlockNode pred : preds) {
+        BlockNode runner = pred;
+        while (runner != idom) {
+            ...
+            runner = runner.getIDom();
+        }
+    }
+}
+```
+
+There is no check here that `runner.getIDom()` is non‑null. For the loop to terminate without throwing a `NullPointerException`, every `runner` encountered while walking up the dominator chain from each predecessor to `idom` must have a non‑null immediate dominator, except when `runner == idom` (in which case the loop stops before calling `getIDom()`).
+
+The field `idom` inside `BlockNode` is not shown to be initialized to a non‑null value for all blocks. In a typical dominator tree, the entry block (root) usually has `idom == null`. Also, for arbitrary `pred` and `idom`, the loop condition `runner != idom` does not itself prevent `runner` from ever becoming a block whose `idom` is `null` on the next iteration. If such a situation occurs, then `runner.getIDom()` will evaluate to `null`.
+
+Because:
+
+- `getIDom()` is a trivial getter returning the field `idom` with no non‑null guarantees, and
+- the control flow at this call site does not guard against `idom` being `null`, and
+- no provided code enforces that all possible `runner` values here must have a non‑null `idom`,
+
+it is possible for `runner.getIDom()` to return `null` at this specific call site.
+
+Therefore, the invocation `runner = runner.getIDom()` can yield `runner == null`.]]></reason>
+  <value>YES</value>
+</response>

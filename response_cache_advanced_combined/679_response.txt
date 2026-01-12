@@ -1,0 +1,7 @@
+<response>
+    <success>false</success>
+    <methods>
+      <method>getInstructions</method>
+      <method>castToNonnull</method>
+    </methods>
+</response>

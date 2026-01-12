@@ -1,0 +1,49 @@
+<response>
+  <reason><![CDATA[
+The call site `usedInPhi.getResult()` refers to `getResult()` on an instance of `PhiInsn`:
+
+```java
+for (PhiInsn phiInsn : ssaVar.getUsedInPhi()) {
+    Set<String> names = new HashSet<>(1 + phiInsn.getArgsCount());
+    addArgName(phiInsn.getResult(), names);
+    ...
+}
+```
+
+From the provided code:
+
+```java
+class jadx.core.dex.instructions.PhiInsn {
+    public RegisterArg bindArg(BlockNode pred) {
+        RegisterArg arg = InsnArg.reg(getResult().getRegNum(), getResult().getInitType());
+        bindArg(arg, pred);
+        return arg;
+    }
+
+    @Override
+    public String toString() {
+        return "PHI: " + getResult() + " = " + Utils.listToString(getArguments())
+                + " binds: " + blockBinds;
+    }
+}
+```
+
+`PhiInsn` uses `getResult()` pervasively and assumes it is non-null:
+- `bindArg` immediately dereferences `getResult()` (calling `getRegNum()` and `getInitType()`).
+- `toString()` always prints `getResult()` as part of the PHI format.
+- Many SSA-related utilities (`SSATransform`, `InitCodeVariables`, `TypeInferenceVisitor`, etc.) call `phiInsn.getResult().getSVar()` without null checks.
+
+Creation & invariants:
+- PHI instructions participate in SSA, and SSA logic systematically expects every `PhiInsn` to have a result (`RegisterArg`) associated with its `SSAVar`.
+- `InitCodeVariables.setCodeVar` and `collectConnectedVars` traverse `phiInsn.getResult()` and its `SVar` under the assumption it exists.
+- Debug and consistency checks (`DebugChecks`) validate SSA structure and would throw if a PHI’s assign insn (the PHI) had a null result.
+
+There is no code path shown that sets a `PhiInsn`’s result to null, nor any null-guarding around `phiInsn.getResult()` anywhere. Given:
+- the SSA and PHI algorithms rely on a non-null result,
+- checks would fail fast if it were null,
+- and this specific call occurs inside `for (PhiInsn phiInsn : ssaVar.getUsedInPhi())` where each `phiInsn` is a proper PHI with an associated SSA variable,
+
+we can conclude that at this call site `usedInPhi.getResult()` is not null.
+]]></reason>
+  <value>NO</value>
+</response>

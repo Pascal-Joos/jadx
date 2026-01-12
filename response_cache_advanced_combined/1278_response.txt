@@ -1,0 +1,34 @@
+<response>
+  <reason><![CDATA[
+At the call site `ri.getNamedValues()` inside `ResXmlGen.addValue`, there is no prior condition or guarantee that `namedValues` (the field returned by `getNamedValues()`) is non-null.
+
+The method `ResourceEntry.getNamedValues()` is:
+
+```java
+public List<RawNamedValue> getNamedValues() {
+    return namedValues;
+}
+```
+
+This simply returns the field `namedValues` without any initialization, null-check, or fallback. Therefore, whether it is null depends entirely on how `namedValues` is set elsewhere in the code, which is not shown.
+
+Within `addValue`, the call appears in a conditional that explicitly checks for null:
+
+```java
+if (ri.getTypeName().equals("attr") && ri.getNamedValues() != null && !ri.getNamedValues().isEmpty()) {
+    ...
+}
+...
+if (ri.getNamedValues() != null) {
+    for (RawNamedValue value : ri.getNamedValues()) {
+        addItem(cw, itemTag, ri.getTypeName(), value);
+    }
+}
+```
+
+These checks (`ri.getNamedValues() != null`) are necessary precisely because `ri.getNamedValues()` may be null. The presence of logic that branches on `ri.getNamedValues() == null` vs non-null indicates the code author expects a possible null value.
+
+No part of the provided code ensures that for every `ResourceEntry ri` passed into `addValue`, `namedValues` has been initialized to a non-null list. Consequently, at this call site, `getNamedValues()` can legitimately return null.
+]]></reason>
+  <value>YES</value>
+</response>

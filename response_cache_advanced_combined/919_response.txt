@@ -1,0 +1,51 @@
+```xml
+<response>
+    <reason><![CDATA[
+Based solely on the provided method signature and body:
+
+```java
+private boolean connectElseIf(ICodeWriter code, IContainer els) throws CodegenException {
+    if (els.contains(AFlag.ELSE_IF_CHAIN) && els instanceof Region) {
+        List<IContainer> subBlocks = ((Region) els).getSubBlocks();
+        if (subBlocks.size() == 1) {
+            IContainer elseBlock = subBlocks.get(0);
+            if (elseBlock instanceof IfRegion) {
+                declareVars(code, elseBlock);
+                makeIf((IfRegion) elseBlock, code, false);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+```
+
+The expression whose possible nullness is in question is the parameter `els` at this line:
+
+```java
+if (els.contains(AFlag.ELSE_IF_CHAIN) && els instanceof Region) {
+```
+
+There is no explicit null check on `els` in this method. Java will evaluate the left-hand side of the `&&` first:
+
+1. `els.contains(AFlag.ELSE_IF_CHAIN)`
+
+If `els` is `null`, this method call will cause a `NullPointerException` before Java even evaluates `els instanceof Region`. The short-circuiting behavior of `&&` does not help, because the potential null dereference (`els.contains(...)`) occurs first.
+
+Therefore:
+
+- From the perspective of **runtime behavior**, `els` *can* be `null` when the method is called, unless some external contract guarantees non-null.
+- From the perspective of **this exact expression being safely non-null**, there is no local guarantee in this code that `els` is non-null.
+- Whether `els` is actually ever null at runtime depends on how `connectElseIf` is called and on the contracts of its callers. Those are not provided here.
+
+Because the method as written does not guard against `null` and we have no information about caller guarantees or API contracts of `IContainer`, we cannot definitively state that `els` can *never* be null. At the same time, we also cannot confirm a path in this snippet alone that assigns `null` to `els`, since it's just a parameter.
+
+Thus, with the information given, we cannot conclusively determine whether `els` will be non-null at this line in all executions; we can only say that the code does not *prevent* it from being null and would throw if it were.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the declarations and documentation/contracts for IContainer and the connectElseIf callers (or calling context) to see if they guarantee that els is never null.]]></request>
+        <request><![CDATA[If available, show any annotations (e.g., @NonNull, @Nullable) or static analysis rules applied to the connectElseIf method parameters.]]></request>
+    </requests>
+</response>
+```

@@ -1,0 +1,47 @@
+```xml
+<response>
+    <reason><![CDATA[
+Based solely on the provided method body, there is not enough information to prove that the expression
+
+    return alias == null ? getPackage() : alias.getPkg();
+
+is always non-null (nor that it is always possibly null).
+
+To determine nullability, we must know:
+
+1. Whether `getPackage()` can ever return `null`.
+2. Whether `alias` can be non-null while `alias.getPkg()` returns `null`.
+3. Whether `parentClass.getAliasPkg()` (in the inner-class branch) can return `null`.
+
+From the method:
+
+    public String getAliasPkg() {
+        if (isInner() && parentClass != null) {
+            return parentClass.getAliasPkg();
+        }
+        return alias == null ? getPackage() : alias.getPkg();
+    }
+
+we see:
+- The control flow: we either return `parentClass.getAliasPkg()` or the ternary expression.
+- There are no explicit null checks or postconditions ensuring that:
+  - `getPackage()` is non-null.
+  - `alias.getPkg()` is non-null.
+  - `parentClass.getAliasPkg()` is non-null.
+
+Without contracts, implementations, annotations (e.g., @NotNull), or invariants on:
+- `getPackage()`
+- `alias` and `alias.getPkg()`
+- `parentClass` and `parentClass.getAliasPkg()`
+we cannot safely conclude that the expression’s result is guaranteed to be non-null, nor that it is definitely nullable.
+
+Thus, the correct conclusion from the given snippet alone is that the nullability of this expression is unknown.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or documented contract (including any nullability annotations) of getPackage().]]></request>
+        <request><![CDATA[Provide the type and implementation/contract of alias and its getPkg() method.]]></request>
+        <request><![CDATA[Provide the type and implementation/contract of parentClass and its getAliasPkg() method, including whether it delegates similarly.]]></request>
+    </requests>
+</response>
+```

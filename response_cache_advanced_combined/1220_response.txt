@@ -1,0 +1,17 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the body of this `decode()` method, `is` is dereferenced only after an explicit null check:
+
+    if (is == null) {
+        return;
+    }
+    int size = is.readInt32();
+
+Execution reaches `int size = is.readInt32();` only if `is == null` evaluated to `false`. Assuming no concurrent modification of `is` (i.e., `is` is not changed by another thread between the null check and the dereference) and no use of reflection/unsafe operations that could mutate `is` behind the method’s back, then on all code paths that reach that line, `is` is guaranteed to be non-null.
+
+From the provided code alone, there is no path where control reaches `is.readInt32()` with `is` being null.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

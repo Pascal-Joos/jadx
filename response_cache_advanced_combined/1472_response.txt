@@ -1,0 +1,74 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static List<TryCatchBlockAttr> prepareTryBlocks(MethodNode mth) {
+		if (mth.getBasicBlocks() == null) {
+			return Collections.emptyList();
+		}
+		Map<ExceptionHandler, List<BlockNode>> blocksByHandler = new HashMap<>();
+		for (BlockNode block : mth.getBasicBlocks()) {
+			CatchAttr catchAttr = block.get(AType.EXC_CATCH);
+			if (catchAttr != null) {
+				for (ExceptionHandler eh : catchAttr.getHandlers()) {
+					blocksByHandler
+							.computeIfAbsent(eh, c -> new ArrayList<>())
+							.add(block);
+				}
+			}
+		}
+		if (Consts.DEBUG_EXC_HANDLERS) {
+			LOG.debug("Input exception handlers:");
+			blocksByHandler.forEach((eh, blocks) -> LOG.debug(" {}, throw blocks: {}, handler blocks: {}", eh, blocks, eh.getBlocks()));
+		}
+		if (blocksByHandler.isEmpty()) {
+			// no catch blocks -> remove all handlers
+			mth.getExceptionHandlers().forEach(eh -> removeExcHandler(mth, eh));
+		} else {
+			// remove handlers without blocks in catch attribute
+			blocksByHandler.forEach((eh, blocks) -> {
+				if (blocks.isEmpty()) {
+					removeExcHandler(mth, eh);
+				}
+			});
+		}
+		BlockSplitter.detachMarkedBlocks(mth);
+		mth.clearExceptionHandlers();
+		if (mth.isNoExceptionHandlers()) {
+			return Collections.emptyList();
+		}
+
+		blocksByHandler.forEach((eh, blocks) -> {
+			// remove catches from same handler
+			blocks.removeAll(eh.getBlocks());
+		});
+
+		List<TryCatchBlockAttr> tryBlocks = new ArrayList<>();
+		blocksByHandler.forEach((eh, blocks) -> {
+			List<ExceptionHandler> handlers = new ArrayList<>(1);
+			handlers.add(eh);
+			tryBlocks.add(new TryCatchBlockAttr(tryBlocks.size(), handlers, blocks));
+		});
+		if (tryBlocks.size() > 1) {
+			// merge or mark as outer/inner
+			while (true) {
+				boolean restart = combineTryCatchBlocks(tryBlocks);
+				if (!restart) {
+					break;
+				}
+			}
+		}
+		checkForMultiCatch(mth, tryBlocks);
+		clearTryBlocks(mth, tryBlocks);
+		sortHandlers(mth, tryBlocks);
+
+		if (Consts.DEBUG_EXC_HANDLERS) {
+			LOG.debug("Result try-catch blocks:");
+			tryBlocks.forEach(tryBlock -> LOG.debug(" {}", tryBlock));
+		}
+		return tryBlocks;
+}
+  ```
+    ]]>
+  </code>
+</response>

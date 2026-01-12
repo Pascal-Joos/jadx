@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static MethodInfo fromRef(RootNode root, IMethodRef methodRef) {
+		InfoStorage infoStorage = root.getInfoStorage();
+		int uniqId = methodRef.getUniqId();
+		if (uniqId != 0) {
+			MethodInfo prevMth = infoStorage.getByUniqId(uniqId);
+			if (prevMth != null) {
+				return prevMth;
+			}
+		}
+		methodRef.load();
+		ArgType parentClsType = ArgType.parse(methodRef.getParentClassType());
+		ClassInfo parentClass = ClassInfo.fromType(root, Nullability.castToNonnull(parentClsType));
+		ArgType returnType = ArgType.parse(methodRef.getReturnType());
+		List<ArgType> args = Utils.collectionMap(methodRef.getArgTypes(), ArgType::parse);
+		MethodInfo newMth = new MethodInfo(parentClass, methodRef.getName(), args, Nullability.castToNonnull(returnType));
+		MethodInfo uniqMth = infoStorage.putMethod(newMth);
+		if (uniqId != 0) {
+			infoStorage.putByUniqId(uniqId, uniqMth);
+		}
+		return uniqMth;
+}
+  ```
+    ]]>
+  </code>
+</response>

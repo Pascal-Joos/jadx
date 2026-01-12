@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void initTryCatches(MethodNode mth, InsnNode[] insnByOffset, List<ITry> tries) {
+		if (tries.isEmpty()) {
+			return;
+		}
+		if (Consts.DEBUG_EXC_HANDLERS) {
+			LOG.debug("Raw try blocks in {}", mth);
+			tries.forEach(tryData -> LOG.debug(" - {}", tryData));
+		}
+		for (ITry tryData : tries) {
+			List<ExceptionHandler> handlers = convertToHandlers(mth, tryData.getCatch(), Nullability.castToNonnull(insnByOffset));
+			if (handlers.isEmpty()) {
+				continue;
+			}
+			markTryBounds(Nullability.castToNonnull(insnByOffset), tryData, CatchAttr.build(handlers));
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,9 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>getThenBlock</method>
+    <method>getElseBlock</method>
+    <method>castToNonnull</method>
+    <method>isFollowBackEdge</method>
+  </methods>
+</response>

@@ -1,0 +1,18 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void addBreakForBlock(MethodNode mth, IContainer c, Set<IBlock> blocks, BlockNode bn) {
+			for (BlockNode s : Nullability.castToNonnull(bn.getCleanSuccessors())) {
+				if (!blocks.contains(s)
+						&& !bn.contains(AFlag.ADDED_TO_REGION)
+						&& !s.contains(AFlag.FALL_THROUGH)) {
+					addBreak(mth, c, bn);
+					return;
+				}
+			}
+}
+  ```
+    ]]>
+  </code>
+</response>

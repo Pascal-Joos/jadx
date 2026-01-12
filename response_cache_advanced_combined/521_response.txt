@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private BlockNode searchFallThroughCase(BlockNode successor, BlockNode out, BitSet caseBlocks) {
+		BitSet df = successor.getDomFrontier();
+		if (df == null || !df.intersects(caseBlocks)) {
+			return null;
+		}
+		Set<BlockNode> allPathsBlocks = BlockUtils.getAllPathsBlocks(successor, out);
+		Map<BlockNode, BitSet> bitSetMap = BlockUtils.calcPartialPostDominance(mth, allPathsBlocks, out);
+		BitSet pdoms = bitSetMap.get(successor);
+		if (pdoms != null && pdoms.intersects(caseBlocks)) {
+			return getOneIntersectionBlock(out, caseBlocks, pdoms);
+		}
+		return null;
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static boolean contains(List<InsnNode> list,  InsnNode insn, int startOffset) {
+		return getIndex(Nullability.castToNonnull(list), insn, startOffset) != -1;
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,45 @@
+<response>
+  <reason><![CDATA[
+At the specific call site, `top` is the `topSplitterBlock` created/obtained in `BlockExceptionHandler.wrapBlocksWithTryCatch`:
+
+```java
+BlockNode top = searchTopBlock(mth, blocks);
+...
+BlockNode topSplitterBlock = getTopSplitterBlock(mth, top);
+...
+topSplitterBlock.updateCleanSuccessors();
+...
+topSplitterBlock.setTopSplitter(topSplitterBlock);
+
+topSplitterBlock.updateCleanSuccessors();
+...
+// later use-site:
+top.getCleanSuccessors()
+```
+
+`getCleanSuccessors()` is just a field getter:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+So it can only return `null` if `cleanSuccessors` is `null` on `top`.
+
+`wrapBlocksWithTryCatch` *always* calls `topSplitterBlock.updateCleanSuccessors()` before any further use of the splitter. The splitter (`topSplitterBlock`) is either:
+
+1. The existing method enter successor (`fixedTop`) when `top == mth.getEnterBlock()`, or  
+2. A block found or newly created by `BlockSplitter.blockSplitTop(mth, ...)` (via `getTopSplitterBlock`).
+
+In both branches of `getTopSplitterBlock`, the returned `BlockNode` is a normal CFG node that participates in successor/predecessor relations and then has `updateCleanSuccessors()` invoked. In Jadx’s CFG model, `updateCleanSuccessors()` populates `cleanSuccessors` to a non‑null list (possibly empty) based on `successors`. This is further evidenced by multiple other callers in the provided code that *assume* non‑null and only guard against emptiness or size (e.g. `start.getCleanSuccessors().contains(end)`, indexing into it, or wrapping it in `Nullability.castToNonnull` when they want static guarantees).
+
+There is no path in `wrapBlocksWithTryCatch` where:
+
+- `topSplitterBlock` is `null`, or
+- `topSplitterBlock.updateCleanSuccessors()` is skipped, or
+- `topSplitterBlock` could be a special sentinel that leaves `cleanSuccessors` uninitialized.
+
+Therefore, at the specific call site `top.getCleanSuccessors()` (where `top` is such a splitter that has had `updateCleanSuccessors()` called), `cleanSuccessors` is a non‑null list, so this method cannot return `null`.]]></reason>
+  <value>NO</value>
+</response>

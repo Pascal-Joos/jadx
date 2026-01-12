@@ -1,0 +1,34 @@
+<response>
+  <reason><![CDATA[
+phiInsn is an instance of PhiInsn, which extends InsnNode and inherits getResult().
+
+Within the provided code, all uses and constructions of PhiInsn assume and rely on a non‑null result:
+
+- PhiInsn.bindArg uses getResult().getRegNum() and getResult().getInitType() without null checks.
+- PhiInsn.toString prints getResult() directly.
+- Many SSA and region visitors call phiInsn.getResult().getSVar() or phiInsn.getResult().getRegNum() with no null checks.
+- Phi result is used as the defining SSA var for that phi (e.g., in InitCodeVariables.collectConnectedVars, TypeInferenceVisitor.mergePhiBounds, TernaryMod, LoopRegionVisitor, etc.), always assuming it exists.
+
+A construction site is shown:
+
+```java
+public RegisterArg bindArg(BlockNode pred) {
+    RegisterArg arg = InsnArg.reg(getResult().getRegNum(), getResult().getInitType());
+    bindArg(arg, pred);
+    return arg;
+}
+```
+
+This method itself proves that for any valid PhiInsn object used in analysis, getResult() must be non‑null; otherwise this and many other methods would immediately throw NPEs. There is no code path shown that ever sets a PhiInsn result to null, and multiple algorithms (SSA transform, region making, variable processing) fundamentally require a non‑null phi result.
+
+Therefore, at the specific call site:
+
+```java
+RegisterArg arg = phiInsn.getResult();
+```
+
+where phiInsn is a PhiInsn that has been produced and is being processed by this SSA/region machinery, getResult() cannot be null. If it were null, large parts of the shown code would already have failed earlier with NPEs, contradicting the intended invariant around PhiInsn.
+
+Thus, for this call site, the method does not return null.]]></reason>
+  <value>NO</value>
+</response>

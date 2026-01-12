@@ -1,0 +1,69 @@
+<response>
+    <reason><![CDATA[
+The parameter `pkgFullName` of `cutLastPkgPart` is passed in only from this call site:
+
+```java
+clsInfo.changePkg(cutLastPkgPart(clsInfo.getAliasPkg()) + '.' + pkgRename.getNewName());
+```
+
+So `pkgFullName` is exactly the result of `clsInfo.getAliasPkg()`.
+
+`ClassInfo.getAliasPkg()` is implemented as:
+
+```java
+public String getAliasPkg() {
+    if (isInner() && parentClass != null) {
+        return parentClass.getAliasPkg();
+    }
+    return alias == null ? getPackage() : alias.getPkg();
+}
+```
+
+`getAliasPkg` can therefore return:
+1. `parentClass.getAliasPkg()` for inner classes (recursive), or
+2. `getPackage()` when `alias == null`, or
+3. `alias.getPkg()` when `alias != null`.
+
+From the provided implementations:
+
+- `getPackage()`:
+  ```java
+  @NotNull
+  public String getPackage() {
+      if (parentClass != null) {
+          return parentClass.getPackage();
+      }
+      if (pkg == null) {
+          throw new JadxRuntimeException("Package is null for not inner class");
+      }
+      return pkg;
+  }
+  ```
+  This either:
+  * delegates to `parentClass.getPackage()` (again non-null by the same logic), or
+  * throws if `pkg == null`, or
+  * returns non-null `pkg`.
+
+  So `getPackage()` never returns null; it either yields a non-null string or throws.
+
+- `ClassAliasInfo.getPkg()`:
+  ```java
+  public String getPkg() {
+      return pkg;
+  }
+  ```
+  Here `pkg` has no non-null guarantee and can be null.
+
+Given this, the only potentially nullable branch of `getAliasPkg()` is when `alias != null` and `alias.getPkg()` returns `null`. In that case, `pkgFullName` would be `null` when passed to `cutLastPkgPart`, which then immediately dereferences it:
+
+```java
+int lastDotIndex = pkgFullName.lastIndexOf('.');
+```
+
+This would cause a `NullPointerException` if `alias.getPkg()` is null.
+
+Nothing in the shown code path reassigns `pkgFullName` or checks it for null before the call, and there is no other call site for `cutLastPkgPart`. Thus, based solely on the provided implementations, it is possible for `pkgFullName` to be null (via `alias.getPkg()` being null), and the method would then crash.
+
+Therefore, ignoring annotations, `pkgFullName` can be null.]]></reason>
+    <value>YES</value>
+</response>

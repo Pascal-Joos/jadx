@@ -1,0 +1,135 @@
+<response>
+  <reason><![CDATA[
+The call site is inside `ClassGen.useClassInternal`:
+
+```java
+if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) {
+    fullName = extClsInfo.getAliasNameWithoutPackage();
+}
+```
+
+So we need to know if `extClsInfo.getAliasPkg()` can be `null` here.
+
+`ClassInfo.getAliasPkg()` is:
+
+```java
+public String getAliasPkg() {
+    if (isInner()) {
+        return parentClass.getAliasPkg();
+    }
+    return alias == null ? getPackage() : alias.getPkg();
+}
+```
+
+Relevant facts from the provided code:
+
+1. **Inner classes delegate to parent**  
+   If `isInner()` is true, the method simply returns `parentClass.getAliasPkg()`. So for any inner class, nullability is the same as for its top parent. Thus, it’s enough to reason about the top-level (non-inner) class case.
+
+2. **Non‑inner path reduces to `getPackage()` or `alias.getPkg()`**  
+   - If `alias == null` → returns `getPackage()`.
+   - Else → returns `alias.getPkg()`.
+
+3. **`getPackage()` is assumed non‑null in multiple places**
+
+   The project consistently treats the package as a (possibly empty) *non‑null* string:
+
+   * Usage in comparisons:
+   ```java
+   String pkg = clsInfo.getPackage();
+   if (pkg.equals(pkgFullName)) { ... }
+   else if (pkg.startsWith(pkgFullNameDot)) { ... }
+   ```
+   If `clsInfo.getPackage()` could be `null`, `pkg.equals(...)` would risk NPEs; there are no null checks.
+
+   * `JavaClass.getPackage()`:
+   ```java
+   public String getPackage() {
+       return cls.getPackage();
+   }
+   ```
+   And `ClassNode.getPackage()`:
+   ```java
+   public String getPackage() {
+       return clsInfo.getAliasPkg();
+   }
+   ```
+   These are used frequently for equality and `.startsWith` checks, with no null guards.
+
+   * Package-based logic everywhere (e.g., `FixAccessModifiers`, `OverrideMethodVisitor`, `Deobfuscator.dumpClassAlias`) compares or concatenates packages without null checks, implying an invariant "package string is never null; empty string denotes default package".
+
+   Therefore, `getPackage()` is effectively guaranteed to return a non‑null `String` (possibly `""`, but not `null`).
+
+4. **`alias.getPkg()` is treated as non‑null**
+
+   When `alias != null`, code assumes `alias.getPkg()` is non‑null:
+
+   * `changePkg` constructs:
+   ```java
+   ClassAliasInfo newAlias = new ClassAliasInfo(aliasPkg, getAliasShortName());
+   ```
+   `aliasPkg` passed here originates from non‑null contexts (user renames, deobfuscator returns, etc.), and is then used as a normal string (split by `"."`, concatenated, etc.).
+
+   * `hasAliasPkg()`:
+   ```java
+   if (alias != null) {
+       return !getPackage().equals(getAliasPkg());
+   }
+   ```
+   Here `getAliasPkg()` is directly used as an argument to `.equals` with no null check. If `alias.getPkg()` could be null, this would lead to NPE. The absence of null guarding indicates `alias.getPkg()` is also expected to be non‑null.
+
+5. **Other usages assume `getAliasPkg()` non‑null**
+
+   Many call sites use `getAliasPkg()` without any null protection:
+
+   * In `RenameVisitor.collectRootPkgs`:
+   ```java
+   for (ClassNode cls : classes) {
+       fullPkgs.add(cls.getClassInfo().getAliasPkg());
+   }
+   for (String pkg : fullPkgs) {
+       String rootPkg = getRootPkg(pkg);
+       ...
+   }
+   ```
+   `pkg` is passed to `getRootPkg` and then checked for `null` only *after* being returned from `getRootPkg`, meaning `getAliasPkg()` itself is not expected to be null.
+
+   * In `checkInPackageCollision` (same class as the target call site):
+   ```java
+   String currentPkg = useCls.getAliasPkg();
+   if (currentPkg.equals(searchCls.getAliasPkg())) {
+       // ...
+   }
+   ```
+   Again, no null check on either `currentPkg` or `searchCls.getAliasPkg()`.
+
+   * `getAliasFullPath()`:
+   ```java
+   return Nullability.castToNonnull(getAliasPkg()).replace('.', File.separatorChar)
+           + File.separatorChar
+           + getAliasNameWithoutPackage().replace('.', '_');
+   ```
+   The library wraps with `castToNonnull` precisely to assert non‑null expectation; if `getAliasPkg()` were allowed to be null, many callers would be incorrect.
+
+6. **At the specific call site**
+
+   In `ClassGen.useClassInternal`:
+
+   ```java
+   if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) {
+       fullName = extClsInfo.getAliasNameWithoutPackage();
+   }
+   ```
+
+   Both `extClsInfo` and `useCls` are `ClassInfo` instances representing resolved classes used in code generation. These are the same `ClassInfo` objects used across the rest of the system where `getAliasPkg()` is assumed non‑null.
+
+   Because:
+   - `getAliasPkg()` for any `ClassInfo` ultimately reduces to either `getPackage()` or `alias.getPkg()`, both treated as non‑null everywhere.
+   - Numerous call sites rely on non‑nullness without safeguards.
+   - There is no code path shown that ever assigns `null` to a package or alias package.
+
+   It follows that at this call site, `extClsInfo.getAliasPkg()` is not `null`. If it were, many other places in the code would already be vulnerable to immediate NPEs, contradicting the design pattern apparent in the provided code.
+
+  ]]></reason>
+  <value>NO</value>
+</response>

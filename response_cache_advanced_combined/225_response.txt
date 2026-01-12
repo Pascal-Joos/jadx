@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+MethodInfo implMthInfo = customNode.getImplMthInfo();
+```
+
+the method `InvokeCustomNode.getImplMthInfo()` is a simple field getter:
+
+```java
+public MethodInfo getImplMthInfo() {
+    return implMthInfo;
+}
+```
+
+There is no initialization or null-check shown on `implMthInfo` anywhere in the provided call chain. In the two usages:
+
+```java
+MethodInfo implMthInfo = customNode.getImplMthInfo();
+if (implMthInfo == null) {
+    throw new CodegenException("Missing impl method info for invoke-custom");
+}
+```
+
+and
+
+```java
+MethodInfo implMthInfo = customNode.getImplMthInfo();
+int implArgsCount = implMthInfo.getArgsCount();
+```
+
+the first clearly allows for `implMthInfo` to be null (it explicitly checks and throws if so). That check would be unnecessary and unreachable if `getImplMthInfo()` could never return null. Since `getImplMthInfo()` merely returns the backing field without any non-null guarantee or construction logic shown, `implMthInfo` may be left unset or explicitly set to null elsewhere in the class.
+
+Because we have no evidence that `implMthInfo` is always initialized to a non-null value before this specific invocation, and the surrounding code is written to handle the null case, the only safe conclusion is that:
+
+- At this call site, `customNode.getImplMthInfo()` can evaluate to null.
+- When it does, the subsequent `if (implMthInfo == null)` branch will execute and throw a `CodegenException`, but the variable assignment itself is from a potentially null return.
+
+Therefore, the method can return null at this specific call site.]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,35 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone, there is no explicit guarantee that `insn.getCondition()` is non-null:
+
+private static void simplifyTernary(MethodNode mth, TernaryInsn insn) {
+    IfCondition condition = insn.getCondition();
+    if (condition.isCompare()) {
+        simplifyIf(mth, condition.getCompare().getInsn());
+    } else {
+        insn.simplifyCondition();
+    }
+}
+
+Key points:
+
+1. `condition` is assigned directly from `insn.getCondition()` with no null check.
+2. The code immediately calls `condition.isCompare()` without any prior validation.
+3. Whether `condition` can be null depends entirely on the implementation and contract of `TernaryInsn.getCondition()` and how `TernaryInsn` instances are constructed and used.
+4. The snippet does not show:
+   - The implementation of `TernaryInsn.getCondition()`
+   - Any invariants or documentation guaranteeing that a `TernaryInsn` always has a non-null `IfCondition`
+   - Any earlier validation (e.g., checks before `simplifyTernary` is called) that would enforce non-nullity.
+
+Without seeing those contracts or surrounding code, we cannot safely conclude that `condition` is always non-null; but we also cannot assert that it can be null. The nullability is determined by external code not provided here.
+
+Therefore, based solely on the given snippet, the nullability of `condition` is indeterminate and requires additional information about `TernaryInsn` and its `getCondition()` method.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation (or specification/contract) of TernaryInsn.getCondition().]]></request>
+        <request><![CDATA[Provide any class invariants or documentation for TernaryInsn that state whether its condition field can be null.]]></request>
+    </requests>
+</response>
+```

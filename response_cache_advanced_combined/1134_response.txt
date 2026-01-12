@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static void printExecTimesWithTotal(long totalMillis) {
+		if (execTimes == null) {
+			initExecTimes();
+		}
+		System.out.println("Exec times: total " + totalMillis + "ms");
+		execTimes.forEach((tag, time) -> System.out.println(" " + tag + ": " + time + "ms"
+				+ String.format(" (%.2f%%)", time * 100. / (double) totalMillis)));
+}
+  ```
+    ]]>
+  </code>
+</response>

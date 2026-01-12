@@ -1,0 +1,14 @@
+```xml
+<response>
+    <reason><![CDATA[
+The method unconditionally returns the literal `null` value:
+
+public ArgType getWildcardType() {
+    return null;
+}
+
+There are no other code paths, no conditions, and no preceding logic that could change the returned value. The expression at line `return null;` is, by definition, the `null` reference. Therefore, the expression can definitely be null at this point.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

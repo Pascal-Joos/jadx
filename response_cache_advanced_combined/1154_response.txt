@@ -1,0 +1,35 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void parseNameSpace() throws IOException {
+ 		int headerSize = is.readInt16();
+ 		if (headerSize > 0x10) {
+ 			LOG.warn("Invalid namespace header");
+ 		} else if (headerSize < 0x10) {
+ 			die("NAMESPACE header is not 0x10 big");
+ 		}
+ 		int size = is.readInt32();
+ 		if (size > 0x18) {
+ 			LOG.warn("Invalid namespace size");
+ 		} else if (size < 0x18) {
+ 			die("NAMESPACE header chunk is not 0x18 big");
+ 		}
+ 
+ 		int beginLineNumber = is.readInt32();
+ 		int comment = is.readInt32();
+ 		int beginPrefix = is.readInt32();
+ 		int beginURI = is.readInt32();
+ 		is.skip(headerSize - 0x10);
+ 
+ 		String nsKey = getString(beginURI);
+ 		String nsValue = getString(beginPrefix);
+ 		if (nsMap != null && StringUtils.notBlank(nsKey) && !Nullability.castToNonnull(nsMap).containsValue(nsValue)) {
+ 			nsMap.putIfAbsent(nsKey, nsValue);
+ 		}
+ 		namespaceDepth++;
+}
+  ```
+    ]]>
+  </code>
+</response>

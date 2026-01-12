@@ -1,0 +1,70 @@
+<response>
+  <reason><![CDATA[
+At the call site in question, `from` is a `BlockNode`, and the call is:
+
+```java
+from.getCleanSuccessors()
+```
+
+The implementation of this method is:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+There is no guarding, defaulting, or lazy initialization inside `getCleanSuccessors`; it simply returns the field `cleanSuccessors` as-is. Therefore, whether this call can return null depends entirely on whether `this.cleanSuccessors` can be null for the specific `BlockNode` instance referenced by `from`.
+
+From the provided codebase:
+
+- `cleanSuccessors` is not shown to be initialized at construction time to a non-null value.
+- Multiple methods treat `getCleanSuccessors()` as potentially nullable. For example:
+
+```java
+public static BlockNode getNextBlock(BlockNode block) {
+    List<BlockNode> s = block.getCleanSuccessors();
+    if (s == null || s.isEmpty()) {
+        return null;
+    }
+    return s.get(0);
+}
+```
+
+and
+
+```java
+private static BlockNode getNextBlockOnEmptyPath(BlockNode block) {
+    ...
+    List<BlockNode> successors = block.getCleanSuccessors();
+    if (successors == null || successors.size() != 1) {
+        return null;
+    }
+    ...
+}
+```
+
+and
+
+```java
+public static BlockNode getNextBlockToPath(BlockNode block, BlockNode pathEnd) {
+    List<BlockNode> successors = block.getCleanSuccessors();
+    if (successors == null) {
+        return null;
+    }
+    ...
+}
+```
+
+These explicit null checks demonstrate that, in the design of this code, `cleanSuccessors` is allowed to be null for some `BlockNode` instances. No invariant is shown that would guarantee non-nullability for the particular `from` at this call site, nor is this call wrapped with `Nullability.castToNonnull` or similar protection that would indicate an expectation of non-null.
+
+Since:
+
+- `getCleanSuccessors` directly returns a field.
+- Elsewhere in the same codebase the field is defensively treated as possibly null.
+- No additional constraints on `from` at this specific site are provided that would prove `cleanSuccessors` is initialized and non-null.
+
+it must be concluded that `from.getCleanSuccessors()` can evaluate to null at this call site.
+  ]]></reason>
+  <value>YES</value>
+</response>

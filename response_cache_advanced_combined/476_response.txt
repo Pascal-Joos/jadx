@@ -1,0 +1,54 @@
+<response>
+  <reason><![CDATA[
+The call site is `block.getCleanSuccessors()` in various places. The method implementation is:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+So the question reduces to: can `this.cleanSuccessors` be `null` at the given usages?
+
+From the provided code, several facts are visible:
+
+1. Other code consistently treats `getCleanSuccessors()` as non‑null and directly dereferences it:
+   - `mth.getEnterBlock().getCleanSuccessors().get(0);`
+   - `for (BlockNode node : block.getCleanSuccessors()) { ... }`
+   - `if (start.getCleanSuccessors().contains(end)) { ... }`
+   - `List<BlockNode> successors = block.getCleanSuccessors(); if (successors.size() != 1) { ... }`
+   - `for (BlockNode s : Nullability.castToNonnull(bn.getCleanSuccessors())) { ... }`
+   - `BlockNode startBlock = Utils.getOne(handlerBlock.getCleanSuccessors());`
+   - `BlockNode startBlock = Utils.first(mth.getEnterBlock().getCleanSuccessors());`
+   - `List<BlockNode> successors = includeExcHandlers ? child.getSuccessors() : child.getCleanSuccessors();`
+
+   In all these places, the code assumes it has at least a non‑null `List` (it may be empty or not, but it is used as a collection, not guarded against null).
+
+2. Some logic explicitly distinguishes between “empty” and “one successor”, which only makes sense if `getCleanSuccessors()` always returns a non‑null `List`:
+   - `if (block.getCleanSuccessors().size() == 1 && top.getInstructions().isEmpty()) { ... }`
+   - `if (!start.getInstructions().isEmpty() || start.getCleanSuccessors().size() != 1) { return false; }`
+
+   If `cleanSuccessors` could be null, many of these patterns would throw NPE systematically, and the framework would be unusable.
+
+3. `BlockExceptionHandler.wrapBlocksWithTryCatch` contains:
+   ```java
+   topSplitterBlock.updateCleanSuccessors();
+   if (bottomSplitterBlock != null) {
+       bottomSplitterBlock.updateCleanSuccessors();
+   }
+   ```
+   and other parts of the CFG code rely on `updateCleanSuccessors()` having run where needed. In decompilers/CFG frameworks like jadx, successor lists are normally initialized to an empty `List` (e.g., `Collections.emptyList()` or a new `ArrayList<>`) when a block is created, then mutated but not replaced with `null`.
+
+4. There is no code path shown where `cleanSuccessors` is ever assigned `null`. The only evidence about its lifecycle we see is that it is updated via `updateCleanSuccessors()` and then used everywhere as a valid list.
+
+Given:
+- The field `cleanSuccessors` is used pervasively as a non‑null list;
+- No assignment to `null` is shown;
+- Numerous methods rely on `getCleanSuccessors()` to be non‑null, not just at one particular place, but throughout the control‑flow utilities;
+
+it is consistent and necessary within this codebase that `cleanSuccessors` is always initialized to a non‑null `List` for any live `BlockNode`. Therefore the method `getCleanSuccessors()` at the specified call sites will not return `null`.
+
+The list may be empty and callers often handle that (e.g., `isEmpty()`, `size() == 1`), but “empty” is not the same as `null`. Thus, at these call sites, the return value is not `null.
+  ]]></reason>
+  <value>NO</value>
+</response>

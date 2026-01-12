@@ -1,0 +1,28 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static boolean isRegionContainsRegion(IContainer container, IRegion region) {
+		if (container == region) {
+			return true;
+		}
+		if (region == null) {
+			return false;
+		}
+		IRegion parent = region.getParent();
+		while (container != parent) {
+			if (parent == null) {
+				if (region.contains(AType.EXC_HANDLER)) {
+					return isRegionContainsExcHandlerRegion(Nullability.castToNonnull(container), region);
+				}
+				return false;
+			}
+			region = parent;
+			parent = region.getParent();
+		}
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

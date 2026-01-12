@@ -1,0 +1,34 @@
+<response>
+  <reason><![CDATA[
+At this call site, `constInsn` is the parameter of:
+
+```java
+private static boolean replaceConst(MethodNode mth, InsnNode constInsn, InsnArg constArg) {
+    SSAVar ssaVar = constInsn.getResult().getSVar();
+    ...
+}
+```
+
+`replaceConst` is called only from `ConstInlineVisitor.checkInsn`:
+
+```java
+private static void checkInsn(MethodNode mth, InsnNode insn, List<InsnNode> toRemove) {
+    if (insn.contains(AFlag.DONT_INLINE)
+            || insn.contains(AFlag.DONT_GENERATE)
+            || insn.getResult() == null) {
+        return;
+    }
+    SSAVar sVar = insn.getResult().getSVar();
+    ...
+    if (replaceConst(mth, insn, constArg)) {
+        ...
+    }
+}
+```
+
+So before `replaceConst` is invoked, `checkInsn` explicitly checks `insn.getResult() == null` and returns early if it is null. Therefore, whenever `replaceConst` executes, `constInsn.getResult()` is guaranteed to be non‑null.
+
+Thus at this specific call site, `constInsn.getResult()` cannot be null.
+]]></reason>
+  <value>NO</value>
+</response>

@@ -1,0 +1,11 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>makeIfInfo</method>
+    <method>searchNestedIf</method>
+    <method>mergeNestedIfNodes</method>
+    <method>restructureIf</method>
+    <method>mergeTernaryConditions</method>
+    <method>invert</method>
+  </methods>
+</response>

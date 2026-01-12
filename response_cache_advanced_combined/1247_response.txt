@@ -1,0 +1,43 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the shown method, `writer` is a field (or otherwise shared variable) whose nullability depends on external behavior:
+
+1. Control flow in this method:
+   - If `writer` is null at entry, the method calls:
+        writer = rootNode.makeCodeWriter();
+   - Then, regardless of whether `writer` is null or not (before or after that call), the code unconditionally executes:
+        writer.add(StringUtils.escapeXML(n.getText().trim()));
+
+2. Null checks:
+   - There is a null check:
+        if (writer == null) { writer = rootNode.makeCodeWriter(); }
+     but there is no subsequent null check *before* calling `writer.add(...)`.
+   - The later conditional:
+        if (writer != null && n.hasSource()) { writer.attachSourceLine(...); }
+     does not protect the `writer.add(...)` call, as that call occurs *before* this `if`.
+
+3. Dependence on `makeCodeWriter()`:
+   - The only thing preventing `writer` from being null at the `writer.add(...)` line is the behavior/contract of `rootNode.makeCodeWriter()`.
+   - If `writer` was already non-null on entry, `writer.add(...)` is safe for this call site.
+   - If `writer` was null on entry, then:
+        writer = rootNode.makeCodeWriter();
+     may still leave `writer` null if `makeCodeWriter()` is allowed to return null.
+   - The method as written does not guard against that possibility.
+
+4. Semantics/contracts:
+   - The provided snippet gives no explicit guarantee that:
+        rootNode.makeCodeWriter()
+     never returns null.
+   - Without that guarantee (e.g., from documentation, annotations like @NotNull, or full class context), a static analysis must consider that it *can* return null.
+   - Therefore, along a valid code path where:
+        - writer is null on entry, and
+        - makeCodeWriter() returns null,
+     the expression `writer` at:
+        writer.add(...)
+     would be null.
+
+Because the question is whether `writer` *can possibly* be null at that expression, and we do not have a proven non-null contract for `makeCodeWriter()`, the safe conclusion is that it *can* be null on some execution paths.]]></reason>
+    <value>YES</value>
+</response>
+```

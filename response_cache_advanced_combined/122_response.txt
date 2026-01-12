@@ -1,0 +1,34 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void processPackageFull(PackageNode pkg, String fullName) {
+		if (pkgSet.contains(fullName)) {
+			return;
+		}
+		pkgSet.add(fullName);
+
+		// doPkg for all parent packages except root that not hasAliases
+		PackageNode parentPkg = Nullability.castToNonnull(pkg).getParentPackage();
+		while (!parentPkg.getName().isEmpty()) {
+			if (!parentPkg.hasAlias()) {
+				processPackageFull(parentPkg, parentPkg.getFullName());
+			}
+			parentPkg = parentPkg.getParentPackage();
+		}
+
+		if (!Nullability.castToNonnull(pkg).hasAlias()) {
+			String pkgName = Nullability.castToNonnull(pkg).getName();
+			if ((args.isDeobfuscationOn() && shouldRename(pkgName))
+					&& (Nullability.castToNonnull(pkg).getParentPackage() != rootPackage || !TldHelper.contains(pkgName)) // check if first level is a valid tld
+					|| (args.isRenameValid() && !NameMapper.isValidIdentifier(pkgName))
+					|| (args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(pkgName))) {
+				String pkgAlias = String.format("p%03d%s", pkgIndex++, prepareNamePart(Nullability.castToNonnull(pkg).getName()));
+				Nullability.castToNonnull(pkg).setAlias(pkgAlias);
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

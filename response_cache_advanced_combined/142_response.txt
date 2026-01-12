@@ -1,0 +1,43 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    AnonymousClassAttr attr = cls.get(AType.ANONYMOUS_CLASS)
+
+the generic method is:
+
+    public <T extends IJadxAttribute> T get(IJadxAttrType<T> type) {
+        return storage.get(type);
+    }
+
+This is just a direct delegation to `storage.get(type)`. There is no null check or fallback; every non-exceptional return is exactly whatever `storage.get` returns.
+
+From the provided codebase, many other uses of this same `get` method explicitly check for null on various attribute types, including `AType.ANONYMOUS_CLASS`. For example:
+
+```java
+AnonymousClassAttr attr = anonymousCls.get(AType.ANONYMOUS_CLASS);
+if (attr != null) {
+    ...
+}
+```
+
+and logic such as:
+
+```java
+AnonymousClassAttr attr = cls.get(AType.ANONYMOUS_CLASS);
+if (attr != null) {
+    ClassNode outerCls = attr.getOuterCls();
+    ...
+}
+```
+
+This pattern shows that callers do *not* assume `get(AType.ANONYMOUS_CLASS)` is always present; instead, they guard against a null result. Nothing in the `get` implementation enforces existence of the attribute, and attribute storage is optional (e.g., many attributes are added conditionally and are absent otherwise).
+
+Therefore, for the specific call
+
+    cls.get(AType.ANONYMOUS_CLASS)
+
+`storage.get(AType.ANONYMOUS_CLASS)` may return `null` if the class `cls` does not currently have an `AnonymousClassAttr` stored under that key. As there is no additional logic here constraining or defaulting that value, the method *can* return null at this call site.
+  ]]></reason>
+  <value>YES</value>
+</response>

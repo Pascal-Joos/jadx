@@ -1,0 +1,52 @@
+<response>
+  <reason><![CDATA[
+At every call site shown, the `constraints` field of `TypeSearchVarInfo` is explicitly initialized before it is ever read via `getConstraints()`:
+
+1. In `collectConstraints(SSAVar var)`:
+   - If `varInfo.isTypeResolved()` is true:
+     ```java
+     varInfo.setConstraints(Collections.emptyList());
+     ```
+     so `constraints` is set to a non-null (possibly immutable) empty list.
+   - If `varInfo.isTypeResolved()` is false:
+     ```java
+     varInfo.setConstraints(new ArrayList<>());
+     ```
+     so `constraints` is set to a non-null, mutable list.
+
+   In both branches, `constraints` becomes non-null.
+
+2. The `run()` method calls:
+   ```java
+   mth.getSVars().forEach(this::fillTypeCandidates);
+   mth.getSVars().forEach(this::collectConstraints);
+   state.getUnresolvedVars().forEach(this::resolveIndependentVariables);
+   ```
+   So for any variable considered unresolved and later passed to `resolveIndependentVariables` (or appearing in `vars` for `fullCheck`), `collectConstraints` has already executed and assigned a non-null list to `varInfo.constraints`.
+
+3. All usages of `varInfo.getConstraints()` in the provided code:
+   - `addConstraint`:
+     ```java
+     varInfo.getConstraints().add(constraint);
+     ```
+   - `singleCheck`:
+     ```java
+     for (ITypeConstraint constraint : var.getConstraints()) { ... }
+     ```
+   - `resolveIndependentVariables`:
+     ```java
+     boolean allRelatedVarsResolved = varInfo.getConstraints().stream() ...
+     ```
+   depend on `constraints` being non-null; otherwise, they would throw `NullPointerException`. Given the control flow in `run()` and `collectConstraints`, these methods are only used on `TypeSearchVarInfo` instances whose `constraints` has been set to a non-null list.
+
+There is no path in the shown code where a `TypeSearchVarInfo` is passed into these methods without first having `setConstraints` invoked to a non-null list. The method `getConstraints()` itself is just:
+```java
+public List<ITypeConstraint> getConstraints() {
+    return constraints;
+}
+```
+and does not modify or conditionally return different values; it simply returns the field, which by the time of the shown call sites is guaranteed to be non-null.
+
+Therefore, at the specific call site `varInfo.getConstraints()` in this context, the return value cannot be null.]]></reason>
+  <value>NO</value>
+</response>

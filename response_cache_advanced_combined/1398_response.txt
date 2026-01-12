@@ -1,0 +1,57 @@
+<response>
+  <reason><![CDATA[
+At this call site:
+
+```java
+ClassNode outerCls = parentClass.getParentClass();
+```
+
+the receiver object is the field `parentClass` of `MethodNode`:
+
+```java
+class jadx.core.dex.nodes.MethodNode {
+	public boolean isDefaultConstructor() {
+		if (isConstructor()) {
+			int defaultArgCount = 0;
+			// workaround for non-static inner class constructor, that has synthetic argument
+			if (parentClass.getClassInfo().isInner()
+					&& !parentClass.getAccessFlags().isStatic()) {
+				ClassNode outerCls = parentClass.getParentClass();
+				...
+```
+
+To decide if `getParentClass()` can return null here, we must know what values `ClassNode.getParentClass()` can legally return in this codebase.
+
+From multiple usages in the provided code:
+
+- `ClassNode.getTopParentClass()` is defined as:
+  ```java
+  public ClassNode getTopParentClass() {
+      ClassNode parent = getParentClass();
+      return parent == this ? this : parent.getTopParentClass();
+  }
+  ```
+  This relies on the invariant that for a *top* class, `getParentClass()` returns the class itself (not null). If `getParentClass()` could return null, this method would NPE or recurse on null.
+
+- Other methods use `while (parentCls != currentCls) { ...; parentCls = currentCls.getParentClass(); }`, again assuming a self-reference, not null, terminator.
+
+- In multiple places (e.g., `AndroidResourcesUtils.isResourceClass`, `SignatureProcessor`, `Deobfuscator.processClass`), `cls.getParentClass()` is used without any null check and then dereferenced (e.g., `parentClass.getShortName()`, `isR(cls.getParentClass())`). This is only safe if `getParentClass()` never returns null; instead, the "no parent" case is modeled by `parentClass == this`.
+
+Also, the call site itself:
+
+```java
+if (parentClass.getClassInfo().isInner()
+        && !parentClass.getAccessFlags().isStatic()) {
+    ClassNode outerCls = parentClass.getParentClass();
+    if (argsList != null && !argsList.isEmpty()
+            && argsList.get(0).getInitType().equals(outerCls.getClassInfo().getType())) {
+        ...
+```
+
+immediately dereferences `outerCls` via `outerCls.getClassInfo()` with no null check. This logic is explicitly about *inner* classes, and inner classes must have an outer/parent; in this codebase, that parent is always a valid `ClassNode`, with the "top" case encoded as parent == self rather than null. Therefore, at this site, a null parent would violate invariants and cause an immediate NPE, which the rest of the code assumes does not happen.
+
+Thus, under the established invariants of `ClassNode` in this code, `getParentClass()` is guaranteed to return a non-null `ClassNode` instance, and specifically non-null at this inner-class–specific call site.
+
+So, `ClassNode outerCls = parentClass.getParentClass()` cannot evaluate to null here.]]></reason>
+  <value>NO</value>
+</response>

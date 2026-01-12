@@ -1,0 +1,73 @@
+<response>
+  <reason><![CDATA[
+`BaseInvokeNode.getInstanceArg()` is abstract, so its behavior depends on concrete subclasses. From the provided code we can see at least one concrete usage pattern that explicitly handles and expects a possible `null` instance argument:
+
+```java
+// In TypeInferenceVisitor.makeInvokeUseBound
+InsnArg instanceArg = invoke.getInstanceArg();
+if (instanceArg == null) {
+    return null;
+}
+```
+
+and
+
+```java
+// In MethodInvokeVisitor.getCallClassFromInvoke
+InsnArg instanceArg = invokeInsn.getInstanceArg();
+if (instanceArg != null) {
+    return instanceArg.getType();
+}
+// static call
+return callMth.getDeclClass().getType();
+```
+
+and
+
+```java
+// In MethodInvokeVisitor.getClsCallType
+InsnArg instanceArg = invokeInsn.getInstanceArg();
+if (instanceArg != null) {
+    return instanceArg.getType();
+}
+if (invokeInsn.getType() == InsnType.CONSTRUCTOR && invokeInsn.getResult() != null) {
+    return invokeInsn.getResult().getType();
+}
+return declClsType;
+```
+
+These methods clearly treat `getInstanceArg()` as potentially returning `null` (e.g., for static calls where there is no instance). Therefore, any call site that does *not* guard against `null` is at risk of receiving a `null` value.
+
+The specific call-site in question is inside `TypeBoundInvokeUse`:
+
+```java
+@Override
+public ArgType getType() {
+    return getArgType(invokeNode.getInstanceArg().getType(), arg.getType());
+}
+```
+
+Here, `invokeNode.getInstanceArg()` is dereferenced immediately (`.getType()`) with no null-check. However, **nothing in the provided code guarantees** that `invokeNode.getInstanceArg()` is non-null at this point:
+
+- `TypeBoundInvokeUse` instances are created in `TypeInferenceVisitor.makeInvokeUseBound` only when `instanceArg != null` at creation time:
+
+  ```java
+  InsnArg instanceArg = invoke.getInstanceArg();
+  if (instanceArg == null) {
+      return null;
+  }
+  ...
+  return new TypeBoundInvokeUse(root, invoke, regArg, argType);
+  ```
+
+  This means the particular `invoke` used to construct this `TypeBoundInvokeUse` had a non-null `instanceArg` at that moment.
+
+- However, `getInstanceArg()` is abstract; we do not have the concrete implementation or any guarantee that it is immutable. The underlying invoke node could later be modified by other passes (e.g., transformations that turn an instance call into a static call, or otherwise clear the instance argument). The provided code does not show any invariant such as "once non-null, `instanceArg` is never changed to null."
+
+- Because the method is abstract and its implementation (and potential mutability of the instance argument) is not shown, and because other parts of the code base explicitly handle `null` results from `getInstanceArg()`, we cannot soundly conclude that `invokeNode.getInstanceArg()` is *always* non-null when `TypeBoundInvokeUse.getType()` is invoked.
+
+Under the given guidelines, we must treat the abstract method’s result as potentially `null` unless the full implementation chain shows it cannot be. No such guarantee is present here, and other code clearly anticipates nulls from this method. Therefore, at this specific call site (`invokeNode.getInstanceArg().getType()` in `TypeBoundInvokeUse.getType()`), `getInstanceArg()` **can** return null, which would lead to a `NullPointerException` on `.getType()`.
+
+]]></reason>
+  <value>YES</value>
+</response>

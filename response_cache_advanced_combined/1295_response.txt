@@ -1,0 +1,44 @@
+<response>
+  <reason><![CDATA[
+At every shown call site, including `clsDetails.getParents()`, the following is true:
+
+- `clsDetails` is explicitly checked for null before the call:
+  ```java
+  ClspClass clsDetails = root.getClsp().getClsDetails(superType);
+  if (clsDetails != null) {
+      for (ArgType parentType : clsDetails.getParents()) {
+          ...
+      }
+  }
+  ```
+  and
+  ```java
+  ClspClass clsDetails = root.getClsp().getClsDetails(startCls);
+  if (clsDetails == null) {
+      // class info not available
+      return false;
+  }
+  for (ArgType parent : clsDetails.getParents()) {
+      ...
+  }
+  ```
+- However, the method `getParents()` itself is just:
+  ```java
+  public ArgType[] getParents() {
+      return parents;
+  }
+  ```
+  There is no initialization or non‑null guarantee shown for the field `parents`. It is a plain field return; nothing in the provided code prevents `parents` from being null.
+
+- In contrast, other code paths that use `cls.getParents()` in `ClspGraph` clearly anticipate the possibility of null and guard against it:
+  ```java
+  Set<ArgType> parents = cls.getParents();
+  if (parents == null) {
+      return null;
+  }
+  ```
+  This indicates that the design allows `getParents()` to return null, and some callers are written with that in mind.
+
+Since you did not provide the declaration or initialization logic for the `parents` field in `ClspClass`, and other parts of the codebase explicitly handle `getParents()` being null, we must treat `clsDetails.getParents()` as potentially returning null at this call site. There is no evidence in the shown code that, for the particular `clsDetails` in this context, `parents` is guaranteed to be non‑null. Therefore, a null return is possible.]]></reason>
+  <value>YES</value>
+</response>

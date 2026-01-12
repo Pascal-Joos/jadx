@@ -1,0 +1,30 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method body alone, there are no explicit null checks or guarantees about `mth.getEnterBlock()`:
+
+- The method starts with:
+  - `if (mth.isNoCode() || !mth.getAccessFlags().isConstructor()) { return false; }`
+  - This ensures only that the method has code and is a constructor, but says nothing about whether an "enter block" has been created.
+- Then it performs argument checks and type checks:
+  - `mth.getArgRegs()`, `args.isEmpty()`, and type comparisons.
+  - These also do not imply any invariant about `getEnterBlock()` being non-null.
+- The line in question is:
+  - `BlockNode block = mth.getEnterBlock().getCleanSuccessors().get(0);`
+
+For a definitive answer, we need the contract/implementation of `MethodNode.getEnterBlock()`:
+
+- If `MethodNode.getEnterBlock()` is specified to always return a non-null `BlockNode` for any method with code (i.e., after CFG construction, or after some analysis phase that this transform runs in), then `mth.getEnterBlock()` cannot be null in this context, assuming this method is always called after such analysis.
+- If `MethodNode.getEnterBlock()` can return null (for example, before graph building, for malformed methods, or if CFG construction failed), then there is no protection here: the call site does not check for null and would risk an NPE.
+
+The provided snippet alone does not show any prior guarantee that `getEnterBlock()` has been initialized. That guarantee, if it exists, would have to come from the broader framework or lifecycle of `MethodNode` (e.g., a documented invariant like “after code is loaded and processed, every non-noCode method has a non-null enter block”).
+
+Since that contract is not given, we cannot conclude from this snippet alone whether `mth.getEnterBlock()` is always non-null. It is therefore not possible to say definitively that it can or cannot be null without additional information about `MethodNode.getEnterBlock()`’s behavior and when this transform is executed in the pipeline.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or documented contract of MethodNode.getEnterBlock().]]></request>
+        <request><![CDATA[Describe at what phase in the processing pipeline removeFieldUsageFromConstructor is called (e.g., before or after CFG/IR is built).]]></request>
+    </requests>
+</response>
+```

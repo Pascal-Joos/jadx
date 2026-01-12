@@ -1,0 +1,79 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private EntryConfig parseConfig() throws IOException {
+  		if (is == null) {
+  			throw new IOException("Input stream not initialized");
+  		}
+  		long start = Nullability.castToNonnull(is).getPos();
+  		int size = Nullability.castToNonnull(is).readInt32();
+  		if (size < 28) {
+  			throw new IOException("Config size < 28");
+  		}
+  
+  		short mcc = (short) Nullability.castToNonnull(is).readInt16();
+  		short mnc = (short) Nullability.castToNonnull(is).readInt16();
+  
+  		char[] language = unpackLocaleOrRegion((byte) Nullability.castToNonnull(is).readInt8(), (byte) Nullability.castToNonnull(is).readInt8(), 'a');
+  		char[] country = unpackLocaleOrRegion((byte) Nullability.castToNonnull(is).readInt8(), (byte) Nullability.castToNonnull(is).readInt8(), '0');
+  
+  		byte orientation = (byte) Nullability.castToNonnull(is).readInt8();
+  		byte touchscreen = (byte) Nullability.castToNonnull(is).readInt8();
+  		int density = Nullability.castToNonnull(is).readInt16();
+  
+  		byte keyboard = (byte) Nullability.castToNonnull(is).readInt8();
+  		byte navigation = (byte) Nullability.castToNonnull(is).readInt8();
+  		byte inputFlags = (byte) Nullability.castToNonnull(is).readInt8();
+  		Nullability.castToNonnull(is).readInt8(); // inputPad0
+  
+  		short screenWidth = (short) Nullability.castToNonnull(is).readInt16();
+  		short screenHeight = (short) Nullability.castToNonnull(is).readInt16();
+  
+  		short sdkVersion = (short) Nullability.castToNonnull(is).readInt16();
+  		Nullability.castToNonnull(is).readInt16(); // minorVersion must always be 0
+  
+  		byte screenLayout = 0;
+  		byte uiMode = 0;
+  		short smallestScreenWidthDp = 0;
+  		if (size >= 32) {
+  			screenLayout = (byte) Nullability.castToNonnull(is).readInt8();
+  			uiMode = (byte) Nullability.castToNonnull(is).readInt8();
+  			smallestScreenWidthDp = (short) Nullability.castToNonnull(is).readInt16();
+  		}
+  
+  		short screenWidthDp = 0;
+  		short screenHeightDp = 0;
+  		if (size >= 36) {
+  			screenWidthDp = (short) Nullability.castToNonnull(is).readInt16();
+  			screenHeightDp = (short) Nullability.castToNonnull(is).readInt16();
+  		}
+  
+  		char[] localeScript = null;
+  		char[] localeVariant = null;
+  		if (size >= 48) {
+  			localeScript = readScriptOrVariantChar(4).toCharArray();
+  			localeVariant = readScriptOrVariantChar(8).toCharArray();
+  		}
+  
+  		byte screenLayout2 = 0;
+  		byte colorMode = 0;
+  		if (size >= 52) {
+  			screenLayout2 = (byte) Nullability.castToNonnull(is).readInt8();
+  			colorMode = (byte) Nullability.castToNonnull(is).readInt8();
+  			Nullability.castToNonnull(is).readInt16(); // reserved padding
+  		}
+  
+  		Nullability.castToNonnull(is).skipToPos(start + size, "Config skip trailing bytes");
+  
+  		return new EntryConfig(mcc, mnc, language, country,
+  				orientation, touchscreen, density, keyboard, navigation,
+  				inputFlags, screenWidth, screenHeight, sdkVersion,
+  				screenLayout, uiMode, smallestScreenWidthDp, screenWidthDp,
+  				screenHeightDp, localeScript, localeVariant, screenLayout2,
+  				colorMode, false, size);
+  }
+  ```
+    ]]>
+  </code>
+</response>

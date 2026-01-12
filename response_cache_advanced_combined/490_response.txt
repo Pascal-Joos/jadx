@@ -1,0 +1,38 @@
+<response>
+  <reason><![CDATA[
+The call site in question is `start.getCleanSuccessors()` inside:
+
+```java
+private void processExcHandler(MethodNode mth, ExceptionHandler handler, Set<BlockNode> exits) {
+    BlockNode start = handler.getHandlerBlock();
+    if (start == null) {
+        return;
+    }
+    ...
+    handler.setHandlerRegion(makeRegion(start, stack));
+}
+```
+
+Here, `start` is obtained from `handler.getHandlerBlock()` and is explicitly checked for null. If it were null, the method returns immediately and the call `start.getCleanSuccessors()` inside `makeRegion(start, stack)` (and any further processing) would not occur.
+
+The `getCleanSuccessors()` method itself is a simple field getter:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+Although the field `cleanSuccessors` could, in principle, be null in some states, the specific `start` block here is a normal CFG block that has just been prepared for region building. In the provided code, exception-handler entry blocks and their related splitter blocks (e.g., `topSplitterBlock`, `bottomSplitterBlock`) always have their clean successors initialized via `updateCleanSuccessors()` or via normal CFG construction before being used in region/loop/switch processing.
+
+Moreover, multiple usages of `getCleanSuccessors()` throughout the same subsystem assume a non‑null list (they iterate, call `.size()`, etc.) without null checks, and when null is possible they explicitly guard with `Nullability.castToNonnull(...)`. At this particular call site, no such guard is used, indicating that the code relies on `cleanSuccessors` for `start` being non‑null at this phase of analysis.
+
+Given:
+- `start` is guaranteed non‑null by the explicit check.
+- `start` is a handler entry block in a method already passed through block/splitter setup, where `updateCleanSuccessors()` is called on relevant blocks (as shown in `BlockExceptionHandler.wrapBlocksWithTryCatch`).
+- The broader codebase uses `getCleanSuccessors()` on such blocks assuming a non‑null list.
+
+The specific invocation `start.getCleanSuccessors()` in this context will not return null; it will return a (possibly empty) `List<BlockNode>`, but not `null`.
+  ]]></reason>
+  <value>NO</value>
+</response>

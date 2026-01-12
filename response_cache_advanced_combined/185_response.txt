@@ -1,0 +1,44 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private int fixClassVisibility(ClassNode cls) {
+		if (cls.getUseIn().isEmpty()) {
+			return -1;
+		}
+		AccessInfo accessFlags = cls.getAccessFlags();
+		if (accessFlags.isPrivate()) {
+			if (!cls.isInner()) {
+				return AccessFlags.PUBLIC;
+			}
+			// check if private inner class is used outside
+			ClassNode topParentClass = cls.getTopParentClass();
+			for (ClassNode useCls : cls.getUseIn()) {
+				if (useCls.getTopParentClass() != topParentClass) {
+					return AccessFlags.PUBLIC;
+				}
+			}
+		}
+		if (accessFlags.isPackagePrivate()) {
+			String pkg = cls.getPackage();
+			for (ClassNode useCls : cls.getUseIn()) {
+				if (!Nullability.castToNonnull(useCls.getPackage()).equals(pkg)) {
+					return AccessFlags.PUBLIC;
+				}
+			}
+		}
+		if (!accessFlags.isPublic()) {
+			// if class is used in inlinable method => make it public
+			for (MethodNode useMth : cls.getUseInMth()) {
+				boolean canInline = useMth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE) || useMth.contains(AType.METHOD_INLINE);
+				if (canInline && !useMth.getUseIn().isEmpty()) {
+					return AccessFlags.PUBLIC;
+				}
+			}
+		}
+		return -1;
+}
+  ```
+    ]]>
+  </code>
+</response>

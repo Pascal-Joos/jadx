@@ -1,0 +1,15 @@
+<response>
+    <reason><![CDATA[
+Within rebuildPkgMiddle, the parameter aliasPkg is used immediately as aliasPkg.split("\\."). There are no local reassignments or null checks in this method, so if aliasPkg is null at call time, this method will throw a NullPointerException.
+
+aliasPkg is passed from applyPkgRenames via:
+    rebuildPkgMiddle(Nullability.castToNonnull(clsInfo.getAliasPkg()), ...)
+
+The original value comes from ClassInfo.getAliasPkg(), which can return getPackage() or alias.getPkg(), and can also delegate to parentClass.getAliasPkg() for inner classes. None of these guarantees non-null strictly at the Java language level; in typical code, package strings are usually non-null, but they can be null if alias, parentClass, or internal state is inconsistent.
+
+Furthermore, the intermediate method Nullability.castToNonnull is explicitly mentioned as having no visible source and we are told it has a "default implementation" not available to us. Its behavior is unknown: it could simply return the argument as-is, it could throw on null, or it could replace null with some non-null default. Because its behavior directly determines whether a null aliasPkg can ever reach rebuildPkgMiddle, and we are not allowed to see its implementation nor make definitive assumptions about it, we cannot be certain that aliasPkg is never null.
+
+Given this uncertainty and the possibility that callers (or internal state via getAliasPkg) may yield null and that castToNonnull may be a no-op, we must consider that aliasPkg can be null when rebuildPkgMiddle is invoked. Therefore, there is a real possibility of a NullPointerException at aliasPkg.split("\\.").
+    ]]></reason>
+    <value>YES</value>
+</response>

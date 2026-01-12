@@ -1,0 +1,32 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided snippet, we only see the use of `execTimes`:
+
+public static void printExecTimes() {
+    System.out.println("Exec times:");
+    execTimes.forEach((tag, time) -> System.out.println(" " + tag + ": " + time + "ms"));
+}
+
+To determine whether `execTimes` can be null at the `forEach` call, we must know:
+
+- How `execTimes` is declared (field/local, type, `final` or not).
+- Where and how `execTimes` is initialized.
+- Whether any code path can assign `null` to `execTimes`.
+- Whether some framework or container guarantees non-null initialization before `printExecTimes` can be called.
+
+None of that information is present. Without seeing the declaration and all assignments to `execTimes`, there is no way to prove that:
+- It is always initialized to a non-null value before `printExecTimes` is called, and
+- It is never set to null afterward.
+
+Java does not provide any built-in guarantee here: a non-final field or variable of a reference type is always allowed to be null unless we see explicit initialization and can reason about all usages. Also, `forEach` itself does not perform a null check on the receiver; calling `execTimes.forEach(...)` with `execTimes == null` would cause a `NullPointerException`. Whether this can happen is entirely dependent on the unseen surrounding code.
+
+Because the critical information (declaration and all assignments of `execTimes`) is missing, we cannot soundly determine whether `execTimes` can or cannot be null at that line.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show the declaration of `execTimes` (its type, visibility, and whether it is `static`/`final`).]]></request>
+        <request><![CDATA[Show all code that assigns to `execTimes` (constructors, initialization blocks, setters, or other methods).]]></request>
+    </requests>
+</response>
+```

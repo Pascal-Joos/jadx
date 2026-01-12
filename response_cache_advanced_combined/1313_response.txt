@@ -1,0 +1,62 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    String aliasPkg = classInfo.getAliasPkg();
+
+the method implementation is:
+
+    public String getAliasPkg() {
+        if (isInner() && parentClass != null) {
+            return parentClass.getAliasPkg();
+        }
+        return alias == null ? getPackage() : alias.getPkg();
+    }
+
+We must consider both branches:
+
+1. **Inner class case** (`isInner() && parentClass != null`):
+   - The method returns `parentClass.getAliasPkg()`, i.e. the same method on the parent.
+   - This recurses up the parent chain until it reaches a non‑inner (top) class where `isInner()` is false (since `parentClass != null` for inner classes, the only way to stop is a non‑inner class).
+   - Therefore, the effective return is determined by the top‑level class’ `getAliasPkg()`.
+
+2. **Top‑level (or no parent) case**:
+   - The return is `alias == null ? getPackage() : alias.getPkg();`.
+
+   Here:
+   - `getPackage()` is used in many places assuming non‑null:
+       * `cls.getPackage().split("\\.")` in `Deobfuscator.preProcess()` – `split` on a null String would NPE.
+       * `Objects.equals(superMth.getParentClass().getPackage(), cls.getPackage())` (package‑private checks).
+       * `cls.getPackage().equals(pkgFullName)` and `pkg.startsWith(pkgFullNameDot)` in `UserRenames.applyPkgRenames`.
+       * `PackageNode pkg = getPackageNode(Nullability.castToNonnull(cls.getPackage()), false);` in `Deobfuscator.dumpClassAlias()` – explicitly casts `getPackage()` to non‑null.
+   - `getPackage()` itself is defined on `ClassNode` as:
+     
+         public String getPackage() {
+             return clsInfo.getAliasPkg();
+         }
+
+     and elsewhere (e.g. in `FixAccessModifiers`) calls `cls.getPackage()` and compares it (`pkg.equals(...)`), again assuming non‑null.
+
+   This pervasive use of `getPackage()` in equality checks, `split`, and via `Nullability.castToNonnull` indicates the design expects `getPackage()` (and thus `ClassInfo.getPackage()`) never to return null. If it did, multiple existing call sites would fail with NPE.
+
+   For the `alias != null` branch, `alias.getPkg()` is used wherever `alias` exists:
+   - `ClassAliasInfo` instances are constructed via `new ClassAliasInfo(aliasPkg, getAliasShortName());` where `aliasPkg` is a non‑null String argument (e.g. from `changePkg`, which is called with normal String values, not null).
+   - Code assumes `alias.getPkg()` is a valid package string and uses it in `getAliasFullName`, `makeAliasFullName`, etc., and also passes it into `makeFullClsName`, which immediately calls `pkg.isEmpty()`, implying `pkg` must be non‑null.
+
+Given this:
+
+- The top‑level `getAliasPkg()` returns either:
+  - `getPackage()` (non‑null by design and by usage assumptions), or
+  - `alias.getPkg()` (constructed from non‑null values and used as non‑null).
+
+- For inner classes, `getAliasPkg()` always delegates to some ancestor until it reaches such a top‑level class, whose `getAliasPkg()` also returns a non‑null String as above.
+
+There is no code path in the provided implementation and usages where a null can be propagated or constructed as the alias package, and numerous call sites rely on it being non‑null (and would immediately throw if null).
+
+Therefore, at the specific call site:
+
+    String aliasPkg = classInfo.getAliasPkg();
+
+`aliasPkg` cannot be null under the given code and assumptions; any violation would already break other existing code paths.]]></reason>
+  <value>NO</value>
+</response>

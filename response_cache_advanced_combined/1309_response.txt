@@ -1,0 +1,90 @@
+<response>
+  <reason><![CDATA[
+We analyze all return paths of ClassInfo.getAliasPkg():
+
+```java
+public String getAliasPkg() {
+    if (isInner() && parentClass != null) {
+        return parentClass.getAliasPkg();
+    }
+    return alias == null ? getPackage() : alias.getPkg();
+}
+```
+
+Supporting methods:
+
+```java
+public boolean isInner() {
+    return parentClass != null;
+}
+
+@NotNull
+public String getPackage() {
+    if (parentClass != null) {
+        return parentClass.getPackage();
+    }
+    if (pkg == null) {
+        throw new JadxRuntimeException("Package is null for not inner class");
+    }
+    return pkg;
+}
+```
+
+```java
+class ClassAliasInfo {
+    public String getPkg() {
+        return pkg;
+    }
+}
+```
+
+We must consider each branch:
+
+1. **First branch: `if (isInner() && parentClass != null)`**
+
+   - `isInner()` returns `parentClass != null`.
+   - Thus `(isInner() && parentClass != null)` is equivalent to `(parentClass != null && parentClass != null)`, i.e., effectively `parentClass != null`.
+   - When this condition is true, we return `parentClass.getAliasPkg()`.
+
+   Since `parentClass` is itself a `ClassInfo`, `parentClass.getAliasPkg()` has the *same* logic/possibilities as the current instance’s `getAliasPkg()`. This creates a recursive chain:
+
+   - If any ancestor in this chain hits the `else` branch and returns via `getPackage()`, then a non‑null String is guaranteed (or an exception is thrown if `pkg` is null). That path is non‑null by construction.
+   - However, an ancestor might also go through its own `else` branch and return `alias.getPkg()` instead.
+
+   Therefore, to determine nullability for this branch, we must consider whether either:
+   - some ancestor’s `getAliasPkg()` eventually resolves to `getPackage()` (non‑null), or
+   - some ancestor (or this class itself if not using parent) resolves to `alias.getPkg()`, whose nullability is unknown.
+
+   Because the code allows `parentClass` chains of arbitrary depth, and we have no guarantee that any ancestor will actually reach the `getPackage()` branch, this branch may ultimately return the same as some `alias.getPkg()` in the chain.
+
+2. **Else branch: `return alias == null ? getPackage() : alias.getPkg();`**
+
+   a. **Sub-branch `alias == null`**  
+      - Then `getAliasPkg()` returns `getPackage()`.
+      - `getPackage()` either:
+        - delegates to `parentClass.getPackage()` (if `parentClass != null`), or
+        - if `parentClass == null` and `pkg == null`, throws `JadxRuntimeException`, or
+        - returns `pkg` (non‑null, enforced by throwing if `pkg` is null).
+      - In all successful return cases, `getPackage()` returns a non‑null String; otherwise, an exception is thrown instead of returning.
+      - So **this sub-branch cannot return null**; it either returns a non‑null String or throws.
+
+   b. **Sub-branch `alias != null`**  
+      - Then `getAliasPkg()` returns `alias.getPkg()`.
+      - `ClassAliasInfo.getPkg()` simply returns `pkg` with no null checks or annotations.
+      - There is no guarantee here that `pkg` is non‑null; the field could legitimately be null as far as this code shows.
+      - Therefore, **this sub-branch can return null if `alias.pkg` is null**.
+
+3. **Interaction with the parentClass recursion**
+
+   Even when the first branch is taken (`parentClass != null`), the call may eventually land in a class state where `alias != null` and `alias.pkg` is null. In that scenario, some ancestor’s `getAliasPkg()` would return `alias.getPkg()`, which can be null. Thus the existence of a parent chain does not guarantee non‑null; it just defers to the same logic on an ancestor.
+
+4. **Exceptions vs. null**
+
+   - The `getPackage()` method might throw `JadxRuntimeException` if `pkg` is null for a non‑inner class, but that is an exception path, not a null return.
+   - All null-return risk is concentrated in `alias.getPkg()`.
+
+Conclusion:
+
+Given the provided implementations, there is a clear path where `getAliasPkg()` returns the result of `alias.getPkg()`, and `getPkg()` has no non‑null guarantee and directly returns a field that may be null. Therefore, `getAliasPkg()` **can** return null.]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,25 @@
+```xml
+<response>
+    <reason><![CDATA[
+At the specific line
+
+    if (!b1.isReturnBlock() || !b2.isReturnBlock()) {
+
+you are *not* using the `Nullability.castToNonnull(b2)` wrapper; you are calling `b2.isReturnBlock()` directly.
+
+From the method signature:
+
+    public static boolean isEqualReturnBlocks(BlockNode b1, BlockNode b2) {
+
+there is no guarantee in plain Java that `b2` is non-null. There is also no prior null check on `b2` before this line. The only non-null assertion used is `Nullability.castToNonnull(b2)`, which is applied in later lines, but that does not retroactively ensure that the original parameter `b2` was non-null when reaching the `if (!b1.isReturnBlock() || !b2.isReturnBlock())` line.
+
+In fact, if `b2` were null:
+
+- The OR (`||`) operator will evaluate `!b1.isReturnBlock()` first.
+- If that is `false`, it then evaluates `!b2.isReturnBlock()`, which will immediately cause a `NullPointerException`, demonstrating that `b2` can indeed be null at this call site.
+
+Unless there is an external, documented contract (e.g., annotations like `@Nonnull` that you did not include) that guarantees `b2` is never null when `isEqualReturnBlocks` is called, then from this method’s code alone, `b2` can be null at that line.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

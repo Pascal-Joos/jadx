@@ -1,0 +1,38 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void expandMoveMulti(MethodNode mth) {
+		if (mth.getBasicBlocks() == null) {
+			return;
+		}
+		for (BlockNode block : mth.getBasicBlocks()) {
+			List<InsnNode> insnsList = block.getInstructions();
+			int len = insnsList.size();
+			for (int i = 0; i < len; i++) {
+				InsnNode insn = insnsList.get(i);
+				if (insn.getType() == InsnType.MOVE_MULTI) {
+					int mvCount = insn.getArgsCount() / 2;
+					for (int j = 0; j < mvCount; j++) {
+						InsnNode mv = new InsnNode(InsnType.MOVE, 1);
+						int startArg = j * 2;
+						mv.setResult((RegisterArg) insn.getArg(startArg));
+						mv.addArg(insn.getArg(startArg + 1));
+						mv.copyAttributesFrom(insn);
+						if (j == 0) {
+							mv.setOffset(insn.getOffset());
+							insnsList.set(i, mv);
+						} else {
+							insnsList.add(i + j, mv);
+						}
+					}
+					i += mvCount - 1;
+					len = insnsList.size();
+				}
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

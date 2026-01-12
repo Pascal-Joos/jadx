@@ -1,0 +1,21 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static boolean applyDebugInfo(MethodNode mth, SSAVar ssaVar, ArgType type,  String varName) {
+		TypeUpdateResult result = mth.root().getTypeUpdate().applyWithWiderIgnoreUnknown(mth, ssaVar, Nullability.castToNonnull(type));
+		if (result == TypeUpdateResult.REJECT) {
+			if (Consts.DEBUG_TYPE_INFERENCE) {
+				LOG.debug("Reject debug info of type: {} and name: '{}' for {}, mth: {}", type, varName, ssaVar, mth);
+			}
+			return false;
+		}
+		if (NameMapper.isValidAndPrintable(varName)) {
+			ssaVar.setName(varName);
+		}
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,36 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void parseCData() throws IOException {
+  		if (is.readInt16() != 0x10) {
+  			die("CDATA header is not 0x10");
+  		}
+  		if (is.readInt32() != 0x1C) {
+  			die("CDATA header chunk is not 0x1C");
+  		}
+  		int lineNumber = is.readInt32();
+  		is.skip(4);
+  
+  		int strIndex = is.readInt32();
+  		String str = getString(strIndex);
+  		if (writer == null) {
+  			long size = is.readInt16();
+  			is.skip(size - 2);
+  			return;
+  		}
+  		if (!isLastEnd) {
+  			isLastEnd = true;
+  			Nullability.castToNonnull(writer).add('>');
+  		}
+  		Nullability.castToNonnull(writer).attachSourceLine(lineNumber);
+  		String escapedStr = StringUtils.escapeXML(str);
+  		Nullability.castToNonnull(writer).add(escapedStr);
+  
+  		long size = is.readInt16();
+  		is.skip(size - 2);
+}
+  ```
+    ]]>
+  </code>
+</response>

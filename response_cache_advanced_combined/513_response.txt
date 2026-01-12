@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @javax.annotation.Nullable
+	public static <T> T first(List<T> list) {
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		return list.get(0);
+}
+  ```
+    ]]>
+  </code>
+</response>

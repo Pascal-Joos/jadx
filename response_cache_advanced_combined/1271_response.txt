@@ -1,0 +1,72 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the shown method there is no check that guarantees `ri.getNamedValues()` is non-null in the `else` branch where the `for (RawNamedValue value : ri.getNamedValues())` loop appears.
+
+Code-path analysis:
+
+1. The method has three main branches:
+
+   - Branch A: `if (ri.getProtoValue() != null) { ... }`
+   - Branch B: `else if (ri.getSimpleValue() != null) { ... }`
+   - Branch C: `else { ... }`   // this is where the RawNamedValue loop is
+
+2. The `RawNamedValue` loop is in Branch C:
+   ```java
+   } else {
+       ...
+       if (ri.getTypeName().equals("attr") && !ri.getNamedValues().isEmpty()) {
+           ...
+           int type = ri.getNamedValues().get(0).getRawValue().getData();
+           ...
+       } else {
+           cw.add("name=\"").add(ri.getKeyName()).add('\"');
+       }
+       ...
+       cw.incIndent();
+       for (RawNamedValue value : ri.getNamedValues()) {
+           addItem(cw, itemTag, ri.getTypeName(), value);
+       }
+       cw.decIndent();
+       ...
+   }
+   ```
+
+3. In this branch, the only guard on `ri.getNamedValues()` is:
+   ```java
+   if (ri.getTypeName().equals("attr") && !ri.getNamedValues().isEmpty()) {
+   ```
+   This ensures two things only inside the `if` condition:
+   - `ri.getNamedValues()` is evaluated and used for `.isEmpty()` and `.get(0)`; if it were null, a `NullPointerException` would occur at this line.
+   - If that line executes without exception, then (for that execution path) `ri.getNamedValues()` is not null and not empty at that point.
+
+4. However, there is **no general null check** guarding the later enhanced for-loop:
+   ```java
+   for (RawNamedValue value : ri.getNamedValues()) {
+       addItem(cw, itemTag, ri.getTypeName(), value);
+   }
+   ```
+   This loop runs:
+   - For all non-`attr` types (because the enclosing branch is simply the final `else` of the outer if-else, not conditioned on `typeName`).
+   - Also for `attr` types, regardless of whether the earlier `if` (`!ri.getNamedValues().isEmpty()`) was true or false.
+
+5. If `ri.getTypeName()` is **not** `"attr"`:
+   - The `if (ri.getTypeName().equals("attr") && !ri.getNamedValues().isEmpty())` block is skipped entirely.
+   - The code then always executes:
+     ```java
+     for (RawNamedValue value : ri.getNamedValues()) {
+     ```
+   - There is no prior `null` guard for `ri.getNamedValues()` in this non-`attr` path. Thus, if the contract of `ri.getNamedValues()` allows it to return `null`, the loop will throw a `NullPointerException`.
+
+6. If `ri.getTypeName()` **is** `"attr"`:
+   - The earlier condition `!ri.getNamedValues().isEmpty()` implies `ri.getNamedValues()` must be non-null **if** that line is reached successfully.
+   - But if `getNamedValues()` could be `null`, a `NullPointerException` would already arise at the `isEmpty()` call, i.e., the method does not prevent null; it merely uses the value without confirming non-null first.
+
+7. Since the snippet shows no initialization or guarantee that `getNamedValues()` always returns a non-null collection, and no explicit null check is present before the `for` loop, its non-nullity depends entirely on the implementation/contract of `ResourceEntry.getNamedValues()`.
+
+8. Without seeing `ResourceEntry`'s implementation or any documented contract (e.g., “never returns null, always an empty list”), there is no basis in this method alone to assert that `ri.getNamedValues()` cannot be null. From pure control-flow and API-usage inspection, a null return is **possible** and would result in a `NullPointerException` at the `for (RawNamedValue...)` line.
+
+Therefore, based solely on the provided method and standard Java semantics, `ri.getNamedValues()` can be null at that loop unless an external guarantee (not shown here) forbids it.]]></reason>
+    <value>YES</value>
+</response>
+```

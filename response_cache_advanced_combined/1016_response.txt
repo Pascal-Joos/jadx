@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@SuppressWarnings("RedundantIfStatement")
+	private static boolean assignedOutsideHandler(FinallyExtractInfo extractInfo, RegisterArg dupReg, RegisterArg fReg) {
+		if (InsnList.contains(extractInfo.getFinallyInsnsSlice().getInsnsList(), fReg.getAssignInsn())) {
+			return false;
+		}
+		InsnNode dupAssign = dupReg.getAssignInsn();
+		InsnsSlice curDupSlice = extractInfo.getCurDupSlice();
+		if (curDupSlice != null && InsnList.contains(curDupSlice.getInsnsList(), dupAssign)) {
+			return false;
+		}
+		List<InsnNode> curDupInsns = extractInfo.getCurDupInsns();
+		if (Utils.notEmpty(curDupInsns) && InsnList.contains(Nullability.castToNonnull(curDupInsns), dupAssign, extractInfo.getCurDupInsnsOffset())) {
+			return false;
+		}
+		return true;
+	}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,23 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+void decodeTableChunk() throws IOException {
+		if (is == null) {
+			throw new IOException("Input stream is not initialized");
+		}
+		is.checkInt16(RES_TABLE_TYPE, "Not a table chunk");
+		is.checkInt16(0x000c, "Unexpected table header size");
+		/* int size = */
+		is.readInt32();
+		int pkgCount = is.readInt32();
+
+		strings = parseStringPool();
+		for (int i = 0; i < pkgCount; i++) {
+			parsePackage();
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static void mergeExecTime(String tag, long execTimeMillis) {
+		if (execTimes == null) {
+			initExecTimes();
+		}
+		execTimes.merge(tag, execTimeMillis, Long::sum);
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,44 @@
+<response>
+    <reason><![CDATA[
+From the provided code and call chain:
+
+- `isClassInnerFor` is only called from within `ClassGen`:
+  - `useClassInternal(useCls, extClsInfo)` calls `isClassInnerFor(useCls, extClsInfo)`.
+  - `expandInnerClassName(useCls, extClsInfo)` calls `isClassInnerFor(useCls, parentCls)`.
+- In all these calls, the first argument (`inner`) is taken from:
+  - `useCls` (in `isClassInnerFor(useCls, extClsInfo)`), or
+  - `useCls` (in `isClassInnerFor(useCls, parentCls)`), where `parentCls` is the second argument, not the one we analyze.
+- Inside `isClassInnerFor`, `inner` is:
+  - used in `inner.isInner()` and `inner.getParentClass()`
+  - never reassigned.
+
+Thus, `inner` can only be null if any caller passes null. The callers shown are:
+
+- `useClassInternal(cls.getClassInfo(), classInfo)` in `addClsName` → passes `cls.getClassInfo()` as `useCls`.
+- Internal recursive calls `isClassInnerFor(p, parent)` where `p = inner.getParentClass()`.
+
+We do not have the implementations of:
+- `ClassInfo.getParentClass()`
+- `ClassInfo.isInner()`
+- `ClassGen.addClsName`
+- The source of `cls.getClassInfo()` and `classInfo` arguments
+
+Because:
+- `ClassInfo.getParentClass()` might legally return null (typical for top-level classes), and that value becomes the new `inner` in recursive calls: `isClassInnerFor(p, parent)`.
+- Callers (`addClsName` or any other potential callers not shown) might pass a null `useCls` or `extClsInfo`.
+- There are no checks in `isClassInnerFor` preventing a null `inner`, and if `inner` is null, `inner.isInner()` would immediately cause a crash.
+
+To safely conclude whether `inner` can ever be null in practice, I must know:
+- Whether `ClassInfo.getParentClass()` can return null and under what conditions.
+- Whether any public/visible API can call `useClassInternal` or `isClassInnerFor` with a null `ClassInfo`.
+
+These depend directly on `ClassInfo`'s methods and the broader use of `addClsName`. Since these implementations are not fully disclosed, I cannot definitively assert that `inner` is never null.
+
+Therefore, more method declarations are required before concluding.]]></reason>
+    <success>false</success>
+    <methods>
+      <method>getParentClass</method>
+      <method>isInner</method>
+      <method>getClassInfo</method>
+    </methods>
+</response>

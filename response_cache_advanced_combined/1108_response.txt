@@ -1,0 +1,11 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>getArg</method>
+    <method>getType</method>
+    <method>insn</method>
+    <method>getInstanceArg</method>
+    <method>invokeNode</method>
+    <method>arg</method>
+  </methods>
+</response>

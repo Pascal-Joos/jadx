@@ -1,0 +1,26 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+@Override
+	public void visit(MethodNode mth) throws JadxException {
+		if (mth.isNoCode()) {
+			return;
+		}
+		for (BlockNode block : Nullability.castToNonnull(mth.getBasicBlocks())) {
+			if (block.contains(AFlag.DONT_GENERATE)) {
+				continue;
+			}
+			removeInstructions(block);
+			checkInline(block);
+			removeParenthesis(block);
+			modifyArith(block);
+			checkConstUsage(block);
+		}
+		moveConstructorInConstructor(mth);
+		collectFieldsUsageInAnnotations(mth, mth);
+}
+  ```
+    ]]>
+  </code>
+</response>

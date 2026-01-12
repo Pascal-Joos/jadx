@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean isClassInnerFor( ClassInfo inner, ClassInfo parent) {
+		if (Nullability.castToNonnull(inner).isInner()) {
+			ClassInfo p = inner.getParentClass();
+			return Objects.equals(p, parent) || isClassInnerFor(p, parent);
+		}
+		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,42 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void processInvoke(MethodNode mth, InsnNode insn) {
+		if (kotlinVarNameSourceMethods == null) {
+			return;
+		}
+		int argsCount = insn.getArgsCount();
+		if (argsCount < 2) {
+			return;
+		}
+		MethodInfo invokeMth = ((InvokeNode) insn).getCallMth();
+		if (!kotlinVarNameSourceMethods.contains(invokeMth)) {
+			return;
+		}
+		InsnArg firstArg = insn.getArg(0);
+		if (!firstArg.isRegister()) {
+			return;
+		}
+		RegisterArg varArg = (RegisterArg) firstArg;
+		boolean renamed = false;
+		if (argsCount == 2) {
+			String str = getConstString(mth, insn, 1);
+			if (str != null) {
+				renamed = checkAndRename(varArg, str);
+			}
+		} else if (argsCount == 3) {
+			// TODO: use second arg for rename class
+			String str = getConstString(mth, insn, 2);
+			if (str != null) {
+				renamed = checkAndRename(varArg, str);
+			}
+		}
+		if (renamed && hideInsns) {
+			insn.add(AFlag.DONT_GENERATE);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

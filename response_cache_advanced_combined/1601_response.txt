@@ -1,0 +1,54 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData,
+     			      String shortNsName, String attrName) {
+     		if (attrValDataType == TYPE_REFERENCE) {
+     			if (writer == null) {
+     				return;
+     			}
+     			// reference custom processing
+     			String resName = resNames.get(attrValData);
+     			if (resName != null) {
+     				CodeWriter w = writer;
+     				w.add('@');
+     				if (resName.startsWith("id/")) {
+     					w.add('+');
+     				}
+     				w.add(resName);
+     			} else {
+     				String androidResName = ValuesParser.getAndroidResMap().get(attrValData);
+     				if (androidResName != null) {
+     					CodeWriter w = writer;
+     					w.add("@android:").add(androidResName);
+     				} else if (attrValData == 0) {
+     					CodeWriter w = writer;
+     					if (w == null) {
+     						return;
+     					}
+     					w.add("@null");
+     				} else {
+     					CodeWriter w = writer;
+     					w.add("0x").add(Integer.toHexString(attrValData));
+     				}
+     			}
+     		} else {
+     			String str = valuesParser.decodeValue(attrValDataType, attrValData);
+     			memorizePackageName(attrName, str);
+     			if (isDeobfCandidateAttr(shortNsName, attrName)) {
+     				str = deobfClassName(str);
+     			}
+     			if (writer == null) {
+     				attachClassNode(null, attrName, str);
+     				return;
+     			}
+     			CodeWriter w = writer;
+     			attachClassNode(w, attrName, str);
+     			w.add(str != null ? StringUtils.escapeXML(str) : "null");
+     		}
+}
+  ```
+    ]]>
+  </code>
+</response>

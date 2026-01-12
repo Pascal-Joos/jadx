@@ -1,0 +1,11 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>castToNonnull</method>
+    <method>followEmptyPath</method>
+    <method>getPathCross</method>
+    <method>visitBlocksOnPath</method>
+    <method>followEmptyPath</method>
+    <method>visitBlocksOnEmptyPath</method>
+  </methods>
+</response>

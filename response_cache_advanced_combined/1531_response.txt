@@ -1,0 +1,13 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>castToNonnull</method>
+    <method>isReturnBlock</method>
+    <method>getInstructions</method>
+    <method>getArgsCount</method>
+    <method>getArg</method>
+    <method>isSameConst</method>
+    <method>getSourceLine</method>
+    <method>equals</method>
+  </methods>
+</response>

@@ -1,0 +1,38 @@
+<response>
+  <reason><![CDATA[
+At this call site, `var.getTypeInfo().getType()` invokes:
+
+```java
+class TypeInfo {
+  @NotNull
+  public ArgType getType() {
+    return type;
+  }
+}
+```
+
+The only value returned is the field `type`. Whether this can be null depends entirely on how `type` is written.
+
+From the provided code, `type` is read in many places but is never initialized or assigned in a way that guarantees non-null:
+
+- In `TypeInferenceVisitor`, `TypeSearch`, `FinishTypeInference`, `TypeUpdate`, etc., the pattern is always:
+  ```java
+  ArgType type = ssaVar.getTypeInfo().getType();
+  ```
+  and then they call methods like `type.isTypeKnown()` or wrap it with `Nullability.castToNonnull(type)` when they need a non-null guarantee. The presence of `Nullability.castToNonnull(...)` calls is a strong indication that the raw value from `getType()` is *not* assumed to be non-null and may indeed be null before casting.
+
+- In `FinishTypeInference.visit`, they log a warning if the type is not known, but they never guard against `null` before calling `type.isTypeKnown()`, which suggests that in practice `type` is usually non-null. However, this does not prove that `type` cannot be null; it only shows that other code *expects* a non-null, and would likely NPE if `type` were null.
+
+- More importantly, we never see where `TypeInfo.type` is initialized or updated. No constructor or setter of `TypeInfo` is shown. Without seeing those, we cannot prove that `type` is always assigned a non-null `ArgType` (such as `ArgType.UNKNOWN`) and never left at `null`.
+
+Because:
+
+1. `getType()` simply returns the field `type`, with no null check or substitution.
+2. There is no provided constructor or setter that would guarantee `type` is always initialized to a non-null value.
+3. Other parts of the code explicitly use `Nullability.castToNonnull(type)` when they want to assert non-nullness, indicating that the plain value from `getType()` is not inherently trusted as non-null.
+
+it is possible for `type` to be null at this call site if `TypeInfo.type` was never initialized (or explicitly set to null) before `var.getTypeInfo().getType()` is called.
+
+Therefore, at this specific call site, the method `getType()` *can* return null, because the backing field `type` can be null under some program states, and we lack evidence of a global invariant that prevents that.]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,51 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+InsnNode callInsn = customNode.getCallInsn();
+```
+
+`customNode` is an `InvokeCustomNode` instance created by `CustomLambdaCall.buildMethodCall` (via `buildLambdaMethodCall`), and that is the only construction path in the provided chain.
+
+Inside `buildMethodCall`:
+
+```java
+InvokeCustomNode invokeCustomNode = new InvokeCustomNode(lambdaInfo, insn, false, isRange);
+invokeCustomNode.setHandleType(methodHandleType);
+
+...
+
+MethodInfo callMthInfo = MethodInfo.fromRef(root, callMthHandle.getMethodRef());
+InvokeNode invokeNode = buildInvokeNode(methodHandleType, invokeCustomNode, callMthInfo);
+
+if (methodHandleType == MethodHandleType.INVOKE_CONSTRUCTOR) {
+    ConstructorInsn ctrInsn = new ConstructorInsn(mth, invokeNode);
+    invokeCustomNode.setCallInsn(ctrInsn);
+} else {
+    invokeCustomNode.setCallInsn(invokeNode);
+}
+```
+
+Key points:
+
+1. `invokeCustomNode` is newly created and then **unconditionally** has `setCallInsn(...)` called on it in both branches of the `if`:
+   - For constructor handles: `setCallInsn(ctrInsn)` with a new `ConstructorInsn`.
+   - For all other handle types: `setCallInsn(invokeNode)` with a non‑null `InvokeNode` returned from `buildInvokeNode`.
+
+2. There is no path in this method where `setCallInsn` is skipped or `callInsn` is reset to `null` afterward.
+
+3. `buildLambdaMethodCall` just optionally sets the result register and returns this same `InvokeCustomNode` instance; it does not modify `callInsn`.
+
+4. The call site in `InsnGen` that you're asking about:
+
+```java
+InsnNode callInsn = customNode.getCallInsn();
+```
+
+is only reached through `makeInvokeLambda`, which is called from `makeInvoke` when the `InvokeType` is `CUSTOM`. That `InvokeCustomNode` originates from the above construction path, where `callInsn` is always initialized.
+
+Because `callInsn` is always assigned a non‑null `InsnNode` before the `InvokeCustomNode` is returned and used, `getCallInsn()` cannot return null at this specific call site.
+  ]]></reason>
+  <value>NO</value>
+</response>

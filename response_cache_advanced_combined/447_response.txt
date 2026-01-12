@@ -1,0 +1,46 @@
+<response>
+  <reason><![CDATA[The method `TernaryInsn.getCondition()` simply returns the field `condition` with no guarding logic:
+
+```java
+public IfCondition getCondition() {
+    return condition;
+}
+```
+
+There is no initialization or invariant shown that would guarantee `condition` is non-null. In fact, other code explicitly treats it as possibly null. In `BlockUtils.foundWrappedInsnInCondition` we see:
+
+```java
+private static InsnArg foundWrappedInsnInCondition(IfCondition cond, InsnNode insn) {
+    if (cond == null || !cond.isCompare()) {
+        return null;
+    }
+    ...
+}
+```
+
+This method is reached from:
+
+```java
+if (container instanceof TernaryInsn) {
+    return foundWrappedInsnInCondition(((TernaryInsn) container).getCondition(), insn);
+}
+```
+
+The presence of `if (cond == null || ...)` shows the authors expect `((TernaryInsn) container).getCondition()` to sometimes be null, i.e., `getCondition()` may return null.
+
+At the specific call site:
+
+```java
+private static void simplifyTernary(MethodNode mth, TernaryInsn insn) {
+    IfCondition condition = insn.getCondition();
+    if (condition.isCompare()) {
+        ...
+    } else {
+        insn.simplifyCondition();
+    }
+}
+```
+
+`insn` is only constrained to be a `TernaryInsn`; there is no prior null check or construction logic here that would ensure `insn.condition` is non-null. Since elsewhere in the codebase `getCondition()` is treated as possibly null, we cannot assume it is non-null at this call site. Therefore, `insn.getCondition()` can return null here, and if it does, `condition.isCompare()` would throw a `NullPointerException,` but that does not change the fact that the return value itself can be null.]]></reason>
+  <value>YES</value>
+</response>

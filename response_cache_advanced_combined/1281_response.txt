@@ -1,0 +1,31 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Nullable
+	public String decodeNameRef(int nameRef) {
+		int ref = nameRef;
+		if (isResInternalId(nameRef)) {
+			ref = nameRef & ATTR_TYPE_ANY;
+			if (ref == 0) {
+				return null;
+			}
+		}
+		String ri = resMap.get(ref);
+		if (ri != null) {
+			return ri.replace('/', '.');
+		} else {
+			if (androidResMap == null) {
+				return null;
+			}
+			String androidRi = androidResMap.get(ref);
+			if (androidRi != null) {
+				return "android:" + androidRi.replace('/', '.');
+			}
+		}
+		return "?0x" + Integer.toHexString(nameRef);
+}
+  ```
+    ]]>
+  </code>
+</response>

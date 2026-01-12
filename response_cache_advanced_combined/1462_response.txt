@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void processForceInlineInsns(MethodNode mth) {
+		if (mth.getBasicBlocks() == null) {
+			return;
+		}
+		boolean needShrink = mth.getBasicBlocks().stream()
+				.flatMap(block -> block.getInstructions().stream())
+				.anyMatch(insn -> insn.contains(AFlag.FORCE_ASSIGN_INLINE));
+		if (needShrink) {
+			CodeShrinkVisitor.shrinkMethod(mth);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,26 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	private String getAttributeNS(int attributeNS) {
+		if (nsMap == null) {
+			return null;
+		}
+		String attrUrl = getString(attributeNS);
+		if (attrUrl == null || attrUrl.isEmpty()) {
+			if (isResInternalId(attributeNS)) {
+				return null;
+			} else {
+				attrUrl = ANDROID_NS_URL;
+			}
+		}
+		String attrName = nsMap.get(attrUrl);
+		if (attrName == null) {
+			attrName = generateNameForNS(attrUrl);
+		}
+		return attrName;
+	}
+  ```
+    ]]>
+  </code>
+</response>

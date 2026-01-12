@@ -1,0 +1,36 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    ArgType currentType = ssaVar.getTypeInfo().getType();
+
+the last method in the chain is:
+
+    @NotNull
+    public ArgType getType() {
+        return type;
+    }
+
+in `jadx.core.dex.visitors.typeinference.TypeInfo`.
+
+To decide if `getType()` can return null here, we need to know whether the field `type` of `TypeInfo` can be null.
+
+From all provided usages of `getType()` and of values returned by it:
+
+- Callers always treat the result as non-null and immediately dereference it, e.g.:
+  - `ArgType currentType = ssaVar.getTypeInfo().getType(); if (currentType.isTypeKnown()) { ... }`
+  - `if (!var.getTypeInfo().getType().isTypeKnown() && !var.isTypeImmutable()) { ... }`
+  - `Nullability.castToNonnull(typeInfo.getType()).isTypeKnown()`
+  - `if (Consts.DEBUG_TYPE_INFERENCE) { LOG.warn("... " + typeInfo.getType()); }`
+- There are **no null-checks** against the result of `getType()` anywhere in the shown code; instead, `ArgType.UNKNOWN` is used as the “no information” sentinel value. That strongly indicates the design expects `type` never to be null and to use `ArgType.UNKNOWN` instead of `null`.
+- Other components (e.g. `FinishTypeInference.visit`, `TypeSearch.fillTypeCandidates`, `TypeInferenceVisitor.checkTypes`, `DebugInfoApplyVisitor.applyDebugInfo` usage, etc.) all rely on `getType()` being a valid `ArgType` and call methods on it without guarding for null.
+- Where ambiguity exists, the code uses `Nullability.castToNonnull(typeInfo.getType())`, which is typically added exactly when a field is logically non-null but not expressed in the raw type system.
+
+Within the given excerpt, there is no path that assigns `null` to `TypeInfo.type`, and all logic for “unknown” or “unset” uses `ArgType.UNKNOWN` or other special `ArgType` instances rather than `null`.
+
+Therefore, assuming the code is internally consistent (and given the strong evidence from usage patterns), at this specific call site `ssaVar.getTypeInfo().getType()` cannot be null and will always return a non-null `ArgType` instance (often `ArgType.UNKNOWN` when no concrete type is known).
+
+Thus the invocation cannot yield a null value here.
+  ]]></reason>
+  <value>NO</value>
+</response>

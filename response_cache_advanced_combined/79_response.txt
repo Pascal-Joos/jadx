@@ -1,0 +1,22 @@
+<response>
+    <reason><![CDATA[
+Based on the criteria you described for NullAway:
+
+1. Recognized initializer methods are either:
+   - Well-known framework lifecycle methods (e.g., Activity.onCreate, Servlet.init, etc.), or
+   - Methods whose names start with "init" or "initialize" and are not setters.
+
+2. The given method is:
+   - Name: fillSuperTypesCache
+   - Visibility: private
+   - Behavior: it computes and assigns a value to the field superTypesCache based on nameMap, and throws if nameMap is not yet set.
+
+3. Although the method does perform initialization work for the field superTypesCache, it:
+   - Does not match any of the framework lifecycle names you listed.
+   - Does not start with "init" or "initialize".
+   - Is more of an internal helper/cache-population method than a documented external lifecycle/initialization entry point.
+
+Under your stated rules, it should NOT be treated as an initializer method for NullAway purposes; it is just a regular internal helper that initializes a cache field, not an initializer method in the NullAway sense.
+    ]]></reason>
+    <value>NO</value>
+</response>

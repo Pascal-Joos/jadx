@@ -1,0 +1,41 @@
+```xml
+<response>
+    <reason><![CDATA[
+`exitBitSet` is obtained as:
+
+    BitSet exitBitSet = map.get(exitBlock);
+
+So `exitBitSet` will be `null` exactly when `map.get(exitBlock)` returns `null`.
+
+How is `map` populated?
+
+1. `map` is created as an empty `HashMap`.
+2. Then, for every `block` in `blockNodes`:
+
+       for (BlockNode block : blockNodes) {
+           BitSet postDoms = new BitSet(blocksCount);
+           postDoms.or(initSet);
+           map.put(block, postDoms);
+       }
+
+   Every `block` in `blockNodes` is put into `map` with a non-null `BitSet` value.
+
+3. Immediately after that, we do:
+
+       BitSet exitBitSet = map.get(exitBlock);
+       exitBitSet.clear();
+       exitBitSet.set(exitBlock.getId());
+
+There are no modifications to `map` between the population loop and the `map.get(exitBlock)` call.
+
+Therefore, `exitBitSet` can only be `null` if `exitBlock` is *not* one of the keys added in that prior loop; that is, if `exitBlock` is not contained in `blockNodes` (according to `Map` key equality).
+
+There are no explicit checks in this method to ensure that `exitBlock` is in `blockNodes`, and the contract of the method signature does not inherently guarantee this either. From this method alone, there is no enforced constraint that prevents a caller from passing an `exitBlock` that is missing from `blockNodes`.
+
+Thus, from the perspective of this code in isolation, there is a feasible code path where `exitBlock` ∉ `blockNodes` (or not equal by `equals`/`hashCode` to any element of `blockNodes`), in which case `map.get(exitBlock)` returns `null` and `exitBitSet` is null, making `exitBitSet.clear();` a potential NPE site.
+
+Unless you have an external, rigorously enforced invariant that `exitBlock` is always included in `blockNodes` (with matching equality semantics), this method does not, by itself, guarantee non-nullness of `exitBitSet`.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

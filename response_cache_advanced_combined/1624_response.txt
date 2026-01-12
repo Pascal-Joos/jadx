@@ -1,0 +1,44 @@
+<response>
+  <reason><![CDATA[
+At this call site (`ri.getNamedValues()` inside `ResXmlGen.addValue`), nothing in the provided code guarantees that the field `namedValues` is non-null.
+
+Key points:
+
+1. The getter is a trivial field accessor:
+   ```java
+   public List<RawNamedValue> getNamedValues() {
+       return namedValues;
+   }
+   ```
+   There is no initialization, fallback, or null check here; it simply returns the backing field.
+
+2. In `addValue`, `ri.getNamedValues()` is used as if it were always non-null:
+   ```java
+   if (ri.getTypeName().equals("attr") && !ri.getNamedValues().isEmpty()) {
+       ...
+       int type = ri.getNamedValues().get(0).getRawValue().getData();
+       ...
+   }
+   ...
+   for (RawNamedValue value : ri.getNamedValues()) {
+       addItem(cw, itemTag, ri.getTypeName(), value);
+   }
+   ```
+   These usages assume `getNamedValues()` returns a non-null list (calling `.isEmpty()`, `.get(0)`, and iterating), but they *do not* prove it is non-null; they will simply throw a `NullPointerException` if it is `null`.
+
+3. No other methods are involved in computing the return value of `getNamedValues()`. Its value depends solely on how `namedValues` is initialized and maintained elsewhere in the class or its constructors/fields, which are not provided. Without those declarations, we cannot deduce that `namedValues` is always initialized to a non-null `List` (e.g., via `= new ArrayList<>()` or always assigned before use).
+
+4. The presence of null-checking patterns elsewhere does not apply here. For example, `ValuesParser.getValueString` does:
+   ```java
+   List<RawNamedValue> namedValues = ri.getNamedValues();
+   List<String> strList = new ArrayList<>(namedValues.size());
+   ```
+   This also assumes `namedValues` is non-null and would NPE if it were null; it does not enforce non-nullness.
+
+Given only the provided code, `namedValues` could be:
+- never initialized (thus `null`), or
+- conditionally initialized (sometimes `null`).
+
+Therefore, at this specific call site, `ri.getNamedValues()` *can* evaluate to `null` (leading to an exception when used), and there is no evidence here that this is impossible.]]></reason>
+  <value>YES</value>
+</response>

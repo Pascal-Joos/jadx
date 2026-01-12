@@ -1,0 +1,22 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>getTypeUtils</method>
+    <method>getClassGenerics</method>
+    <method>getTypeVarMappingForInvoke</method>
+    <method>getClsCallType</method>
+    <method>getCallClassFromInvoke</method>
+    <method>mergeMaps</method>
+    <method>isAssign</method>
+    <method>applyInvokeTypes</method>
+    <method>getKnownTypeVarsAtMethod</method>
+    <method>replaceTypeVariablesUsingMap</method>
+    <method>mergeTypeMaps</method>
+    <method>getClassTypeVars</method>
+    <method>resolveClass</method>
+    <method>visitSuperTypes</method>
+    <method>getGenericTypeParameters</method>
+    <method>addAttr</method>
+    <method>get</method>
+  </methods>
+</response>

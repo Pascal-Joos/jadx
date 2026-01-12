@@ -1,0 +1,51 @@
+<response>
+  <reason><![CDATA[
+The call site is:
+
+```java
+if (!innerCls.getParentClass().equals(cls)) {
+    // ...
+}
+```
+
+For `innerCls.getParentClass()` to be dereferenced safely by `.equals(cls)`, it must be non‑null at runtime. However, your question is about whether `getParentClass()` *can* return null, independent of the fact that it is dereferenced here.
+
+From the provided code:
+
+```java
+public ClassNode getParentClass() {
+    return parentClass;
+}
+```
+
+There is no guarantee shown that `parentClass` is never null. In other parts of the codebase, null is explicitly treated as a possible value for a parent:
+
+```java
+public static boolean isResourceClass(ClassNode cls) {
+    ClassNode parentClass = cls.getParentClass();
+    return parentClass != null && parentClass.getShortName().equals("R");
+}
+```
+
+This method checks `parentClass != null`, which would be unnecessary if `getParentClass()` were guaranteed to never return null. That indicates `parentClass` may be null for some `ClassNode` instances.
+
+Nothing in the snippet where `innerCls` is obtained (in `EnumVisitor.processConstructorInsn`) constrains `innerCls` to be a kind of `ClassNode` whose `parentClass` is guaranteed non‑null. `innerCls` is resolved from an arbitrary `ClassInfo`:
+
+```java
+ClassNode innerCls = root.resolveClass(innerObj);
+if (innerCls == null) {
+    return false;
+}
+if (!innerCls.getParentClass().equals(outerCls)) {
+    // ...
+}
+```
+
+`resolveClass(...)` could return any class node, including a top‑level class or a class whose `parentClass` has not been set, so `innerCls.parentClass` could legitimately be null.
+
+Therefore, at this specific call site `innerCls.getParentClass()` can return null; if that happens, the `.equals(cls)` will throw a `NullPointerException`, but the question is about the possibility of a null return, not about the safety of the dereference.
+
+Nothing in the provided code proves that `innerCls.parentClass` is always initialized to a non‑null value before this call, so the null possibility remains.
+  ]]></reason>
+  <value>YES</value>
+</response>

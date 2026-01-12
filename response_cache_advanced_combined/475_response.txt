@@ -1,0 +1,23 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method body alone, there is no explicit null check on `block` or on the result of `block.getCleanSuccessors()`, and there is no direct evidence here that `getCleanSuccessors()` is contractually guaranteed to be non-null.
+
+To determine nullability, we must know:
+
+- How `block` is created and passed into `insertContinueInSwitch`.
+- The implementation and documented contract of `BlockNode.getCleanSuccessors()`.
+
+Typical CFG/IR frameworks (including many compiler/optimizer libraries) implement methods like `getSuccessors()` / `getCleanSuccessors()` to always return a non-null, possibly empty collection rather than `null`. However, that is a design convention, not something that can be proven from this snippet alone.
+
+Without the definition or specification of `BlockNode.getCleanSuccessors()` and the guarantees around `BlockNode` initialization, it is not possible to conclusively prove that `block.getCleanSuccessors()` can never be `null`. We also cannot prove that it *can* be `null`—we simply lack the necessary information.
+
+Therefore, based solely on the snippet and without the class/method contracts or broader context, the nullability of `block.getCleanSuccessors()` cannot be determined.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation (or interface/contract) of BlockNode, in particular the getCleanSuccessors() method.]]></request>
+        <request><![CDATA[Provide any documentation or invariants guaranteeing whether BlockNode successors collections are never null (e.g., always an empty list instead of null).]]></request>
+    </requests>
+</response>
+```

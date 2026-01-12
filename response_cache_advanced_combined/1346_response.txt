@@ -1,0 +1,30 @@
+<response>
+  <reason><![CDATA[
+At the specific call site
+
+```java
+List<ArgType> genericTypes = type.getGenericTypes();
+```
+
+the implementation of `getGenericTypes()` in `jadx.core.dex.instructions.args.ArgType` is:
+
+```java
+public List<ArgType> getGenericTypes() {
+    return null;
+}
+```
+
+This method unconditionally returns `null` for every invocation; it has no parameters and no branches that would alter the return value. There is also an override in `ArgType$OuterGenericObject`:
+
+```java
+@Override
+public List<ArgType> getGenericTypes() {
+    return innerType.getGenericTypes();
+}
+```
+
+but at the call site we are analyzing, the static type is simply `ArgType` and we are not given any guarantee that `type` is an `OuterGenericObject`. Even if it is, `innerType.getGenericTypes()` ultimately resolves to the base implementation above, which always returns `null`.
+
+Therefore, for this call site, `type.getGenericTypes()` can return `null`.]]></reason>
+  <value>YES</value>
+</response>

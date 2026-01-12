@@ -1,0 +1,8 @@
+<response>
+    <success>false</success>
+    <methods>
+      <method>getCondition</method>
+      <method>getMode</method>
+      <method>getArgs</method>
+    </methods>
+</response>

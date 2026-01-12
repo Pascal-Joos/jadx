@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public ClassNode getTopParentClass() {
+  		ClassNode parent = getParentClass();
+  		if (parent == null || parent == this) {
+  			return this;
+  		}
+  		return parent.getTopParentClass();
+  }
+  ```
+    ]]>
+  </code>
+</response>

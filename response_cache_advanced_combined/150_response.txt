@@ -1,0 +1,25 @@
+<response>
+  <reason><![CDATA[
+cls.get(AType.ANONYMOUS_CLASS) simply forwards to storage.get(type). There is no guarantee in the provided code that an ANONYMOUS_CLASS attribute is always present on every ClassNode or AttrNode, nor is there any check or default creation at this call site.
+
+Multiple places in the code expect .get(AType.ANONYMOUS_CLASS) to potentially return null and explicitly handle that case, for example:
+
+- In ProcessAnonymous.undoAnonymousMark:
+  ```java
+  AnonymousClassAttr attr = cls.get(AType.ANONYMOUS_CLASS);
+  if (attr == null) {
+      return;
+  }
+  ```
+- In JavaClass.getCodeParent:
+  ```java
+  AnonymousClassAttr anonymousClsAttr = cls.get(AType.ANONYMOUS_CLASS);
+  if (anonymousClsAttr != null) {
+      // ...
+  }
+  ```
+
+These usages show that the designers explicitly treat this attribute as optional. No code path shown enforces that cls must have ANONYMOUS_CLASS set before the call site in question, and ANONYMOUS_CLASS can also be removed (e.g., ProcessAnonymous.undoAnonymousMark and InlineMethods/TypeInference logic can change class flags). Therefore, storage.get(AType.ANONYMOUS_CLASS) can legitimately return null at this call site.
+  ]]></reason>
+  <value>YES</value>
+</response>

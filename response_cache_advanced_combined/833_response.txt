@@ -1,0 +1,29 @@
+```xml
+<response>
+    <reason><![CDATA[
+Based solely on the provided method:
+
+    public BlockNode getElseBlock() {
+        return elseBlock;
+    }
+
+there is no information about:
+- How `elseBlock` is declared (e.g., with @NonNull annotations or as `final` with guaranteed initialization), or
+- Where and how `elseBlock` is assigned, or
+- Any class invariants or constructor logic that might guarantee non-nullness.
+
+Without visibility into:
+- The field declaration of `elseBlock`
+- All constructors and setters that may assign `elseBlock`
+- Any external contracts (e.g., annotations, framework guarantees)
+
+it is not possible to rule out that `elseBlock` could be left uninitialized (defaulting to null) or explicitly set to null along some code path. Therefore, we cannot conclusively determine that `return elseBlock;` is always non-null; it may be null depending on how the surrounding class is implemented.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the declaration of the `elseBlock` field (including any annotations and modifiers).]]></request>
+        <request><![CDATA[Provide all constructors and any methods that assign to `elseBlock` (setters, builders, or other initialization logic).]]></request>
+        <request><![CDATA[Indicate whether there are any documented invariants or contracts (e.g., comments, Javadoc, or framework constraints) that guarantee `elseBlock` is never null.]]></request>
+    </requests>
+</response>
+```

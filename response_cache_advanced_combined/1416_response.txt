@@ -1,0 +1,55 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to determine if `elseAssign.getResult()` can be null at:
+
+    SSAVar elseVar = elseAssign.getResult().getSVar();
+
+This line is executed only inside the branch:
+
+    if (elseAssign != null && elseAssign.isConstInsn()) {
+        // inline constant
+        SSAVar elseVar = elseAssign.getResult().getSVar();
+        ...
+
+So we already know at that point:
+- `elseAssign` is not null (due to the explicit `elseAssign != null` check).
+- The only remaining question is whether `elseAssign.getResult()` can be null.
+
+`elseAssign` is obtained from:
+
+    RegisterArg otherArg = null;
+    ...
+    if (arg != resArg && arg instanceof RegisterArg) {
+        otherArg = (RegisterArg) arg;
+        break;
+    }
+    ...
+    InsnNode elseAssign = otherArg.getAssignInsn();
+
+So `elseAssign` is the instruction that assigns to a `RegisterArg` which is an argument to a `PhiInsn`. In typical SSA-based IR (such as in decompilers/compilers), the properties are:
+
+1. A `RegisterArg` represents a register/SSA variable use or definition.
+2. If `otherArg` appears as an argument in a `PhiInsn`, it must be a variable coming from some definition (assignment) instruction.
+3. `otherArg.getAssignInsn()` returns the instruction that defines that `RegisterArg`.
+
+For SSA IR, a normal assignment instruction that defines a variable has a non-null result, because:
+- The instruction must produce a value stored in a register.
+- That register is then used as `otherArg` in the phi node.
+- If `getAssignInsn()` returns an `InsnNode`, that node is by definition the defining instruction of that same register, and such a defining instruction must have a non-null result.
+
+Additionally, the code path itself depends on `elseAssign.isConstInsn()`. A constant-producing instruction, in SSA form, must also define a result register (otherwise there is nothing for the `PhiInsn` to merge). An instruction that has no result (e.g., a pure side-effect instruction) would not logically be the assigner of a `RegisterArg` used as a phi argument, so it would not be returned by `getAssignInsn()` in this context.
+
+Within this method, there are no explicit null checks on `elseAssign.getResult()`, but the SSA and IR contracts effectively guarantee:
+
+- `otherArg` is a `RegisterArg` that is a phi argument.
+- `otherArg.getAssignInsn()` returns the defining instruction.
+- That defining instruction has a non-null result (the defined SSA variable).
+
+Under those IR invariants (which this transformation clearly relies on), `elseAssign.getResult()` cannot be null on this path. If those invariants were violated, many other parts of this method (and surrounding SSA use/phi logic) would already be unsafe.
+
+Therefore, given the semantics of `RegisterArg`, `getAssignInsn()`, and SSA-form instructions used here, `elseAssign.getResult()` is not null at the point of use.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

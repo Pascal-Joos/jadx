@@ -1,0 +1,16 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private RawValue parseValue(InputStream inputStream) throws IOException {
+		is = new ParserStream(inputStream);
+		is.checkInt16(8, "value size");
+		is.checkInt8(0, "value res0 not 0");
+		int dataType = is.readInt8();
+		int data = is.readInt32();
+		return new RawValue(dataType, data);
+  }
+  ```
+    ]]>
+  </code>
+</response>

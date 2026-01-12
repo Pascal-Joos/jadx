@@ -1,0 +1,45 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the shown method, there is no guarantee that `arrType.getArrayElement()` is non-null at the point of use.
+
+Key points:
+
+1. `arrType` origin:
+   - `ArgType arrType = insn.getArg(0).getType();`
+   - There is no null-check on `arrType` itself here, so the method assumes `getType()` returns a non-null `ArgType`. This is relevant but not sufficient for `getArrayElement()`.
+
+2. Conditional checks before dereference:
+   ```java
+   if (arrType.isTypeKnown() && arrType.isArray() && arrType.getArrayElement().isPrimitive()) {
+       TypeCompareEnum compResult = comparator.compareTypes(candidateType, arrType.getArrayElement());
+       ...
+   }
+   ```
+   The only conditions checked are:
+   - `arrType.isTypeKnown()`
+   - `arrType.isArray()`
+   - `arrType.getArrayElement().isPrimitive()`
+
+   There is no explicit null-check like `arrType.getArrayElement() != null` before calling `.isPrimitive()`.
+
+3. Comparison with later code:
+   - Later in the method, for `candidateType`, the author explicitly treats `getArrayElement()` as potentially null:
+     ```java
+     ArgType arrayElement = candidateType.getArrayElement();
+     if (arrayElement == null) {
+         return REJECT;
+     }
+     ```
+   - This shows that, at least for `ArgType` in general, `getArrayElement()` is considered capable of returning `null`.
+
+4. No visible contract ensuring non-null:
+   - In the provided snippet, there is no local invariant or prior check that would guarantee that an `ArgType` which is "type known" and "array" must have a non-null `getArrayElement()`.
+   - Whether `isArray()` or `isTypeKnown()` semantically guarantee that an array element type is always non-null depends on the undocumented contract of `ArgType`. That contract is not provided.
+   - Since the same class's method `getArrayElement()` is explicitly null-checked elsewhere, the safest and most reasonable inference is that it may be null, and that `isArray()`/`isTypeKnown()` do not, by themselves, rule out null.
+
+Therefore, based solely on this code and without stronger guarantees from the `ArgType` API, `arrType.getArrayElement()` can be null, and the call `arrType.getArrayElement().isPrimitive()` is not provably safe.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

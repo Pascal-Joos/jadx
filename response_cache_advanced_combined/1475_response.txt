@@ -1,0 +1,42 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean fixUselessPhi(MethodNode mth) {
+		boolean changed = false;
+		List<PhiInsn> insnToRemove = new ArrayList<>();
+		for (SSAVar var : mth.getSVars()) {
+			// phi result not used
+			if (var.getUseCount() == 0) {
+				InsnNode assignInsn = var.getAssign().getParentInsn();
+				if (assignInsn != null && assignInsn.getType() == InsnType.PHI) {
+					insnToRemove.add((PhiInsn) assignInsn);
+					changed = true;
+				}
+			}
+		}
+		if (mth.getBasicBlocks() == null) {
+			removePhiList(mth, insnToRemove);
+			return changed;
+		}
+		for (BlockNode block : mth.getBasicBlocks()) {
+			PhiListAttr phiList = block.get(AType.PHI_LIST);
+			if (phiList == null) {
+				continue;
+			}
+			Iterator<PhiInsn> it = phiList.getList().iterator();
+			while (it.hasNext()) {
+				PhiInsn phi = it.next();
+				if (fixPhiWithSameArgs(mth, block, phi)) {
+					it.remove();
+					changed = true;
+				}
+			}
+		}
+		removePhiList(mth, insnToRemove);
+		return changed;
+}
+  ```
+    ]]>
+  </code>
+</response>

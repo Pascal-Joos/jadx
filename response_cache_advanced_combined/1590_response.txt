@@ -1,0 +1,32 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    ArgType type = ssaVar.getTypeInfo().getType();
+
+the final method invoked is:
+
+    @NotNull
+    public ArgType getType() {
+        return type;
+    }
+
+in `TypeInfo`. This method simply returns the field `type` and does not perform any computation or call other methods.
+
+Across the provided code, `TypeInfo.getType()` is used under the assumption that it never returns null:
+
+- Many call sites immediately dereference the result (e.g., calling `isTypeKnown()`, `equals(...)`, `isObject()`, `isPrimitive()`, constructing generics, or passing it into methods expecting non-null), without any null-checks.
+- When a “no type” state is needed, the code consistently uses special sentinel constants such as `ArgType.UNKNOWN` or `ArgType.UNKNOWN_OBJECT`, not `null`.
+- In `FinishTypeInference.visit`, when a type is missing for `codeVar`, it is explicitly set to `ArgType.UNKNOWN`, not left as null. This indicates the design choice is to represent “unknown” with a non-null `ArgType` constant instead of `null`.
+
+There is no code path shown that sets `TypeInfo.type` to `null`. Instead, unknown or unresolved types are represented by specific non-null `ArgType` instances. Since this `TypeInfo` instance is the one associated with `ssaVar`, and the entire type inference and analysis pipeline operates under the invariant that an `ArgType` object is always present (even if it represents UNKNOWN), `type` is expected to be non-null at this point.
+
+Given that:
+- `TypeInfo.getType()` is annotated `@NotNull`,
+- all unknown/unset cases use `ArgType.UNKNOWN` rather than `null`,
+- and the provided codebase consistently treats the returned value as non-null,
+
+the invocation `ssaVar.getTypeInfo().getType()` cannot yield `null` at this call site.
+]]></reason>
+  <value>NO</value>
+</response>

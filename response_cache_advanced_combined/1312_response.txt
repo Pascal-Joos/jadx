@@ -1,0 +1,62 @@
+<response>
+  <reason><![CDATA[
+At the call site in question, `extClsInfo.getAliasPkg()` appears inside `ClassGen.useClassInternal`:
+
+```java
+if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) {
+    fullName = extClsInfo.getAliasNameWithoutPackage();
+}
+```
+
+To determine if this can be null, we must examine all return paths of:
+
+```java
+public String getAliasPkg() {
+    if (isInner() && parentClass != null) {
+        return parentClass.getAliasPkg();
+    }
+    return alias == null ? getPackage() : alias.getPkg();
+}
+```
+
+There are two cases:
+
+1. **Inner class with non-null parentClass**
+
+   In this case, `getAliasPkg()` delegates to `parentClass.getAliasPkg()`. This recursion climbs the parent chain until it reaches a non-inner (top-level) class (since inner classes are defined with a non-null `parentClass`, and the chain must terminate at some top-level class or the code would be invalid).
+
+2. **Top-level class or inner class where the condition is false**
+
+   When `!(isInner() && parentClass != null)`, the method returns:
+   ```java
+   alias == null ? getPackage() : alias.getPkg();
+   ```
+
+   - `alias.getPkg()` comes from `ClassAliasInfo`. All usages of `new ClassAliasInfo(aliasPkg, ...)` in the provided code pass a non-null `aliasPkg` string argument:
+     - `changePkg(String aliasPkg)` constructs `new ClassAliasInfo(aliasPkg, ...)` only after `aliasPkg` is passed in and used as a normal `String` (e.g., concatenated, compared), so it is assumed non-null in this code base.
+     - `changeShortName(String aliasName)` uses `new ClassAliasInfo(getAliasPkg(), aliasName)`, and we already rely on `getAliasPkg()` being non-null to build full names and paths elsewhere (`makeFullClsName`, `getAliasFullPath`, etc.), with no null checks, indicating a non-null contract.
+   
+   - If `alias == null`, the method returns `getPackage()`.
+
+     By the class design and its usage:
+     * `getPackage()` is the *raw* package of the class, derived from its type descriptor/name, and is used all over the codebase without null checks:
+       - In `Deobfuscator.preProcess()`:
+         ```java
+         reservedClsNames, cls.getPackage().split("\\.")
+         ```
+         `split` on a `null` string would NPE; no null check is present.
+       - In many other places (`checkPackage`, `getPkgAlias`, `FixAccessModifiers`, etc.), `getPackage()` is used in `equals`, `startsWith`, concatenation, and map lookups with no null checks.
+     * This strongly implies `getPackage()` is guaranteed non-null for any `ClassInfo` that has been constructed and loaded into the processing pipeline. A null value there would break large parts of the system, and there are no defensive checks.
+
+Because:
+
+- The parent chain for inner classes will end at a top-level `ClassInfo` whose `getPackage()` is non-null.
+- `alias` is either `null` (falling back to non-null `getPackage()`) or non-null with a non-null `alias.getPkg()`.
+- Numerous code paths (including `getAliasFullPath()` which immediately calls `Nullability.castToNonnull(getAliasPkg())`) assume `getAliasPkg()` itself is never null once classes are in normal processing.
+
+there is no valid execution path, at this call site, where `extClsInfo.getAliasPkg()` returns null. If it did, many other uses (e.g. `getAliasFullPath()`, `makeAliasFullName()`, `split("\\.")`, string concatenations) would crash, and there is no guarding logic against that.
+
+Thus, for this specific invocation in `useClassInternal`, `extClsInfo.getAliasPkg()` cannot be null.
+  ]]></reason>
+  <value>NO</value>
+</response>

@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public BaseInvokeNode getInvokeCall() {
+ 		BaseInvokeNode invokeCall = null;
+ 		if (callInsn != null && callInsn.getType() == InsnType.INVOKE) {
+ 			invokeCall = (BaseInvokeNode) callInsn;
+ 		}
+ 		return invokeCall;
+ }
+  ```
+    ]]>
+  </code>
+</response>

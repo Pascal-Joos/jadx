@@ -1,0 +1,35 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private String generateNameForNS(String attrUrl) {
+      		if (nsMap == null) {
+      			return "";
+      		}
+      		nsMapGenerated = new HashSet<>();
+      		String attrName;
+      		if (ANDROID_NS_URL.equals(attrUrl)) {
+      			attrName = ANDROID_NS_VALUE;
+      			if (nsMap != null) {
+      				Nullability.castToNonnull(nsMap).put(ANDROID_NS_URL, attrName);
+      			}
+      		} else {
+      			for (int i = 1;; i++) {
+      				attrName = "ns" + i;
+      				if (!nsMapGenerated.contains(attrName) && !Nullability.castToNonnull(nsMap).containsValue(attrName)) {
+      					nsMapGenerated.add(attrName);
+      					// do not add generated value to nsMap
+      					// because attrUrl might be used in a neighbor element, but never defined
+      					break;
+      				}
+      			}
+      		}
+      		if (writer != null) {
+      			writer.add("xmlns:").add(attrName).add("=\"").add(attrUrl).add("\" ");
+      		}
+      		return attrName;
+}
+  ```
+    ]]>
+  </code>
+</response>

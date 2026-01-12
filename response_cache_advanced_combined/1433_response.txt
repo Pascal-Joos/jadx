@@ -1,0 +1,54 @@
+<response>
+  <reason><![CDATA[
+The method `MethodNode.getEnterBlock()` is a simple getter:
+
+```java
+public BlockNode getEnterBlock() {
+    return enterBlock;
+}
+```
+
+Whether it can return null at the call sites shown depends entirely on whether `enterBlock` is guaranteed to be initialized (non-null) by the time each call occurs.
+
+From the provided call chain:
+
+- Many usages assume non-null and immediately dereference it without checks, e.g.:
+  - `mth.getEnterBlock().getCleanSuccessors().get(0);`
+  - `mth.getEnterBlock().getSuccessors().get(0);`
+  - `mth.getEnterBlock().getId();`
+  - Passing `mth.getEnterBlock()` into graph algorithms (DFS, dominance, etc.)
+
+- There is one particularly important use in `BlockUtils.dfsVisit`:
+  ```java
+  BlockNode enterBlock = mth.getEnterBlock();
+  queue.addLast(enterBlock);
+  visited.set(Nullability.castToNonnull(mth.getEnterBlock()).getId());
+  ```
+  Here the code explicitly calls `Nullability.castToNonnull` on `mth.getEnterBlock()` and then uses `.getId()`. That indicates the intended contract: for any `MethodNode` passed into these CFG/region/SSA utilities, `getEnterBlock()` must not be null. If it were possibly null, this code would immediately fail with an NPE; there is no defensive check.
+
+- The `DotGraphVisitor.DumpDotGraph.process` method has a special branch where `blocks` can be null and it synthesizes a single `BlockNode` and assigns it to `enterBlock`:
+  ```java
+  BlockNode enterBlock = mth.getEnterBlock();
+  ...
+  if (blocks == null) {
+      ...
+      enterBlock = block;
+      blocks = Collections.singletonList(block);
+  }
+  ...
+  dot.startLine("MethodNode -> ").add(makeName(enterBlock)).add(';');
+  ```
+  Even in this fallback path, `enterBlock` is explicitly set to a non-null block before further use. The local `enterBlock` used here is *not* the field inside `MethodNode`; however, the call to `mth.getEnterBlock()` at the start is again used under the assumption that it is valid for methods with CFG information.
+
+Across all shown usages, the codebase consistently treats `getEnterBlock()` as non-null when:
+
+- `mth.isNoCode()` is false, and
+- `mth.getBasicBlocks()` is non-empty / already constructed.
+
+All call sites you provided are in passes or utilities that only run on methods with code and initialized basic blocks (e.g., block processing, SSA transform, region building, codegen). These components rely on the invariant that once a `MethodNode` reaches this stage, `enterBlock` has been set and is not null.
+
+There is no branch in the shown code where any of these specific calls to `mth.getEnterBlock()` are guarded by a null check or allow for a null value; instead, they immediately dereference the result. If `enterBlock` were possibly null here, these parts of Jadx would be trivially broken.
+
+Given this, at the specific call sites you listed—which are all in the analyzed, CFG-based processing and codegen pipeline—`mth.getEnterBlock()` is not allowed to be null and is used as if it is always non-null. Thus, for these call sites, it cannot return null under the intended and required invariants of the surrounding code.]]></reason>
+  <value>NO</value>
+</response>

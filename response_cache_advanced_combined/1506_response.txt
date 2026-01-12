@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static IfInfo getNextIf(IfInfo info, BlockNode block) {
+ 		if (!canSelectNext(info, Nullability.castToNonnull(block))) {
+ 			return null;
+ 		}
+ 		return getNextIfNodeInfo(info, Nullability.castToNonnull(block));
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,72 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	private static IfInfo getNextIfNodeInfo(IfInfo info, BlockNode block) {
+		if (block == null || block.contains(AType.LOOP) || block.contains(AFlag.ADDED_TO_REGION)) {
+			return null;
+		}
+		InsnNode lastInsn = BlockUtils.getLastInsn(block);
+		if (lastInsn != null && lastInsn.getType() == InsnType.IF) {
+			return makeIfInfo(info.getMth(), block);
+		}
+		// skip this block and search in successors chain
+		List<BlockNode> successors = block.getSuccessors();
+		if (successors.size() != 1) {
+			return null;
+		}
+
+		BlockNode next = successors.get(0);
+		if (next.getPredecessors().size() != 1) {
+			return null;
+		}
+		if (next.contains(AFlag.ADDED_TO_REGION)) {
+			return null;
+		}
+		List<InsnNode> insns = block.getInstructions();
+		boolean pass = true;
+		List<InsnNode> forceInlineInsns = new ArrayList<>();
+		if (!insns.isEmpty()) {
+			// check that all instructions can be inlined
+			for (InsnNode insn : insns) {
+				RegisterArg res = insn.getResult();
+				if (res == null || res.getSVar() == null) {
+					return null;
+				}
+				List<RegisterArg> useList = res.getSVar().getUseList();
+				int useCount = useList.size();
+				if (useCount == 0) {
+					// TODO?
+					pass = false;
+					break;
+				}
+				InsnArg arg = useList.get(0);
+				InsnNode usePlace = arg.getParentInsn();
+				if (!BlockUtils.blockContains(block, usePlace)
+						&& !BlockUtils.blockContains(next, usePlace)) {
+					pass = false;
+					break;
+				}
+				if (useCount > 1) {
+					forceInlineInsns.add(insn);
+				} else {
+					// allow only forced assign inline
+					pass = false;
+				}
+			}
+		}
+		if (!pass) {
+			return null;
+		}
+		IfInfo nextInfo = makeIfInfo(info.getMth(), next);
+		if (nextInfo == null) {
+			return getNextIfNodeInfo(info, next);
+		}
+		nextInfo.addInsnsForForcedInline(forceInlineInsns);
+		return nextInfo;
+}
+  ```
+    ]]>
+  </code>
+</response>

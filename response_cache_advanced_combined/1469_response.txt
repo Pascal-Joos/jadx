@@ -1,0 +1,30 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@Nullable
+	public static BlockNode getBlockByInsn(MethodNode mth,  InsnNode insn) {
+		if (insn == null) {
+			return null;
+		}
+		if (insn instanceof PhiInsn) {
+			return searchBlockWithPhi(mth, (PhiInsn) insn);
+		}
+		if (insn.contains(AFlag.WRAPPED)) {
+			return getBlockByWrappedInsn(mth, insn);
+		}
+		List<BlockNode> basicBlocks = mth.getBasicBlocks();
+		if (basicBlocks == null) {
+			return null;
+		}
+		for (BlockNode bn : basicBlocks) {
+			if (blockContains(bn, insn)) {
+				return bn;
+			}
+		}
+		return null;
+}
+  ```
+    ]]>
+  </code>
+</response>

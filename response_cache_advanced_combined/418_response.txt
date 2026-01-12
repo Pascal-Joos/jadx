@@ -1,0 +1,12 @@
+<response>
+  <reason><![CDATA[
+resArg is always obtained as the non‑null result of some InsnNode (all shown uses check `if (resArg != null)` before using it). Its SSA variable is created and attached by the SSA transform (`SSATransform.renameVarsInBlock`), which calls `var.use(reg)` and thereby sets a non‑null SSAVar on the RegisterArg. The project’s invariant is that any RegisterArg used as an instruction result or argument in normal processed code has a non‑null SSAVar unless explicitly tested for null.
+
+Where SSAVar might be absent, the code defensively checks for it before dereferencing (e.g. `if (ssaVar == null) return;` or branches). In the specific call sites you provided that use `resArg.getSVar()` (e.g. in `PrepareForCodeGen.modifyArith`, `InsnGen.makeInsn`, `InsnUtils.dontGenerateIfNotUsed`, `LoopRegion.checkPreCondition`, `ProcessInstructionsVisitor.mergeMoveResult`, etc.), there is no preceding null check on `getSVar()`, and those methods are part of the normal pipeline, guarded by `DebugChecks.checkMethod`, which throws if any RegisterArg has `sVar == null` while SSA variables exist.
+
+`DebugChecks.checkVar` explicitly treats `sVar == null` as an error if the method has any SVars. Since these checks are used to validate the IR, a null `sVar` on such a result argument would be considered a structural bug, not an allowed state.
+
+Given this, under the intended, validated execution of the decompiler pipeline, `resArg.getSVar()` is not null at these call sites; a null would indicate a violated invariant and would be caught by debug checks rather than used normally.
+  ]]></reason>
+  <value>NO</value>
+</response>

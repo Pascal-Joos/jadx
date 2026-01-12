@@ -1,0 +1,18 @@
+<response>
+  <reason><![CDATA[The implementation of ArgType.getInnerType() shown is:
+
+```java
+public ArgType getInnerType() {
+    return null;
+}
+```
+
+This method unconditionally returns null on every invocation; there are no branches or dependencies on parameters or other methods. Therefore, at the specific call site
+
+```java
+ArgType innerType = baseType.getInnerType();
+```
+
+the value assigned to innerType can be null (and in fact, will always be null given this implementation). Other surrounding code (e.g., in ClassGen.addInnerType or SignatureProcessor.validateInnerType) does not change this fact, because they are callers, not providers, of getInnerType()’s value.]]></reason>
+  <value>YES</value>
+</response>

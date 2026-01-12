@@ -1,0 +1,66 @@
+<response>
+  <reason><![CDATA[
+Analyzing the body of followEmptyPath:
+
+```java
+public static BlockNode followEmptyPath(BlockNode start) {
+    while (true) {
+        BlockNode next = getNextBlockOnEmptyPath(Nullability.castToNonnull(start));
+        if (next == null) {
+            return start;
+        }
+        start = next;
+    }
+}
+```
+
+The method has a single return statement: `return start;` executed when `next == null`.
+
+Control flow:
+- The loop is infinite in structure, but it can terminate when `getNextBlockOnEmptyPath(...)` returns `null`.
+- On termination, whatever value `start` currently holds is returned.
+
+Possible sources of null for `start`:
+- The initial parameter `start` can be `null` at the call site; there is no explicit check in this method preventing that.
+- The call `Nullability.castToNonnull(start)` is used only as an argument to `getNextBlockOnEmptyPath`. Per your constraints, the implementation of `castToNonnull` is unknown and cannot be relied on to enforce non-nullness or throw. We must therefore allow for the possibility that:
+  - It simply returns its input (or otherwise does not guarantee non-null), and
+  - It does not necessarily throw on null input.
+- `start` is then updated via `start = next;` when `next != null`. The only other source of values assigned to `start` is `getNextBlockOnEmptyPath`, whose full implementation is provided:
+
+```java
+private static BlockNode getNextBlockOnEmptyPath(BlockNode block) {
+    if (!block.getInstructions().isEmpty() || block.getPredecessors().size() > 1) {
+        return null;
+    }
+    List<BlockNode> successors = block.getCleanSuccessors();
+    if (successors.size() != 1) {
+        return null;
+    }
+    return successors.get(0);
+}
+```
+
+From this:
+- `getNextBlockOnEmptyPath` can return either `null` or `successors.get(0)`.
+- We have no guarantee that `successors.get(0)` is non-null; standard Java collections permit null elements unless explicitly constrained, and nothing in this code filters them.
+- Therefore, `next` can be:
+  - `null`
+  - A non-null BlockNode
+  - Potentially a null element from `successors.get(0)` (if such exists)
+
+Return scenarios:
+1. If the initial `start` is `null` and either:
+   - `castToNonnull` is a no-op or otherwise passes `null` through, and
+   - `getNextBlockOnEmptyPath` returns `null` for that block argument (or throws; exceptions are not considered null returns),
+   then on the first iteration `next == null` and `return start;` returns `null`.
+
+2. Even if the initial `start` is non-null, a later iteration could assign `start = next;` where `next` is taken from `successors.get(0)` and is null, if such a value exists. On the following iteration (or immediately if `next` was simultaneously used in the null check, depending on when it becomes null) the method would hit `return start;` with `start == null`.
+
+Because:
+- The method does not itself enforce non-nullness of `start`.
+- `getNextBlockOnEmptyPath` can return `null`.
+- The only safeguard, `Nullability.castToNonnull`, has unspecified behavior and cannot be assumed to throw or correct nulls.
+
+There exist plausible, consistent executions (within the given constraints) where `followEmptyPath` returns `null`. Therefore, from the method bodies alone, we cannot guarantee a non-null return, and a null return is possible.]]></reason>
+  <value>YES</value>
+</response>

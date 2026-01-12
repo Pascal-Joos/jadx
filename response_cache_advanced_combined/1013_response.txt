@@ -1,0 +1,6 @@
+<response>
+    <reason><![CDATA[
+The method is named init, which matches the documented heuristic (“any method that has a name that starts with 'init' or 'initialize' and is not a setter method”). Its signature takes a RootNode parameter and returns void; it does not follow a typical setter pattern (no single-field naming, no simple `setX(...)` style). Instead, it initializes an internal field (`stringGetBytesMth`) using more complex logic. This matches the kind of framework or lifecycle-style initialization method (similar to `Processor.init` or `Servlet.init`) that NullAway treats as an initializer method rather than a simple setter.
+    ]]></reason>
+    <value>YES</value>
+</response>

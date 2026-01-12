@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void addFields(ClassNode cls, JsonClass jsonCls, ClassGen classGen) {
+		jsonCls.setFields(new ArrayList<>());
+		for (FieldNode field : cls.getFields()) {
+			if (field.contains(AFlag.DONT_GENERATE)) {
+				continue;
+			}
+			JsonField jsonField = new JsonField();
+			jsonField.setName(field.getName());
+			if (field.getFieldInfo().hasAlias()) {
+				jsonField.setAlias(field.getAlias());
+			}
+
+			ICodeWriter cw = new SimpleCodeWriter();
+			classGen.addField(cw, field);
+			jsonField.setDeclaration(cw.getCodeStr());
+			jsonField.setAccessFlags(field.getAccessFlags().rawValue());
+			Nullability.castToNonnull(jsonCls.getFields()).add(jsonField);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

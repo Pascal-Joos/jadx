@@ -1,0 +1,24 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method body alone, there is no explicit null-check on the parameter `extClsInfo` before it is dereferenced at:
+
+    String fullName = extClsInfo.getAliasFullName();
+
+This means:
+
+1. **If `extClsInfo` itself can be null** at the call site of `useClassInternal`, then the expression `extClsInfo` at that line can indeed be null, and the dereference would cause a `NullPointerException`.
+
+2. **If `extClsInfo` is guaranteed by the caller or by class invariants never to be null** when `useClassInternal` is invoked (for example, by design/contract of the class, or enforced by earlier checks, or via annotations like `@NonNull`), then within this method `extClsInfo` cannot be null at that line.
+
+Nothing in the shown method enforces or checks non-nullness of `extClsInfo`; it is only a parameter. Its non-nullness depends entirely on external guarantees (callers, annotations, or framework constraints) that you have not provided here. Without those, static reasoning on this snippet alone cannot prove that `extClsInfo` is always non-null.
+
+Therefore, based solely on the given code, we cannot conclusively determine that `extClsInfo` is always non-null, nor can we definitively say it is nullable, because that depends on information outside this method’s body (e.g., how `useClassInternal` is called and the contract of `ClassInfo` usage).
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show how `useClassInternal` is called (all call sites), so we can see whether `extClsInfo` is ever passed as null.]]></request>
+        <request><![CDATA[Provide any annotations or documentation on `ClassInfo` and on the `useClassInternal` parameters (e.g., @NonNull/@Nullable or project conventions) that define whether `extClsInfo` may be null.]]></request>
+    </requests>
+</response>
+```

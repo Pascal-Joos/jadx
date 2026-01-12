@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean checkConditionBranches(BlockNode from, BlockNode to) {
+		List<BlockNode> successors = from.getCleanSuccessors();
+		return successors != null && successors.size() == 1 && successors.contains(to);
+}
+  ```
+    ]]>
+  </code>
+</response>

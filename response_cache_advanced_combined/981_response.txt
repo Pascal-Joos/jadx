@@ -1,0 +1,65 @@
+```xml
+<response>
+    <reason><![CDATA[
+We are analyzing whether `insn` can be null at the line:
+
+    if (tryBlockStarted) {
+        insn.add(AFlag.TRY_LEAVE);
+    }
+
+Key points from the method:
+
+1. Initialization:
+   - `InsnNode insn = null;`
+   - `boolean tryBlockStarted = false;`
+
+2. The only place where `tryBlockStarted` is set to true is inside the `if (insnAtOffset != null)` block:
+
+       if (insnAtOffset != null) {
+           insn = insnAtOffset;
+           attachCatchAttr(catchAttr, insn);
+           if (!tryBlockStarted) {
+               insn.add(AFlag.TRY_ENTER);
+               tryBlockStarted = true;
+           }
+       }
+
+   Here:
+   - `insnAtOffset` is checked for null.
+   - If it is not null, `insn` is assigned that non‑null value.
+   - `tryBlockStarted` is set to true only in this case (where `insn` has just been set from a non‑null `insnAtOffset`).
+
+3. No other assignments:
+   - After being set from `insnAtOffset`, `insn` is never set to null again.
+   - There are no other writes to `insn` in the method.
+
+4. Loop and exit:
+   - The loop continues updating `offset` via `offset = getNextInsnOffset(insnByOffset, offset);`.
+   - Exiting the loop can occur:
+     - Via `offset == -1` → `break;`
+     - Or when `offset > end` (loop condition fails).
+   - None of these change `insn` or `tryBlockStarted`.
+
+5. Final check:
+
+       if (tryBlockStarted) {
+           insn.add(AFlag.TRY_LEAVE);
+       } else {
+           // no instructions found in range -> add nop ...
+       }
+
+   The `else` branch is explicitly the "no instructions found" path. That means `tryBlockStarted` is only true if at least one non-null `insnAtOffset` was encountered, at which point `insn` was set to that non-null `InsnNode`.
+
+6. Dependency on external contracts:
+   - Even if `getNextInsnOffset` behaves oddly (e.g., jumps around), the only way `tryBlockStarted` becomes true is inside the `if (insnAtOffset != null)` block where `insn` is definitely assigned from a non-null source first.
+   - Methods `attachCatchAttr`, `insertNOP`, etc., do not affect `insn`.
+   - Therefore, any state where `tryBlockStarted == true` implies `insn` was previously written from a non-null `insnAtOffset`. It cannot still be null at that point, given there is no subsequent write to `insn`.
+
+Conclusion:
+- `insn` might remain null only if no non-null `insnAtOffset` is ever found, but in that case `tryBlockStarted` remains `false`, and the `insn.add(AFlag.TRY_LEAVE);` line is not executed.
+- In every path where the `if (tryBlockStarted)` condition is true, `insn` has been set to a non-null value and not altered afterward.
+
+Therefore, at the line `insn.add(AFlag.TRY_LEAVE);`, `insn` cannot be null.]]></reason>
+    <value>NO</value>
+</response>
+```

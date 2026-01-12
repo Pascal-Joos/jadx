@@ -1,0 +1,7 @@
+<response>
+    <success>false</success>
+    <methods>
+      <method>getAliasPkg</method>
+      <method>castToNonnull</method>
+    </methods>
+</response>

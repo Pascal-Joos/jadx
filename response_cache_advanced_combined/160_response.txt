@@ -1,0 +1,58 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone:
+
+public String getAliasPkg() {
+    if (isInner()) {
+        return parentClass.getAliasPkg();
+    }
+    return alias == null ? getPackage() : alias.getPkg();
+}
+
+We must analyze the nullability of the final return expression:
+    alias == null ? getPackage() : alias.getPkg()
+
+Code paths:
+
+1. Path when isInner() == true:
+   - Control flow: getAliasPkg() → return parentClass.getAliasPkg();
+   - The target expression (alias == null ? getPackage() : alias.getPkg()) is never evaluated.
+   - The nullability in this path depends entirely on parentClass.getAliasPkg(), which is not shown. There is no guarantee it is non-null from the given code.
+
+2. Path when isInner() == false:
+   - Control flow: getAliasPkg() → return alias == null ? getPackage() : alias.getPkg();
+   - This expression can return:
+       a) getPackage()  when alias == null
+       b) alias.getPkg() when alias != null
+
+To decide if the returned value can be null, we would need to know:
+   - Whether getPackage() is guaranteed non-null.
+   - Whether alias is guaranteed to be:
+        • either null OR a non-null object where alias.getPkg() is guaranteed non-null.
+   - Or any class invariants / method contracts that guarantee non-null return values.
+
+The method as written performs no null checks on:
+   - parentClass
+   - parentClass.getAliasPkg()
+   - getPackage()
+   - alias.getPkg()
+
+Without additional information (class invariants, field initialization logic, or documented contracts of getPackage() and getPkg()), standard Java semantics allow all of these methods to legally return null.
+
+Therefore, from this snippet alone, there is no basis to prove that:
+   - getPackage() is never null, or
+   - alias.getPkg() is never null, or
+   - parentClass.getAliasPkg() is never null.
+
+Thus, we cannot guarantee the expression is non-null, but we also cannot definitively assert that it will be null in some execution, because that depends on the unseen implementations and invariants. The correct conclusion with the given information is that the nullability is undetermined.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation (or contract / documentation) of getPackage() to determine if it can ever return null.]]></request>
+        <request><![CDATA[Provide the type and implementation (or contract) of alias and its getPkg() method, including any invariants that alias is always non-null or alias.getPkg() is non-null.]]></request>
+        <request><![CDATA[Provide the implementation (or contract) of parentClass.getAliasPkg(), or any class invariants that guarantee its return value is non-null.]]></request>
+        <request><![CDATA[If applicable, provide field declarations and initialization code for parentClass and alias, and any non-null annotations (@NonNull, @NotNull, etc.).]]></request>
+    </requests>
+</response>
+```

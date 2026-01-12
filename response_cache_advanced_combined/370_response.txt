@@ -1,0 +1,13 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static MethodInfo fromMethodProto(RootNode root, ClassInfo declClass, String name, IMethodProto proto) {
+		List<ArgType> args = Utils.collectionMap(proto.getArgTypes(), ArgType::parse);
+		ArgType returnType = ArgType.parse(proto.getReturnType());
+		return fromDetails(root, declClass, name, args, Nullability.castToNonnull(returnType));
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,31 @@
+```xml
+<response>
+    <reason><![CDATA[
+In this method, `thenBlock` is obtained directly from `info`:
+
+    BlockNode thenBlock = info.getThenBlock();
+    BlockNode elseBlock = info.getElseBlock();
+
+There is no null check for `thenBlock` before it is used in the line in question:
+
+    if (thenBlock.contains(AFlag.RETURN) && elseBlock.contains(AFlag.RETURN)) {
+
+The only earlier use involving `thenBlock` is:
+
+    if (Objects.equals(thenBlock, elseBlock)) {
+        IfInfo ifInfo = new IfInfo(info, null, null);
+        ifInfo.setOutBlock(thenBlock);
+        return ifInfo;
+    }
+
+`Objects.equals(thenBlock, elseBlock)` safely handles nulls, but it does not prevent `thenBlock` itself from being null in general; it only handles the equality check. If `thenBlock` is null and `elseBlock` is not (or vice versa), `Objects.equals` returns `false` and execution continues to the `contains` call.
+
+At that point, if `thenBlock` is null, `thenBlock.contains(...)` will be a dereference of a null reference and will throw a `NullPointerException`. There is nothing in this method alone that guarantees `info.getThenBlock()` returns a non-null `BlockNode`.
+
+Whether `thenBlock` can in fact be null at runtime depends entirely on the contract and implementation of `IfInfo.getThenBlock()` (and how `IfInfo` instances are constructed/validated). Since that contract and implementation are not provided here, we cannot conclude from this method alone that `thenBlock` is always non-null.
+
+Therefore, based solely on the given code, `thenBlock` *can* be null at the `thenBlock.contains(...)` call site.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

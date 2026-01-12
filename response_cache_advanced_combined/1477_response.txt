@@ -1,0 +1,50 @@
+<response>
+    <reason><![CDATA[
+From the provided code and call chain, `blockNodes` in `calcPartialPostDominance` is never reassigned or modified; it is only iterated over and used as given.
+
+Call sites:
+
+1. `RegionMaker.searchFallThroughCase`:
+   ```java
+   Set<BlockNode> allPathsBlocks = BlockUtils.getAllPathsBlocks(successor, out);
+   Map<BlockNode, BitSet> bitSetMap = BlockUtils.calcPartialPostDominance(mth, allPathsBlocks, out);
+   ```
+   Here, `allPathsBlocks` is the value passed as `blockNodes`.
+
+2. `BlockUtils.calcPartialImmediatePostDominator`:
+   ```java
+   Map<BlockNode, BitSet> pDomsMap = calcPartialPostDominance(mth, blockNodes, exitBlock);
+   ```
+   Here, the method simply forwards its own `blockNodes` parameter.
+
+3. `BlockUtils.calcPostDominance`:
+   ```java
+   return calcPartialPostDominance(mth, mth.getBasicBlocks(), mth.getPreExitBlocks().get(0));
+   ```
+   Here, `mth.getBasicBlocks()` is passed as `blockNodes`.
+
+Inside `calcPartialPostDominance`, `blockNodes` is dereferenced multiple times without any null check:
+
+- Enhanced for-loops:
+  ```java
+  for (BlockNode block : blockNodes) { ... }
+  ```
+- Lambda:
+  ```java
+  blockNodes.forEach(block -> { ... });
+  ```
+
+If `blockNodes` were null, any of these usages would immediately throw a `NullPointerException`. There is no defensive check or reassignment that could prevent this.
+
+Regarding the callers:
+- Methods like `getAllPathsBlocks` and `getBasicBlocks` are not shown, so we cannot be certain they never return null.
+- `calcPartialImmediatePostDominator` merely relays whatever `blockNodes` it was given; callers of that method could, in principle, pass null as well.
+
+Because:
+- There is no internal null-guard in `calcPartialPostDominance`,
+- Java allows callers to pass null regardless of intent,
+- And we do not have the implementations of methods that produce the collections passed as `blockNodes` (e.g., `getAllPathsBlocks`, `getBasicBlocks`),
+
+there is a real possibility that `blockNodes` could be null at runtime, which would crash the method. Thus, from the perspective of potential runtime behavior, the parameter can be null.]]></reason>
+    <value>YES</value>
+</response>

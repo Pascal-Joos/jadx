@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  protected String[] parseStringPool() throws IOException {
+		if (is == null) {
+			throw new IOException("ParserStream not initialized");
+		}
+		is.checkInt16(RES_STRING_POOL_TYPE, "String pool expected");
+		return parseStringPoolNoType();
+}
+  ```
+    ]]>
+  </code>
+</response>

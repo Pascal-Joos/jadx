@@ -1,0 +1,38 @@
+<response>
+  <reason><![CDATA[
+At this call site, `customNode` is an instance of `InvokeCustomNode` created in `CustomLambdaCall.buildMethodCall`. Inside that method:
+
+```java
+InvokeCustomNode invokeCustomNode = new InvokeCustomNode(lambdaInfo, insn, false, isRange);
+...
+InvokeNode invokeNode = buildInvokeNode(methodHandleType, invokeCustomNode, callMthInfo);
+
+if (methodHandleType == MethodHandleType.INVOKE_CONSTRUCTOR) {
+    ConstructorInsn ctrInsn = new ConstructorInsn(mth, invokeNode);
+    invokeCustomNode.setCallInsn(ctrInsn);
+} else {
+    invokeCustomNode.setCallInsn(invokeNode);
+}
+```
+
+Thus, on every execution path that returns `invokeCustomNode`, `setCallInsn(...)` is called unconditionally with a non-null argument:
+
+- `buildInvokeNode(...)` is used to create `invokeNode` (which is then passed directly into `setCallInsn`).
+- In the constructor case, `new ConstructorInsn(mth, invokeNode)` is passed to `setCallInsn`.
+- There is no path in `buildMethodCall` where `invokeCustomNode` is returned without a prior `setCallInsn` call, and there is no path where `setCallInsn` is given `null`.
+
+Later code uses `invokeCustomNode.getCallInsn()` immediately:
+
+```java
+invokeCustomNode.getCallInsn().addAttr(callMth);
+...
+InsnNode callInsn = customNode.getCallInsn();
+...
+MethodNode callMth = (MethodNode) customNode.getCallInsn().get(AType.METHOD_DETAILS);
+```
+
+These usages assume a non-null value and there is no intervening code in the provided chain that would reset `callInsn` to null.
+
+Since `customNode` at the call site `customNode.getCallInsn()` comes from `buildMethodCall` (via `buildLambdaMethodCall`), and `callInsn` is always assigned a non-null value before that object is returned, the method `getCallInsn()` cannot return null at this specific call site.]]></reason>
+  <value>NO</value>
+</response>

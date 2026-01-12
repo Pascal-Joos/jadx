@@ -1,0 +1,73 @@
+<response>
+  <reason><![CDATA[
+The call site is simply:
+
+    mth.getBasicBlocks()
+
+The implementation of `getBasicBlocks` is:
+
+    public List<BlockNode> getBasicBlocks() {
+        return blocks;
+    }
+
+So nullability depends entirely on the field `blocks`.
+
+From the provided code, we can see:
+
+1. Many callers explicitly *defensively* check for `null` before using the result, e.g.:
+
+   - `ConstInlineVisitor.process`:
+     ```java
+     if (mth.getBasicBlocks() == null) {
+         return;
+     }
+     ```
+   - `ProcessKotlinInternals.processMth`:
+     ```java
+     if (mth.isNoCode() || mth.getBasicBlocks() == null) {
+         return;
+     }
+     ```
+   - `BlockExceptionHandler.prepareTryBlocks`:
+     ```java
+     if (mth.getBasicBlocks() == null) {
+         return Collections.emptyList();
+     }
+     ```
+   - `RegionMakerVisitor.processForceInlineInsns`:
+     ```java
+     if (mth.getBasicBlocks() == null) {
+         return;
+     }
+     ```
+   - `MarkMethodsForInline.process`:
+     ```java
+     if (mth.getBasicBlocks() == null) {
+         return null;
+     }
+     ```
+   - `MethodGen.addSimpleMethodCode`:
+     ```java
+     if (mth.getBasicBlocks() == null) {
+         code.startLine("// Blocks not ready for simple mode, using fallback");
+         ...
+     }
+     ```
+   - `DotGraphVisitor.DumpDotGraph.processMethodRegion`:
+     ```java
+     if (mth.getBasicBlocks() == null) {
+         return;
+     }
+     ```
+
+   These checks would be unnecessary if `blocks` were guaranteed non-null.
+
+2. Other callers assume non-null but only after using operations that would be invalid on a null list (e.g. `.isEmpty()`, `.size()`), and those are guarded either by previous checks or higher‑level guarantees (like `mth.isNoCode()` or earlier initialization), which does not change the fact that at the raw call `mth.getBasicBlocks()` itself, `blocks` may be null until initialized.
+
+3. The initialization logic (`initBasicBlocks`, `setBasicBlocks`, internal constructor, etc.) is not shown. Without that, and given the defensive null checks spread around, the only safe conclusion is that `blocks` can indeed be null at some points in the lifecycle of `MethodNode`.
+
+Because `getBasicBlocks()` is just a direct field getter and there is no in-method null handling, if `blocks` is null for `mth` at this point, the call will return null. The existing callers’ null checks strongly suggest this is an expected and supported state.
+
+Therefore, at this call site `mth.getBasicBlocks()`, the returned value can be null.]]></reason>
+  <value>YES</value>
+</response>

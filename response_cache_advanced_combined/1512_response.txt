@@ -1,0 +1,17 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>makeIfInfo</method>
+    <method>restructureIf</method>
+    <method>getThenBlock</method>
+    <method>getElseBlock</method>
+    <method>getNextIf</method>
+    <method>isInversionNeeded</method>
+    <method>isEqualPaths</method>
+    <method>followEmptyPath</method>
+    <method>isPathExists</method>
+    <method>checkForTernaryInCondition</method>
+    <method>mergeIfInfo</method>
+    <method>searchNestedIf</method>
+  </methods>
+</response>

@@ -1,0 +1,46 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone, there is no local null check or prior guarantee that `cls.get(AType.ANONYMOUS_CLASS)` is non-null.
+
+Key observations:
+
+1. The only place `AType.ANONYMOUS_CLASS` is referenced before the critical line is in the early-return branch:
+   ```java
+   if (this.mth.getParentClass() == cls) {
+       cls.remove(AType.ANONYMOUS_CLASS);
+       cls.remove(AFlag.DONT_GENERATE);
+       ...
+       throw new CodegenException(...);
+   }
+   ```
+   This branch:
+   - Does not read `cls.get(AType.ANONYMOUS_CLASS)`; it only removes the attribute.
+   - Always throws an exception, so execution never reaches `ArgType parent = ...` in this path.
+
+2. The critical line:
+   ```java
+   ArgType parent = cls.get(AType.ANONYMOUS_CLASS).getBaseType();
+   ```
+   directly dereferences the result of `cls.get(AType.ANONYMOUS_CLASS)` with no null check.
+
+3. Whether this can be null depends entirely on the contract of `ClassNode#get(AType)` for `AType.ANONYMOUS_CLASS` and how/when that attribute is set:
+   - If the broader codebase guarantees that `inlineAnonymousConstructor` is *only* called on classes that always have a non-null `AType.ANONYMOUS_CLASS` attribute, then the value would be non-null by design.
+   - If there is any realistic code path where `inlineAnonymousConstructor` is invoked on a `ClassNode` that does not have `AType.ANONYMOUS_CLASS` set, then `cls.get(AType.ANONYMOUS_CLASS)` can be null and this line would NPE.
+
+4. The snippet you provided contains no explicit guard (such as `if (cls.get(AType.ANONYMOUS_CLASS) == null)`) nor a prior read of the attribute establishing non-nullity. The `remove` call does not imply that the attribute is currently present; many implementations of `remove` are no-ops if the key/attribute is absent.
+
+Because the implementation and contract of:
+- `ClassNode#get(AType)`
+- The lifecycle and invariants for `AType.ANONYMOUS_CLASS` on `ClassNode` instances
+are not shown, we cannot soundly conclude that null is impossible.
+
+Therefore, strictly from the given method and without those external guarantees, it is not provable that `cls.get(AType.ANONYMOUS_CLASS)` is always non-null, and we must treat it as potentially null.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or contract/specification of ClassNode.get(AType) and the type stored under AType.ANONYMOUS_CLASS.]]></request>
+        <request><![CDATA[Clarify how and when the AType.ANONYMOUS_CLASS attribute is attached to ClassNode instances, and whether inlineAnonymousConstructor can ever be called on a ClassNode lacking this attribute.]]></request>
+    </requests>
+</response>
+```

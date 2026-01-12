@@ -1,0 +1,19 @@
+```xml
+<response>
+    <reason><![CDATA[
+The expression in question is the explicit `return null;` executed when `ordinal == -1`:
+
+```java
+int ordinal = in.readByte();
+if (ordinal == -1) {
+    return null;
+}
+```
+
+Since `ordinal` is read directly from the input stream (`in.readByte()`), there is no guarantee in this method that `ordinal` cannot be `-1`. On the contrary, that branch exists specifically to handle the case where `ordinal` *is* `-1`. When that condition is true, the method will indeed execute `return null;`.
+
+No subsequent control-flow, null checks, or invariants in this method eliminate that possibility; all other branches are for different `ordinal` values or error conditions. Therefore, from the perspective of this method alone, the expression `return null;` can definitely be executed and thus the returned value can be `null`.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

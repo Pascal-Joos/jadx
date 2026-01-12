@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private boolean checkAssignForUnknown(ArgType boundType, ArgType candidateType) {
+  		if (boundType == ArgType.UNKNOWN) {
+  			return true;
+  		}
+  		boolean candidateArray = Nullability.castToNonnull(candidateType).isArray();
+  		if (Nullability.castToNonnull(boundType).isArray() && candidateArray) {
+  			return checkAssignForUnknown(Nullability.castToNonnull(boundType).getArrayElement(), Nullability.castToNonnull(Nullability.castToNonnull(candidateType).getArrayElement()));
+  		}
+  		if (candidateArray && Nullability.castToNonnull(boundType).contains(PrimitiveType.ARRAY)) {
+  			return true;
+  		}
+  		if (Nullability.castToNonnull(candidateType).isObject() && Nullability.castToNonnull(boundType).contains(PrimitiveType.OBJECT)) {
+  			return true;
+  		}
+  		if (Nullability.castToNonnull(candidateType).isPrimitive() && Nullability.castToNonnull(boundType).contains(Nullability.castToNonnull(candidateType).getPrimitiveType())) {
+  			return true;
+  		}
+  		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

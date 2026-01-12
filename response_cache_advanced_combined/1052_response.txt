@@ -1,0 +1,40 @@
+<response>
+  <reason><![CDATA[
+At the call site `ssaVar.getTypeInfo().getType()` the innermost method is:
+
+```java
+class jadx.core.dex.visitors.typeinference.TypeInfo {
+  @NotNull
+  public ArgType getType() {
+    return type;
+  }
+}
+```
+
+`@NotNull` is only an annotation and does not prove non-nullness by itself, so we must reason from usage.
+
+Across the provided code, `TypeInfo.getType()` is called in many places and the returned `ArgType` is *always* treated as non-null:
+
+- It is passed to methods like `isTypeKnown()`, `isPrimitive()`, `isObject()`, `isArray()`, etc. None of these call sites perform a null check on the result of `getType()`.
+- In `RegisterArg.getType()`:
+
+  ```java
+  @Override
+  public ArgType getType() {
+    if (sVar != null) {
+      return sVar.getTypeInfo().getType();
+    }
+    return ArgType.UNKNOWN;
+  }
+  ```
+
+  Here, `getType()` either returns `ssaVar.getTypeInfo().getType()` or the constant `ArgType.UNKNOWN`. All callers of `RegisterArg.getType()` assume a non-null `ArgType` and directly dereference it without null checks.
+
+- In many other locations (e.g., `MethodInvokeVisitor`, `TypeInferenceVisitor`, `FinishTypeInference`, `LoopRegionVisitor`, `DeboxingVisitor`, etc.), the result of `getType()` is dereferenced immediately with no guarding `null` checks. If `TypeInfo.type` could be `null`, these sites would be obvious NPE risks throughout the type-inference pipeline.
+
+Given this pervasive assumption and use pattern, the design of this code base clearly relies on `TypeInfo.type` being initialized to some non-null `ArgType` value (commonly `ArgType.UNKNOWN`) and *never* being set to `null`. No provided code path ever assigns `null` to an `ArgType` in `TypeInfo`, and other parts of the system “fall back” to `ArgType.UNKNOWN` rather than `null` when no concrete type is known.
+
+Therefore, at this specific call site `ssaVar.getTypeInfo().getType()`, the returned `ArgType` is not expected to be `null`; it will be some non-null `ArgType` instance (possibly `ArgType.UNKNOWN`), and the API is consistently used under that invariant.
+  ]]></reason>
+  <value>NO</value>
+</response>

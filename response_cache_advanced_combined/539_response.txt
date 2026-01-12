@@ -1,0 +1,34 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static void computeDominanceFrontier(MethodNode mth) {
+		List<BlockNode> blocks = mth.getBasicBlocks();
+		for (BlockNode block : blocks) {
+			block.setDomFrontier(null);
+		}
+		int blocksCount = blocks.size();
+		for (BlockNode block : blocks) {
+			List<BlockNode> preds = block.getPredecessors();
+			if (preds.size() >= 2) {
+				BlockNode idom = block.getIDom();
+				for (BlockNode pred : preds) {
+					BlockNode runner = pred;
+					while (runner != null && runner != idom) {
+						addToDF(runner, block, blocksCount);
+						runner = runner.getIDom();
+					}
+				}
+			}
+		}
+		for (BlockNode block : blocks) {
+			BitSet df = block.getDomFrontier();
+			if (df == null || df.isEmpty()) {
+				block.setDomFrontier(EmptyBitSet.EMPTY);
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

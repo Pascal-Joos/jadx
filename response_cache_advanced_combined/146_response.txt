@@ -1,0 +1,7 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>getCallInsn</method>
+    <method>get</method>
+  </methods>
+</response>

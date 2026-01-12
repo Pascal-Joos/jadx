@@ -1,0 +1,57 @@
+<response>
+  <reason><![CDATA[
+At this call site the receiver is `mth`, a `MethodNode`. The implementation of `getBasicBlocks()` is:
+
+```java
+public List<BlockNode> getBasicBlocks() {
+    return blocks;
+}
+```
+
+So nullability depends entirely on the field `blocks`.
+
+From the surrounding code that uses `mth.getBasicBlocks()` we can see:
+
+- Many places guard against `null` explicitly:
+  - `if (mth.getBasicBlocks() == null) { return; }`
+  - `if (clsInitMth == null || clsInitMth.isNoCode() || clsInitMth.getBasicBlocks() == null) { return; }`
+  - `List<BlockNode> blocks = mth.getBasicBlocks();
+     if (blocks == null) { ... }`
+  - Others check `mth.isNoCode()` *or* `mth.getBasicBlocks() == null` as equivalent ways to bail out early.
+
+- Other places only check `.isEmpty()` on `getBasicBlocks()` and assume it is non‑null:
+  - `if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) { return; }`
+  - `if (staticRegion == null || classInitMth.getBasicBlocks().isEmpty()) { return; }`
+  - etc.
+
+This consistent mixed usage strongly indicates the intended contract:
+- For “normal” methods where CFG has been built, `blocks` is a non‑null list (possibly empty).
+- For methods with no code or before blocks are initialized, `blocks` may be `null`, and callers must guard against that.
+
+Nothing in the provided code enforces non‑null on `blocks`; there are explicit `null` checks at multiple call sites, and some methods (e.g. `DotGraphVisitor$DumpDotGraph.process`) even have an explicit recovery path when `blocks` is `null`.
+
+Since the question is about the specific call site `mth.getBasicBlocks()` in `ConstInlineVisitor.process(MethodNode mth)`:
+
+```java
+public static void process(MethodNode mth) {
+    if (mth.getBasicBlocks() == null) {
+        return;
+    }
+    List<InsnNode> toRemove = new ArrayList<>();
+    for (BlockNode block : mth.getBasicBlocks()) {
+        ...
+    }
+}
+```
+
+- The first call to `mth.getBasicBlocks()` can return `null`, and the code explicitly checks for that.
+- The second call in the `for` loop is executed only if the first call returned non‑null (because the method returns early on null).
+
+Therefore:
+
+- At this call site (`mth.getBasicBlocks()` in `ConstInlineVisitor.process`), the method **can** return `null` on that first check, by design.
+- After that `if`-guard, subsequent uses are non‑null, but the question is about whether the invocation can produce null at all at this site, and the answer is yes.
+
+]]></reason>
+  <value>YES</value>
+</response>

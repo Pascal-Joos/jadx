@@ -1,0 +1,22 @@
+<response>
+    <reason><![CDATA[
+Parameter `from` in `checkConditionBranches(BlockNode from, BlockNode to)` is only called from within `mergeNestedIfNodes` as `checkConditionBranches(curThen, curElse)` and `checkConditionBranches(curElse, curThen)`.
+
+Within `mergeNestedIfNodes`:
+- `curThen` is obtained as `currentIf.getThenBlock()`.
+- `curElse` is obtained as `Nullability.castToNonnull(currentIf.getElseBlock())`.
+
+Because `curElse` is explicitly passed through `Nullability.castToNonnull`, it is being treated as non-null by contract, but this does not prove it cannot be null at runtime (the cast could simply crash if `elseBlock` is null). Similarly, `curThen` is taken directly from `currentIf` without any explicit null check.
+
+The creation and population of `currentIf` (and thus of its `thenBlock` / `elseBlock`) come from:
+- `IfMakerHelper.makeIfInfo`, which uses `IfNode.getThenBlock()` / `IfNode.getElseBlock()`.
+- Various transformations (`restructureIf`, `mergeIfInfo`, `invert`, `getNextIf`, `getNextIfNodeInfo`, `canSelectNext`, `canMerge`, etc.) that may modify or reconstruct `IfInfo` and its blocks.
+
+These methods can directly or indirectly affect whether `thenBlock` / `elseBlock` (and thus `curThen` and `curElse`) can become null. Their full implementations are not provided here. Without seeing them, we cannot conclusively determine that `from` (which is either `curThen` or `curElse`) will never be null.
+
+Additionally, callers (or internal transformations) could, in principle, construct an `IfInfo` with a null `thenBlock` or `elseBlock`, unless the unseen methods enforce non-null invariants. Since `checkConditionBranches` dereferences `from` without any null check (`from.getCleanSuccessors()`), if `from` can be null, the method would crash.
+
+Given the instructions to not assume behavior of methods whose implementations are not fully disclosed, and since several such methods can influence `thenBlock` / `elseBlock`, we cannot safely conclude that `from` is always non-null at all call sites without inspecting those methods.
+    ]]></reason>
+    <value>YES</value>
+</response>

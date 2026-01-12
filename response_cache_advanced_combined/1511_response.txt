@@ -1,0 +1,8 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>getThenBlock</method>
+    <method>getElseBlock</method>
+    <method>getCleanSuccessors</method>
+  </methods>
+</response>

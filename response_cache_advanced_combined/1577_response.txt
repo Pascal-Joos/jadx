@@ -1,0 +1,51 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+ArgType type = var.getTypeInfo().getType();
+```
+
+the invoked method is:
+
+```java
+class TypeInfo {
+  @NotNull
+  public ArgType getType() {
+    return type;
+  }
+}
+```
+
+So the question reduces to: can the field `TypeInfo.type` be null at this point?
+
+From the provided code:
+
+- All uses of `getType()` on `TypeInfo` treat its result as non‑null and immediately dereference it:
+  - In many places you see `var.getTypeInfo().getType().isTypeKnown()`, `equals(...)`, etc., never guarded by a null check.
+  - `@NotNull` annotation is consistently relied upon (e.g., `Nullability.castToNonnull(ssaVar.getTypeInfo().getType())` then calling `.equals(candidateType)`).
+- When a type is "unknown", the code uses the sentinel `ArgType.UNKNOWN`, not `null`. There are multiple branches like:
+  ```java
+  ArgType currentType = ssaVar.getTypeInfo().getType();
+  if (currentType.isTypeKnown()) { ... } else { ... ArgType.UNKNOWN ... }
+  ```
+  and `RegisterArg.getType()` returns `ArgType.UNKNOWN` when `sVar == null`, never null:
+  ```java
+  if (sVar != null) {
+    return sVar.getTypeInfo().getType();
+  }
+  return ArgType.UNKNOWN;
+  ```
+- Many other places rely on `getType()` never being null:
+  - `if (!var.getTypeInfo().getType().isTypeKnown())`
+  - `ArgType type = var.getTypeInfo().getType(); if (!type.isTypeKnown() && !var.isTypeImmutable()) { ... }`
+  - Logging and debug code: `+ ' ' + typeInfo.getType();`
+  These would all be unsafe if `getType()` could be null, yet there is no null handling.
+
+The entire type-inference pipeline uses the convention that absence / unknown is represented by `ArgType.UNKNOWN`, not by a null `ArgType`. Given this established invariant and heavy reliance on it across the shown call chain, `TypeInfo.type` is expected to always be a non‑null `ArgType` instance, and "no type" is encoded by `ArgType.UNKNOWN`.
+
+Therefore, at this specific call site, `var.getTypeInfo().getType()` evaluates to a non‑null `ArgType` (possibly `ArgType.UNKNOWN`, but not null).
+
+So the method cannot return null at this call site.]]></reason>
+  <value>NO</value>
+</response>

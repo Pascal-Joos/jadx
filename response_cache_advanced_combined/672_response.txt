@@ -1,0 +1,41 @@
+<response>
+  <reason><![CDATA[
+The method `MethodNode.getInstructions()` simply returns the field `instructions`:
+
+```java
+public InsnNode[] getInstructions() {
+    return instructions;
+}
+```
+
+From the provided usages, we can infer that `instructions` is allowed to be `null`:
+
+- In multiple places, callers explicitly check for `null`:
+  - `AttachCommentsVisitor.getInsnByOffset`:
+    ```java
+    InsnNode[] insns = mth.getInstructions();
+    return insns != null ? insns[offset] : null;
+    ```
+  - `MethodGen.addFallbackMethodCode`:
+    ```java
+    InsnNode[] insnArr = mth.getInstructions();
+    if (insnArr == null) {
+        code.startLine("// Can't load method instructions.");
+        return;
+    }
+    ```
+  - `DotGraphVisitor.DumpDotGraph.process`:
+    ```java
+    InsnNode[] insnArr = mth.getInstructions();
+    if (insnArr == null) {
+        return;
+    }
+    ```
+
+These explicit `null` checks demonstrate that the design of `MethodNode` allows `instructions` to be `null` at some points in the lifecycle (e.g., before loading, after unloading, or for certain methods).
+
+No invariant or guard at the call site `mth.getInstructions()` has been shown that would guarantee `instructions` is non-null for this specific invocation. In fact, we see code (e.g., in `BlockSplitter.visit`, `CheckCode.checkInstructions`, `AttachMethodDetails.visit`, `ProcessInstructionsVisitor.visit`, `FallbackModeVisitor.visit`, `DebugInfoAttachVisitor.processDebugInfo`, etc.) that uses `mth.getInstructions()` without a null check, which would simply crash if `instructions` is `null`. That indicates there is a risk, not a guarantee against `null`.
+
+Because the field is not shown to be always initialized to a non-null array and there are clear call sites that expect `null` as a valid state, `mth.getInstructions()` can return `null` at runtime at this call site.]]></reason>
+  <value>YES</value>
+</response>

@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void lock() {
+		try {
+			List<BlockNode> successorsList = successors;
+			successors = lockList(successorsList);
+			cleanSuccessors = successorsList == Nullability.castToNonnull(cleanSuccessors) ? this.successors : lockList(Nullability.castToNonnull(cleanSuccessors));
+			predecessors = lockList(predecessors);
+			dominatesOn = lockList(dominatesOn);
+			if (domFrontier == null) {
+				throw new JadxRuntimeException("Dominance frontier not set for block: " + this);
+			}
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to lock block: " + this, e);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,54 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean wrapBlocks(IRegion replaceRegion, TryCatchBlockAttr tb, BlockNode dominator) {
+		if (replaceRegion == null) {
+			return false;
+		}
+		if (replaceRegion instanceof LoopRegion) {
+			LoopRegion loop = (LoopRegion) replaceRegion;
+			return wrapBlocks(loop.getBody(), tb, dominator);
+		}
+		if (replaceRegion instanceof IBranchRegion) {
+			return wrapBlocks(Nullability.castToNonnull(replaceRegion.getParent()), tb, dominator);
+		}
+
+		Region tryRegion = new Region(replaceRegion);
+		List<IContainer> subBlocks = replaceRegion.getSubBlocks();
+		for (IContainer cont : subBlocks) {
+			if (RegionUtils.hasPathThroughBlock(dominator, cont)) {
+				if (isHandlerPath(tb, cont)) {
+					break;
+				}
+				tryRegion.getSubBlocks().add(cont);
+			}
+		}
+		if (tryRegion.getSubBlocks().isEmpty()) {
+			return false;
+		}
+
+		TryCatchRegion tryCatchRegion = new TryCatchRegion(replaceRegion, tryRegion);
+		tryRegion.setParent(tryCatchRegion);
+		tryCatchRegion.setTryCatchBlock(tb);
+
+		// replace first node by region
+		IContainer firstNode = tryRegion.getSubBlocks().get(0);
+		if (!replaceRegion.replaceSubBlock(firstNode, tryCatchRegion)) {
+			return false;
+		}
+		subBlocks.removeAll(tryRegion.getSubBlocks());
+
+		// fix parents for tryRegion sub blocks
+		for (IContainer cont : tryRegion.getSubBlocks()) {
+			if (cont instanceof AbstractRegion) {
+				AbstractRegion aReg = (AbstractRegion) cont;
+				aReg.setParent(tryRegion);
+			}
+		}
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

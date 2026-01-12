@@ -1,0 +1,62 @@
+<response>
+  <reason><![CDATA[
+The call site in question is `block.getCleanSuccessors()` where `block` is a `BlockNode` instance. The implementation of `getCleanSuccessors()` is:
+
+```java
+public List<BlockNode> getCleanSuccessors() {
+    return this.cleanSuccessors;
+}
+```
+
+So nullability depends entirely on whether `this.cleanSuccessors` can be null for the specific `BlockNode` instance referenced by `block`.
+
+From the provided call chain and surrounding usages:
+
+- Many call sites explicitly assume non-null and only guard for emptiness or size, e.g.:
+
+  ```java
+  for (BlockNode node : block.getCleanSuccessors()) { ... }          // ordinary foreach
+  if (block.getCleanSuccessors().size() == 1) { ... }
+  List<BlockNode> successors = block.getCleanSuccessors();
+  if (successors.size() != 1) { ... }
+  return s.isEmpty() ? null : s.get(0);  // where s = block.getCleanSuccessors()
+  ```
+
+  These sites do not perform a null check on the list itself; instead they rely on it being a valid (possibly empty) `List`.
+
+- Where the authors were concerned about potential nullability, they wrapped the call in `Nullability.castToNonnull(...)`, for example:
+
+  ```java
+  BlockNode block = Nullability.castToNonnull(mth.getEnterBlock().getCleanSuccessors()).get(0);
+  ...
+  for (BlockNode s : Nullability.castToNonnull(block.getCleanSuccessors())) { ... }
+  ...
+  if (Nullability.castToNonnull(block.getCleanSuccessors()).size() >= 2) { ... }
+  ...
+  while (currentBlock != null
+         && Nullability.castToNonnull(currentBlock.getCleanSuccessors()).size() < 2
+         ...
+  ```
+
+  This pattern appears in utility contexts intended to be generally safe even if some `BlockNode` has a null `cleanSuccessors` (e.g., defensive coding in utilities).
+
+- In contrast, in core CFG-building and traversal logic (e.g. `BlockUtils.getNextBlock`, `isEmptySimplePath`, `isPathExists`, `RegionMaker.traverse`, `RegionMaker.makeLoopRegion`, `MarkFinallyVisitor.getSuccessorsWithoutLoop`, `IfMakerHelper.checkConditionBranches`), `getCleanSuccessors()` is used directly with no null-guard. These are operating on “normal” blocks in a fully constructed CFG where `cleanSuccessors` is expected to be initialized as at least an empty list.
+
+- `BlockExceptionHandler.wrapBlocksWithTryCatch` ends with:
+
+  ```java
+  topSplitterBlock.updateCleanSuccessors();
+  if (bottomSplitterBlock != null) {
+      bottomSplitterBlock.updateCleanSuccessors();
+  }
+  ```
+
+  This shows that for splitter blocks the library explicitly invokes `updateCleanSuccessors()` to populate `cleanSuccessors`, again suggesting the invariant that, after such structural transformations, `cleanSuccessors` should be non-null.
+
+Given only the provided code, we do not see the declaration of `cleanSuccessors` or the constructor/initializer for `BlockNode`, so we cannot strictly prove that `cleanSuccessors` is never null in all situations. However, the question is scoped to “this specific call site”: a usage site like the ones shown (plain `block.getCleanSuccessors()` without a preceding null-cast) in code that assumes a well-formed CFG.
+
+In all those core-flow contexts, the library’s own logic clearly relies on `cleanSuccessors` being a non-null list (possibly empty). There is no code path here that conditionally sets it to null or suggests that at this point in processing it might be uninitialized.
+
+Therefore, for this specific invocation `block.getCleanSuccessors()` in the shown CFG/region-manipulation flow, we should treat the return value as non-null: the method will return a `List<BlockNode>` instance, not null.]]></reason>
+  <value>NO</value>
+</response>

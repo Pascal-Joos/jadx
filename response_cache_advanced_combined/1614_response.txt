@@ -1,0 +1,19 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the provided method body, the only relevant control-flow check is:
+
+    if (nsMap == null || writer == null) {
+        return;
+    }
+
+The `nsMap.put(uri, prefix);` call is executed only if `nsMap != null` and `writer != null` at that point in time. There are no reassignments to `nsMap` between this check and the `put` call. Therefore, along all code paths that reach the line `nsMap.put(uri, prefix);`, the reference `nsMap` is guaranteed to be non-null.
+
+This conclusion assumes:
+- `nsMap` is a normal field or local variable (not something like an aliased reference changed concurrently from another thread in a way that the analysis is meant to consider).
+- No unconventional mechanisms (e.g., reflection, memory corruption) are involved.
+
+Given typical Java semantics and the code shown, `nsMap` cannot be null at the `nsMap.put(uri, prefix);` expression.]]></reason>
+    <value>NO</value>
+</response>
+```

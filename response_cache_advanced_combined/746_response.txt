@@ -1,0 +1,39 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone:
+
+public static boolean isInstanceOf(RootNode root, ArgType type, ArgType of) {
+    if (type.equals(of)) {
+        return true;
+    }
+    if (!type.isObject() || !of.isObject()) {
+        return false;
+    }
+    return root.getClsp().isImplements(type.getObject(), of.getObject());
+}
+
+- The method performs no null-check on the parameter `root`.
+- It directly calls `root.getClsp()` on the last line in the only code path where the result is used.
+- There is no information here about:
+  - Whether `root` is guaranteed to be non-null by the caller.
+  - Whether `RootNode.getClsp()` is guaranteed never to return null (e.g., via constructor invariants, annotations like @NonNull, or class-level contracts).
+
+Because those guarantees are not visible in the snippet, both of the following remain possible in principle:
+1. `root` is null → dereferencing `root.getClsp()` would cause a NullPointerException.
+2. `root` is non-null but `root.getClsp()` returns null → calling `.isImplements(...)` on that result would cause a NullPointerException.
+
+Without additional information about:
+- RootNode’s constructor/initialization and invariants,
+- The contract and implementation of `getClsp()`,
+
+we cannot definitively say that `root.getClsp()` can or cannot be null. The method itself does not guard against null and does not enforce non-nullness; any non-null guarantee would have to come from code or contracts not shown here.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the definition (class and constructors) of RootNode, especially where the field used by getClsp() is initialized.]]></request>
+        <request><![CDATA[Provide the implementation and any annotations/contracts of the method RootNode.getClsp().]]></request>
+        <request><![CDATA[Provide information on how the root parameter is obtained or guaranteed by callers (e.g., is it ever allowed to be null?).]]></request>
+    </requests>
+</response>
+```

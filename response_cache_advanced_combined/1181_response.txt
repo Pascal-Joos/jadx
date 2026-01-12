@@ -1,0 +1,84 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData,
+       			        String shortNsName, String attrName) {
+       		if (attrValDataType == TYPE_REFERENCE) {
+       			// reference custom processing
+       			String resName = resNames.get(attrValData);
+       			if (resName != null) {
+       				if (writer == null) {
+       					String str = '@' + (resName.startsWith("id/") ? "+" : "") + resName;
+       					memorizePackageName(attrName, str);
+       					if (isDeobfCandidateAttr(shortNsName, attrName)) {
+       						str = deobfClassName(str);
+       					}
+       					attachClassNode(null, attrName, str);
+       					return;
+       				}
+       				Nullability.castToNonnull(writer).add('@');
+       				if (resName.startsWith("id/")) {
+       					Nullability.castToNonnull(writer).add('+');
+       				}
+       				Nullability.castToNonnull(writer).add(resName);
+       			} else {
+       				String androidResName = ValuesParser.getAndroidResMap().get(attrValData);
+       				if (androidResName != null) {
+       					if (writer == null) {
+       						String str = "@android:" + androidResName;
+       						memorizePackageName(attrName, str);
+       						if (isDeobfCandidateAttr(shortNsName, attrName)) {
+       							str = deobfClassName(str);
+       						}
+       						attachClassNode(null, attrName, str);
+       						return;
+       					}
+       					Nullability.castToNonnull(writer).add("@android:").add(androidResName);
+       				} else if (attrValData == 0) {
+       					if (writer == null) {
+       						String str = "@null";
+       						memorizePackageName(attrName, str);
+       						if (isDeobfCandidateAttr(shortNsName, attrName)) {
+       							str = deobfClassName(str);
+       						}
+       						attachClassNode(null, attrName, str);
+       						return;
+       					}
+       					Nullability.castToNonnull(writer).add("@null");
+       				} else {
+       					if (writer == null) {
+       						String str = "0x" + Integer.toHexString(attrValData);
+       						memorizePackageName(attrName, str);
+       						if (isDeobfCandidateAttr(shortNsName, attrName)) {
+       							str = deobfClassName(str);
+       						}
+       						attachClassNode(null, attrName, str);
+       						return;
+       					}
+       					Nullability.castToNonnull(writer).add("0x").add(Integer.toHexString(attrValData));
+       				}
+       			}
+       		} else {
+       			if (writer == null) {
+       				String str = valuesParser.decodeValue(attrValDataType, attrValData);
+       				memorizePackageName(attrName, str);
+       				if (isDeobfCandidateAttr(shortNsName, attrName)) {
+       					str = deobfClassName(str);
+       				}
+       				attachClassNode(null, attrName, str);
+       				return;
+       			}
+       			String str = valuesParser.decodeValue(attrValDataType, attrValData);
+       			memorizePackageName(attrName, str);
+       			if (isDeobfCandidateAttr(shortNsName, attrName)) {
+       				str = deobfClassName(str);
+       			}
+       			attachClassNode(Nullability.castToNonnull(writer), attrName, str);
+       			Nullability.castToNonnull(writer).add(str != null ? StringUtils.escapeXML(str) : "null");
+       		}
+}
+  ```
+    ]]>
+  </code>
+</response>

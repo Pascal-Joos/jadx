@@ -1,0 +1,46 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+ public ArgType consumeType() {
+		char ch = next();
+		switch (ch) {
+			case 'L':
+				ArgType obj = consumeObjectType(false);
+				if (obj != null) {
+					return obj;
+				}
+				break;
+			case 'T':
+				next();
+				mark();
+				String typeVarName = consumeUntil(';');
+				if (typeVarName != null) {
+					consume(';');
+					if (typeVarName.contains(")")) {
+						throw new JadxRuntimeException("Bad name for type variable: " + typeVarName);
+					}
+					return ArgType.genericType(typeVarName);
+				}
+				break;
+
+			case '[':
+				return ArgType.array(Nullability.castToNonnull(consumeType()));
+
+			case STOP_CHAR:
+				return null;
+
+			default:
+				// primitive type (one char)
+				ArgType type = ArgType.parse(ch);
+				if (type != null) {
+					return type;
+				}
+				break;
+		}
+		throw new JadxRuntimeException("Can't parse type: " + debugString() + ", unexpected: " + ch);
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,17 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean checkTypes(MethodNode mth) {
+		for (SSAVar var : mth.getSVars()) {
+			ArgType type = var.getTypeInfo().getType();
+			if (!Nullability.castToNonnull(type).isTypeKnown()) {
+				return false;
+			}
+		}
+		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

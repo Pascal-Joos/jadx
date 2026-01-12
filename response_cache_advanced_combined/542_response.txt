@@ -1,0 +1,4 @@
+<response>
+    <reason><![CDATA[The method name `updateParentClass` does not match any of NullAway’s heuristic patterns for initializer methods (not a constructor, not named like `onCreate`, `init`, or `initialize`, and does not start with `init`/`initialize`). It is semantically a mutator of `parentClass`, i.e., a setter-like update method, not a designated lifecycle/initialization hook that NullAway would assume is always called before other methods. Therefore, it should not be treated as an initializer method under the described criteria.]]></reason>
+    <value>NO</value>
+</response>

@@ -1,0 +1,15 @@
+<response>
+    <reason><![CDATA[
+Within cutLastPkgPart, the parameter pkgFullName is used directly without any reassignment or null checks (pkgFullName.lastIndexOf('.')), so if it were null the method would throw a NullPointerException.
+
+From the provided call chain, cutLastPkgPart is only invoked in applyPkgRenames via:
+    clsInfo.changePkg(cutLastPkgPart(clsInfo.getAliasPkg()) + '.' + pkgRename.getNewName());
+
+Thus, the actual argument passed is clsInfo.getAliasPkg(). Whether this can be null depends entirely on the behavior of ClassInfo.getAliasPkg(), whose implementation is not shown. We therefore cannot conclude that pkgFullName is never null without seeing that method’s declaration/behavior.
+
+Because a caller can in principle pass null, and we are required not to assume behavior of methods that impact the parameter without their full implementations, we must first inspect getAliasPkg() before deciding on the nullability of pkgFullName.]]></reason>
+    <success>false</success>
+    <methods>
+      <method>getAliasPkg</method>
+    </methods>
+</response>

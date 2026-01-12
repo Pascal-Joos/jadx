@@ -1,0 +1,6 @@
+<response>
+    <reason><![CDATA[
+The method name is `setType`, which clearly follows the JavaBeans setter naming convention (`setXyz`) and not any of the patterns described for initializer methods (such as `onCreate`, `init`, or `initialize`). You explicitly stated that setter methods should *not* be treated as initializer methods, even if they assign to fields. Therefore, by your criteria and NullAway’s intended use, this is a plain setter method, not an initializer method.
+    ]]></reason>
+    <value>NO</value>
+</response>

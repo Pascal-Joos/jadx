@@ -1,0 +1,43 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+BlockNode firstSkip = BlockUtils.followEmptyPath(first);
+```
+
+the return value of `followEmptyPath` is exactly the value of its `start` variable at the moment the loop terminates:
+
+```java
+public static BlockNode followEmptyPath(BlockNode start) {
+    while (true) {
+        BlockNode next = getNextBlockOnEmptyPath(Nullability.castToNonnull(start));
+        if (next == null) {
+            return start;
+        }
+        start = next;
+    }
+}
+```
+
+Key points:
+
+1. `start` is initialized to the argument `first`.  
+2. Inside the loop, `start` is only ever updated to `next`, which has type `BlockNode`.  
+3. The only return statement is `return start;`, executed when `next == null`.  
+4. `start` is never assigned `null` in this method. The only value that could be `null` is `next`, which only causes the loop to break and return the (non‑modified or previously assigned) `start`.
+
+Therefore, for any invocation where the parameter `first` is non‑null, `followEmptyPath(first)` cannot return `null`: it will always return some `BlockNode` reachable from `first` via zero or more `getNextBlockOnEmptyPath` steps. If `first` were ever `null`, the call to `Nullability.castToNonnull(start)` would itself be invalid (this is precisely why the cast is present), so the method is not intended to be called with `null`.
+
+In the provided calling contexts (e.g., `getBranchBlock`, `isEmptySyntheticPath`, `isFirstInsn`, `extractFinally`, and loop/if processing), `BlockNode` arguments passed into `followEmptyPath` are used as live CFG nodes, then dereferenced immediately afterward (e.g., `firstSkip.equals(...)`, `bottomFinallyBlock` passed to other methods, etc.), which implies those call sites do not expect or allow `null` `BlockNode` values. Given that and the method body, `followEmptyPath` will not return `null` here.
+
+So, for the specific call
+
+```java
+BlockNode firstSkip = BlockUtils.followEmptyPath(first);
+```
+
+the result cannot be `null,` assuming the caller respects the non‑null contract suggested by `Nullability.castToNonnull`.
+  ]]></reason>
+  <value>NO</value>
+</response>

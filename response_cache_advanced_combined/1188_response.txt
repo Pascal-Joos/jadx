@@ -1,0 +1,58 @@
+```xml
+<response>
+    <reason><![CDATA[
+The expression in question is the receiver of the call at:
+
+    if (writer != null && !isLastEnd && !"ERROR".equals(currentTag)) {
+        Nullability.castToNonnull(writer).add('>');
+    }
+
+We need to determine whether the `writer` used in `writer.add('>')` (conceptually the same receiver as `Nullability.castToNonnull(writer)` here) can be null at that point.
+
+Code-path analysis inside `parseElement()`:
+
+1. `writer` is not assigned anywhere in this method; it is only read and checked.
+   Therefore, its nullability is determined entirely by:
+   - its initial value when `parseElement()` is called, and
+   - possibly, assignments done outside this method (in other methods or constructors).
+
+2. Relevant uses and checks of `writer` inside `parseElement()`:
+   - At the start:
+        } else if (writer != null) {
+            Nullability.castToNonnull(writer).incIndent();
+        }
+     This uses `writer` *only when* `writer != null`.
+
+   - Later, the specific line in question:
+        if (writer != null && !isLastEnd && !"ERROR".equals(currentTag)) {
+            Nullability.castToNonnull(writer).add('>');
+        }
+     The call is guarded by `if (writer != null)`. Under this condition, in the current method's local reasoning, `writer` is guaranteed to be non-null at the call site. There is no reassignment to `writer` between the `if (writer != null && ...)` test and the `add('>')` call.
+
+   - A few lines afterwards:
+        if (writer == null) {
+            return;
+        }
+        Nullability.castToNonnull(writer).startLine('<').add(currentTag);
+     Again, the null-check precedes use.
+
+3. No code path inside `parseElement()` changes `writer`. Thus, within this method’s body and under normal single-threaded assumptions, if execution reaches the `add('>')` call, it has already passed the `writer != null` check and `writer` cannot be null in that local control flow.
+
+4. Concurrency considerations:
+   - If `writer` is a shared mutable field and can be concurrently set to null by another thread between the `if (writer != null)` check and the `add('>')` call, then at the JVM level it *could* become null after the check. However, that would require external unsynchronized mutation not shown here.
+   - In the absence of explicit concurrency or volatile/synchronized guarantees, most static/local nullability reasoning (including tools like the `Nullability.castToNonnull` helper) assumes non-concurrent mutation, i.e., that `writer` does not change unexpectedly between check and use.
+
+5. About `Nullability.castToNonnull(writer)`:
+   - This helper likely exists to convince a static analysis tool that after a `writer != null` check, `writer` should be treated as non-null.
+   - It does not itself make a null value non-null at runtime; if `writer` were actually null when passed to `castToNonnull`, a `NullPointerException` (or similar) would be expected.
+   - Since we are already guarded by `writer != null`, under the method’s own logic the passed value should be non-null.
+
+Conclusion:
+
+- From the perspective of this method's own control flow and without assuming data races or concurrent mutation of `writer`, the expression used at `writer.add('>')` (i.e., the receiver `Nullability.castToNonnull(writer)` at that line) cannot be null because it is immediately guarded by `if (writer != null)` and never reassigned in between.
+- Whether some *external* code could concurrently set `writer` to null is not indicated in the snippet, and such a race would be a broader design issue, not specifically inferable from this method.
+
+Therefore, in the context of this method’s internal logic and typical single-threaded or properly confined usage, `writer` at that call site is not null.]]></reason>
+    <value>NO</value>
+</response>
+```

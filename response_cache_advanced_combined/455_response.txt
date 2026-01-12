@@ -1,0 +1,30 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void checkInsn(MethodNode mth, InsnNode insn) {
+		if (insn.getResult() != null) {
+			checkVar(mth, insn, insn.getResult());
+		}
+		for (InsnArg arg : insn.getArguments()) {
+			if (arg instanceof RegisterArg) {
+				checkVar(mth, insn, (RegisterArg) arg);
+			} else if (arg.isInsnWrap()) {
+				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+				checkInsn(mth, wrapInsn);
+			}
+		}
+		if (insn instanceof TernaryInsn) {
+			TernaryInsn ternaryInsn = (TernaryInsn) insn;
+			IfCondition condition = ternaryInsn.getCondition();
+			if (condition != null) {
+				for (RegisterArg arg : condition.getRegisterArgs()) {
+					checkVar(mth, insn, arg);
+				}
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

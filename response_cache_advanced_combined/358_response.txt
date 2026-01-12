@@ -1,0 +1,20 @@
+<response>
+  <reason><![CDATA[The implementation of ArgType.getWildcardBound() shown is:
+
+public WildcardBound getWildcardBound() {
+    return null;
+}
+
+There are no conditions or branches; the only return statement unconditionally returns null. At the call site in ClsSet.writeArgType:
+
+} else if (argType.getWildcardType() != null) {
+    out.writeByte(TypeEnum.WILDCARD.ordinal());
+    ArgType.WildcardBound bound = argType.getWildcardBound();
+    out.writeByte(bound.getNum());
+    ...
+
+argType is some non-null ArgType (otherwise the earlier argType == null branch would have executed), and we know argType.getWildcardType() != null to enter this block. However, there is no alternative implementation of getWildcardBound() provided that would override or alter this behavior based on argType’s state; the only body we have always returns null.
+
+Therefore, at this specific call site, bound will always be null, and the method can (indeed, will) return null.]]></reason>
+  <value>YES</value>
+</response>

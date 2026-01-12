@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void processMth(MethodNode mth) {
+		if (mth.isNoCode() || mth.getBasicBlocks() == null) {
+			return;
+		}
+		for (BlockNode block : mth.getBasicBlocks()) {
+			for (InsnNode insn : block.getInstructions()) {
+				if (insn.getType() == InsnType.INVOKE) {
+					try {
+						processInvoke(mth, insn);
+					} catch (Exception e) {
+						mth.addWarnComment("Failed to extract var names", e);
+					}
+				}
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

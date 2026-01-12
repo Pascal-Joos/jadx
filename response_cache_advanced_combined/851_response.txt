@@ -1,0 +1,67 @@
+```xml
+<response>
+    <reason><![CDATA[
+We are checking whether `elseBlock` can be null at the point of this line:
+
+    if (thenBlock.contains(AFlag.RETURN) && elseBlock.contains(AFlag.RETURN)) {
+
+Key observations:
+
+1. **Where `elseBlock` comes from**
+
+   It is assigned directly from `info`:
+
+   ```java
+   BlockNode thenBlock = info.getThenBlock();
+   BlockNode elseBlock = info.getElseBlock();
+   ```
+
+   There is no local reassignment of `elseBlock` before the `if` condition in question. So its nullability depends entirely on `info.getElseBlock()`.
+
+2. **No null check before use**
+
+   Between the declaration of `elseBlock` and the `if` condition, there is only this check:
+
+   ```java
+   if (Objects.equals(thenBlock, elseBlock)) {
+       IfInfo ifInfo = new IfInfo(info, null, null);
+       ifInfo.setOutBlock(thenBlock);
+       return ifInfo;
+   }
+   ```
+
+   `Objects.equals(thenBlock, elseBlock)` safely handles nulls (it returns true if both are null, and false if they differ), but it does not enforce that `elseBlock` is non-null. If `elseBlock` is null and `thenBlock` is not (or vice versa), the method continues execution and reaches:
+
+   ```java
+   if (thenBlock.contains(AFlag.RETURN) && elseBlock.contains(AFlag.RETURN)) {
+       ...
+   }
+   ```
+
+   Thus there is a direct call to `elseBlock.contains(...)` without any explicit null check.
+
+3. **No visible guarantees in this snippet**
+
+   From the snippet alone, there is no explicit guarantee or assertion that `info.getElseBlock()` is never null:
+   - There's no prior `Objects.requireNonNull(elseBlock, ...)`
+   - There's no `if (elseBlock == null) ...` guard
+   - The equality check earlier cannot guarantee non-null because it allows `elseBlock` to be null and still fall through when `thenBlock` is non-null.
+
+   Therefore, unless the contract of `IfInfo.getElseBlock()` externally guarantees a non-null result in this context, `elseBlock` may be null.
+
+4. **Dependence on external contract**
+
+   Determining definitively whether `elseBlock` *can* be null requires knowing:
+   - The implementation and specification of `IfInfo`
+   - How `info` is constructed and whether `getElseBlock()` is guaranteed non-null for all calls to `restructureIf`
+
+   Since these are not provided, we cannot prove that `elseBlock` is always non-null. From pure local analysis, a `null` value is possible and would cause a `NullPointerException` at `elseBlock.contains(...)`.
+
+Given only the provided code, we cannot conclusively state that `elseBlock` is always non-null; it is potentially null unless additional, external guarantees exist.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or specification/contract of IfInfo, especially getElseBlock() and how instances of IfInfo passed into restructureIf are constructed.]]></request>
+    </requests>
+</response>
+```

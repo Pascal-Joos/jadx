@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+At the call site:
+
+```java
+BlockNode exitEnd = BlockUtils.followEmptyPath(exit);
+```
+
+the return value is whatever the local variable `start` holds when `followEmptyPath` returns:
+
+```java
+public static BlockNode followEmptyPath(BlockNode start) {
+    while (true) {
+        BlockNode next = getNextBlockOnEmptyPath(Nullability.castToNonnull(start));
+        if (next == null) {
+            return start;
+        }
+        start = next;
+    }
+}
+```
+
+Key observations:
+
+1. The method has exactly one return point: `return start;` inside `if (next == null)`.
+2. `start` is initialized from the method parameter: `start = exit` at entry (for this call site).
+3. Inside the loop, `start` is only ever updated by `start = next;`.
+4. `next` is the result of `getNextBlockOnEmptyPath(Nullability.castToNonnull(start))`. The argument is explicitly forced non-null via `Nullability.castToNonnull(start)`, so a `null` `start` would lead to an exception, not a `null` return.
+5. The loop terminates only when `next == null`, at which point the method returns the *current* `start` (which is either the original `exit` or some later non-null `next` from earlier iterations).
+
+Thus, for `followEmptyPath` to return `null`, `start` would need to become `null` at some point. The code never assigns `null` to `start`; it only assigns values coming from `getNextBlockOnEmptyPath`, *but only after passing the current `start` through `Nullability.castToNonnull`. If `start` were `null`, this cast would fail (throw), not proceed to assign `null`.*
+
+Therefore:
+
+- If `exit` is `null`, the call will throw (or otherwise fail inside `castToNonnull`), not return `null`.
+- If `exit` is non-null, then the initial `start` is non-null, and every subsequent `start` is a `next` that was computed from a non-null argument. The method returns some non-null `start` when `next` eventually becomes `null`.
+
+There is no control-flow path in this implementation where `return start;` can return `null` without first triggering an exception via `Nullability.castToNonnull`. Since the question excludes exception paths and focuses only on null returns, the result of this invocation cannot be `null`. 
+
+So, at this specific call site, `BlockNode exitEnd` cannot be assigned `null` as a return value from `followEmptyPath`.]]></reason>
+  <value>NO</value>
+</response>

@@ -1,0 +1,45 @@
+<response>
+  <reason><![CDATA[
+`ClassNode.getPackage()` is:
+
+```java
+public String getPackage() {
+    return clsInfo.getAliasPkg();
+}
+```
+
+where:
+
+```java
+class ClassInfo {
+    public String getAliasPkg() {
+        if (isInner() && parentClass != null) {
+            return parentClass.getAliasPkg();
+        }
+        return alias == null ? getPackage() : alias.getPkg();
+    }
+}
+```
+
+So `cls.getPackage()` ultimately returns whatever `ClassInfo.getAliasPkg()` returns.
+
+Inspecting `getAliasPkg()`:
+
+- If the class is inner and `parentClass != null`, it returns `parentClass.getAliasPkg()`. That again ends in the `return alias == null ? getPackage() : alias.getPkg();` branch for some ancestor; there is no `null` literal returned.
+- Otherwise it returns:
+  - `getPackage()` if `alias == null`, or
+  - `alias.getPkg()` if `alias != null`.
+
+In both cases, whether `alias == null` or not, the result comes from either `ClassInfo.getPackage()` or `DeobfClsInfo.getPkg()` (or similar). The provided code and all call sites assume `cls.getPackage()` is a non‑null, possibly empty, package name:
+
+- It is passed to `Nullability.castToNonnull(cls.getPackage())`, which would be unsafe if `cls.getPackage()` could be null.
+- It is concatenated with `"."` in `cls.getPackage() + '.' + name`, which would NPE if `getPackage()` could be null.
+- It is split using `cls.getPackage().split("\\.")`, which would NPE on null.
+- It is compared to string literals like `!"".equals(cls.getPackage())`, which explicitly treats it as a non‑null string that can be empty.
+
+These usages strongly rely on `getPackage()` never returning `null`, only possibly returning `""` for the default package. There is no branch in `getAliasPkg()` itself that returns `null`; any `null` would have to come from `ClassInfo.getPackage()` or `alias.getPkg()`. However, throughout the code, `cls.getPackage()` is used in ways that would immediately crash if it were nullable and there is no guarding logic, indicating that by design it is treated as non‑null at this call site.
+
+Given the available definitions and these usages, the specific invocation `cls.getPackage()` is not intended or allowed to be `null`; it should always be a non‑null string (possibly empty).
+  ]]></reason>
+  <value>NO</value>
+</response>

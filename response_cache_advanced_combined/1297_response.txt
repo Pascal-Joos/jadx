@@ -1,0 +1,58 @@
+<response>
+  <reason><![CDATA[
+At the call site in `OverrideMethodVisitor.addSuperType`:
+
+```java
+ClspClass clsDetails = root.getClsp().getClsDetails(superType);
+if (clsDetails != null) {
+    int k = 0;
+    for (ArgType parentType : clsDetails.getParents()) {
+        k += addSuperType(root, superTypesMap, endTypes, parentType);
+    }
+    ...
+}
+```
+
+the only guard is that `clsDetails` itself is checked for null (`if (clsDetails != null)`), but there is no null-check for `clsDetails.getParents()` before it is used in the enhanced for-loop.
+
+The `getParents()` method implementation is:
+
+```java
+public ArgType[] getParents() {
+    return parents;
+}
+```
+
+This is just a field getter; there is no initialization or non-null guarantee shown. The field `parents` is not constructed or defaulted in the provided code, so from this snippet alone it may legitimately be null (e.g., if the class has no parents, or if construction code simply leaves it unset).
+
+In other parts of the code base, we see that callers explicitly defend against `null` parents:
+
+```java
+Set<ArgType> parents = cls.getParents();
+if (parents == null) {
+    return null;
+}
+```
+
+and:
+
+```java
+for (ArgType parent : Nullability.castToNonnull(clsDetails.getParents())) {
+    ...
+}
+```
+
+Those usages show that the authors consider `getParents()` capable of returning null, and sometimes wrap it with `Nullability.castToNonnull` to assert or enforce non-nullness, which is not done at the `clsDetails.getParents()` call in `addSuperType`.
+
+Because:
+
+- `getParents()` directly returns a field with no checks,
+- there is no guarantee or evidence in the provided code that `parents` is always initialized non-null for every `ClspClass` reachable here,
+- other call sites treat `getParents()` as possibly null,
+
+it is entirely possible at this specific call site that `clsDetails.getParents()` evaluates to null. In that case the enhanced for-loop would throw a `NullPointerException`, but the return value of `getParents()` itself is still null at this point.
+
+Therefore, `clsDetails.getParents()` can return null at this call site.
+]]></reason>
+  <value>YES</value>
+</response>

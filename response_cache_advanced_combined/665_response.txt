@@ -1,0 +1,66 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static Map<Integer, BlockNode> splitBasicBlocks(MethodNode mth) {
+		BlockNode enterBlock = startNewBlock(mth, -1);
+		enterBlock.add(AFlag.MTH_ENTER_BLOCK);
+		mth.setEnterBlock(enterBlock);
+
+		BlockNode exitBlock = startNewBlock(mth, -1);
+		exitBlock.add(AFlag.MTH_EXIT_BLOCK);
+		mth.setExitBlock(exitBlock);
+
+		Map<Integer, BlockNode> blocksMap = new HashMap<>();
+		BlockNode curBlock = enterBlock;
+		InsnNode prevInsn = null;
+		InsnNode[] insnArr = mth.getInstructions();
+		if (insnArr == null) {
+			return blocksMap;
+		}
+		for (InsnNode insn : insnArr) {
+			if (insn == null) {
+				continue;
+			}
+			if (insn.getType() == InsnType.NOP && insn.isAttrStorageEmpty()) {
+				continue;
+			}
+			int insnOffset = insn.getOffset();
+			if (prevInsn == null) {
+				// first block after method enter block
+				curBlock = connectNewBlock(mth, curBlock, insnOffset);
+			} else {
+				InsnType prevType = prevInsn.getType();
+				switch (prevType) {
+					case RETURN:
+					case THROW:
+					case GOTO:
+					case IF:
+					case SWITCH:
+						// split without connect to next block
+						curBlock = startNewBlock(mth, insnOffset);
+						break;
+
+					default:
+						if (isSeparate(prevType)
+								|| isSeparate(insn.getType())
+								|| insn.contains(AFlag.TRY_ENTER)
+								|| prevInsn.contains(AFlag.TRY_LEAVE)
+								|| insn.contains(AType.EXC_HANDLER)
+								|| isSplitByJump(prevInsn, insn)
+								|| isDoWhile(blocksMap, curBlock, insn)) {
+							curBlock = connectNewBlock(mth, curBlock, insnOffset);
+						}
+						break;
+				}
+			}
+			blocksMap.put(insnOffset, curBlock);
+			curBlock.getInstructions().add(insn);
+			prevInsn = insn;
+		}
+		return blocksMap;
+}
+  ```
+    ]]>
+  </code>
+</response>

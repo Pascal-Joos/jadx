@@ -1,0 +1,35 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private boolean calculateFromBounds(MethodNode mth, SSAVar ssaVar) {
+		TypeInfo typeInfo = ssaVar.getTypeInfo();
+		Set<ITypeBound> bounds = typeInfo.getBounds();
+		Optional<ArgType> bestTypeOpt = selectBestTypeFromBounds(bounds);
+		if (!bestTypeOpt.isPresent()) {
+			if (Consts.DEBUG_TYPE_INFERENCE) {
+				LOG.warn("Failed to select best type from bounds, count={} : ", bounds.size());
+				for (ITypeBound bound : bounds) {
+					LOG.warn("  {}", bound);
+				}
+			}
+			return false;
+		}
+		ArgType candidateType = bestTypeOpt.get();
+		TypeUpdateResult result = typeUpdate.apply(mth, ssaVar, candidateType);
+		if (result == TypeUpdateResult.REJECT) {
+			if (Consts.DEBUG_TYPE_INFERENCE) {
+				if (Nullability.castToNonnull(ssaVar.getTypeInfo().getType()).equals(candidateType)) {
+					LOG.info("Same type rejected: {} -> {}, bounds: {}", ssaVar, candidateType, bounds);
+				} else if (candidateType.isTypeKnown()) {
+					LOG.debug("Type rejected: {} -> {}, bounds: {}", ssaVar, candidateType, bounds);
+				}
+			}
+			return false;
+		}
+		return result == TypeUpdateResult.CHANGED;
+}
+  ```
+    ]]>
+  </code>
+</response>

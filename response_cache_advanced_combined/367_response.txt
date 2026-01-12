@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public static ArgType getVarType(MethodNode mth, ILocalVar var) {
+		ArgType type = ArgType.parse(var.getType());
+		String sign = var.getSignature();
+		if (sign == null) {
+			return type;
+		}
+		try {
+			ArgType gType = new SignatureParser(sign).consumeType();
+			ArgType expandedType = mth.root().getTypeUtils().expandTypeVariables(mth, gType);
+			if (checkSignature(mth, Nullability.castToNonnull(type), expandedType)) {
+				return expandedType;
+			}
+		} catch (Exception e) {
+			mth.addWarnComment("Can't parse signature for local variable: " + sign, e);
+		}
+		return type;
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,18 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public boolean isPreExitBlocks(BlockNode block) {
+  		if (exitBlock == null) {
+  			return false;
+  		}
+  		List<BlockNode> successors = block.getSuccessors();
+  		if (successors.size() == 1) {
+  			return successors.get(0).equals(exitBlock);
+  		}
+  		return Nullability.castToNonnull(exitBlock).getPredecessors().contains(block);
+  }
+  ```
+    ]]>
+  </code>
+</response>

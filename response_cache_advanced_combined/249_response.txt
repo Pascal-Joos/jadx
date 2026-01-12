@@ -1,0 +1,23 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+@Override
+   public InsnNode copy() {
+       InvokeCustomNode copy = new InvokeCustomNode(getCallMth(), getInvokeType(), getArgsCount());
+       copyCommonParams(copy);
+       if (implMthInfo != null) {
+           copy.setImplMthInfo(Nullability.castToNonnull(implMthInfo));
+       }
+       copy.setHandleType(handleType);
+       if (callInsn != null) {
+           copy.setCallInsn(Nullability.castToNonnull(callInsn));
+       }
+       copy.setInlineInsn(inlineInsn);
+       copy.setUseRef(useRef);
+       return copy;
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,27 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+	@SuppressWarnings("unused")
+	private void parseTypeSpecChunk(long chunkStart) throws IOException {
+		if (is == null) {
+			throw new IOException("ParserStream not initialized");
+		}
+		is.checkInt16(0x0010, "Unexpected type spec header size");
+		int chunkSize = is.readInt32();
+		long expectedEndPos = chunkStart + chunkSize;
+
+		int id = is.readInt8();
+		is.skip(3);
+		int entryCount = is.readInt32();
+		for (int i = 0; i < entryCount; i++) {
+			int entryFlag = is.readInt32();
+		}
+		if (is.getPos() != expectedEndPos) {
+			throw new IOException(String.format("Error reading type spec chunk at offset 0x%x", chunkStart));
+		}
+	}
+  ```
+    ]]>
+  </code>
+</response>

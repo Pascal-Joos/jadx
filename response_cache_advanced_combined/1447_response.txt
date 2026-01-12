@@ -1,0 +1,38 @@
+<response>
+  <reason><![CDATA[
+The method `MethodNode.getEnterBlock()` is a trivial getter:
+
+```java
+public BlockNode getEnterBlock() {
+    return enterBlock;
+}
+```
+
+So the only way for `mth.getEnterBlock()` to be null is if the field `enterBlock` is null at that point.
+
+From the provided call sites and processing flow:
+
+1. Many usages assume non-null and immediately dereference it without checks, e.g.:
+   - `mth.getEnterBlock().getCleanSuccessors().get(0);`
+   - `mth.getEnterBlock().getId();`
+   - Passing `mth.getEnterBlock()` into methods that further dereference it (e.g., `BlockUtils.visitSinglePath(mth.getEnterBlock(), ...)`, `BlockUtils.getAllPathsBlocks(mth.getEnterBlock(), exit)`).
+
+2. `BlockUtils.dfsVisit` explicitly forces non-null:
+   ```java
+   BlockNode enterBlock = mth.getEnterBlock();
+   queue.addLast(Nullability.castToNonnull(enterBlock));
+   visited.set(Nullability.castToNonnull(mth.getEnterBlock()).getId());
+   ```
+   This indicates the design contract is that enterBlock must be non-null whenever basic-block–based analyses run. The helper `Nullability.castToNonnull` is used as an assertion of that contract, not as a defensive null-safe wrapper.
+
+3. CFG-centric passes such as `BlockProcessor.processBlocksTree`, `DominatorTree.sortBlocks`, SSA transform, region building (`RegionMakerVisitor`), and codegen (`MethodGen.generateSimpleCode` via `SimpleModeHelper`) all rely on `BlockUtils.dfsVisit(mth, ...)`, which starts from `mth.getEnterBlock()` as non-null. Any null there would cause immediate failure (NPE) and is not handled as an allowed state.
+
+4. Alternative control paths that do not require basic blocks explicitly check `mth.isNoCode()` or `mth.getBasicBlocks().isEmpty()` and return early. For example, `DotGraphVisitor.save` and `RegionMakerVisitor.visit` both bypass CFG processing when there is no code. This separation implies that once a method is in the CFG-based pipeline, an enter block must have been created and assigned.
+
+Given this, at the points in the provided code where `mth.getEnterBlock()` is called—including the explicit call site `mth.getEnterBlock()` in the analysis—the surrounding algorithms rely on the invariant that `enterBlock` has been initialized and is not null. The system is not coded to handle `enterBlock == null` at these stages; such a situation would represent a violation of MethodNode’s initialization contract rather than a normal, tolerated case.
+
+Therefore, for this specific usage context (methods that operate on basic blocks and dominators, SSA, regions, codegen, exception handling, etc.), the field `enterBlock` is guaranteed by design to be non-null, and the getter cannot return null without causing an immediate failure elsewhere. There is no conditional logic inside `getEnterBlock()` itself that could produce null differently per call; it’s purely reflecting the invariant-managed field.
+
+Thus, for the given call site `mth.getEnterBlock()`, the method cannot return null under the intended and required invariants of this code path.]]></reason>
+  <value>NO</value>
+</response>

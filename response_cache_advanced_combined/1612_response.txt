@@ -1,0 +1,33 @@
+<response>
+  <reason><![CDATA[
+At the call site `ManifestAttributes.getInstance()` there is no guarantee that the returned value is non-null.
+
+Inside `getInstance()`:
+
+```java
+public static ManifestAttributes getInstance() {
+    if (instance == null) {
+        try {
+            instance = new ManifestAttributes();
+        } catch (Exception e) {
+            LOG.error("Failed to create ManifestAttributes", e);
+        }
+    }
+    return instance;
+}
+```
+
+Control flow:
+
+1. If `instance` is already non-null when the method is called, it is simply returned and thus non-null in that scenario.
+2. If `instance` is null, the method enters the `if` block and attempts `new ManifestAttributes()` inside a `try`.
+3. If the constructor `new ManifestAttributes()` throws any `Exception`, that exception is caught and only logged. Crucially, `instance` is not assigned in the `catch` block and remains null.
+4. The method then reaches `return instance;` and returns whatever `instance` currently is, which in the exception case is still null.
+
+Your constraints say not to treat exception paths as null returns in the sense of "method throws instead of returning", but here the exception is *caught* and the method continues execution to `return instance;`. That means that along a valid, non-throwing execution path, the method can return null.
+
+Nothing in the provided call sites (`ResXmlGen.addItem`, `BinaryXMLParser.parseAttribute`) changes this: they simply call `ManifestAttributes.getInstance()` and then dereference the result via `.decode(...)`. If `ManifestAttributes()` construction fails once (e.g., due to some runtime condition), then at that specific call the result of `ManifestAttributes.getInstance()` will be null.
+
+Therefore, at this call site, the invocation `ManifestAttributes.getInstance()` can evaluate to null.]]></reason>
+  <value>YES</value>
+</response>

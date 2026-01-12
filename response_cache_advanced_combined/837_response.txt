@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static boolean isInversionNeeded(IfInfo currentIf, IfInfo nextIf) {
+		return isEqualPaths(currentIf.getElseBlock(), nextIf.getThenBlock())
+				|| isEqualPaths(currentIf.getThenBlock(), Nullability.castToNonnull(nextIf.getElseBlock()));
+}
+  ```
+    ]]>
+  </code>
+</response>

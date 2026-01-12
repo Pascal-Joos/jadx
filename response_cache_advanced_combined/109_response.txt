@@ -1,0 +1,25 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the shown method, `mapping.getClasses()` is called after this line:
+
+    mapping.setClasses(new ArrayList<>(classes.size()));
+
+Assuming `JsonMapping.setClasses(...)` is a straightforward setter that assigns its argument directly to the backing field (which is the usual and reasonable contract), then after this call `mapping` will hold a non-null `List` instance, so `mapping.getClasses()` will return that non-null `List`.
+
+There are no intermediate writes to `mapping` or calls that could reset the classes list to null between `setClasses(...)` and `getClasses()`. Control flow is linear: for each `ClassNode cls` in `classes`, the code builds `jsonCls` and then immediately performs:
+
+    mapping.getClasses().add(jsonCls);
+
+There are no branches or early returns that could skip the `setClasses` assignment and still reach the `getClasses()` call.
+
+The only ways `mapping.getClasses()` could be null here would be:
+
+1. `mapping` itself is null when passed into `fillMapping` (which would cause a `NullPointerException` at `mapping.setClasses(...)`, i.e., earlier than the `getClasses()` call, so you would never reach `mapping.getClasses().add(...)`).
+2. The implementation of `JsonMapping.setClasses(List)` violates normal setter semantics, e.g., it conditionally ignores the argument and sets the internal field to null, or `getClasses()` itself returns something other than the field assigned in `setClasses`. That behavior would be non-standard and cannot be inferred from the provided snippet.
+
+Given only this method and standard Java bean/setter semantics, `mapping.getClasses()` is guaranteed to be non-null at the point of use. Therefore, under normal assumptions, the expression cannot be null.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

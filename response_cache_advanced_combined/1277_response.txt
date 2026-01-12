@@ -1,0 +1,51 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within this method, there is no guarantee that ri.getNamedValues() is non-null at the point of the condition:
+
+    if (ri.getTypeName().equals("attr") && !ri.getNamedValues().isEmpty()) {
+
+Specifically:
+
+1. The method has three main branches based on the state of ri:
+   - if (ri.getProtoValue() != null) { ... }
+   - else if (ri.getSimpleValue() != null) { ... }
+   - else { ... }
+
+2. The line in question appears in the last (else) branch. Entry into this branch only requires:
+   - ri.getProtoValue() == null
+   - ri.getSimpleValue() == null
+
+3. Inside that else branch, there *is* a null check for ri.getNamedValues(), but it is for a different condition:
+
+   if (ri.getTypeName().equals("attr")
+       && ri.getNamedValues() != null
+       && !ri.getNamedValues().isEmpty()) {
+       ...
+   }
+
+   This is safe because it explicitly checks for null before calling isEmpty().
+
+4. Later in the same else branch, there is:
+
+   if (ri.getNamedValues() != null) {
+       for (RawNamedValue value : ri.getNamedValues()) {
+           addItem(cw, itemTag, ri.getTypeName(), value);
+       }
+   }
+
+   Again, a null check is done before dereferencing. This shows that the author of the code expects ri.getNamedValues() may legitimately be null.
+
+5. For the specific line you ask about:
+
+   if (ri.getTypeName().equals("attr") && !ri.getNamedValues().isEmpty()) {
+
+   there is no preceding `ri.getNamedValues() != null` in that condition. Whether this can be null depends entirely on the contract of ResourceEntry.getNamedValues():
+
+   - If getNamedValues() is documented/implemented to **never** return null (e.g., always returns an empty list instead), then it is safe and cannot be null.
+   - If getNamedValues() may return null (and the rest of the method strongly suggests that it might, since it repeatedly checks `ri.getNamedValues() != null`), then this line is unsafe and the expression *can* be null, leading to a NullPointerException when `isEmpty()` is called.
+
+6. Since the code itself treats getNamedValues() as potentially null in multiple places, and we are not given its implementation or a contract guarantee that it is never null, we must assume it can return null on this path as well. Hence, at this line, `ri.getNamedValues()` can be null and calling `isEmpty()` on it is not safe without an additional null check.]]></reason>
+    <value>YES</value>
+</response>
+```

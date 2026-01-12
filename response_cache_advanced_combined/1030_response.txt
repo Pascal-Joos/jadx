@@ -1,0 +1,34 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @CheckForNull
+ 	private static IfInfo checkForTernaryInCondition(IfInfo currentIf) {
+ 		IfInfo nextThen = getNextIf(currentIf, currentIf.getThenBlock());
+ 		IfInfo nextElse = getNextIf(currentIf, currentIf.getElseBlock());
+ 		if (nextThen == null || nextElse == null) {
+ 			return null;
+ 		}
+ 		if (!nextThen.getFirstIfBlock().getDomFrontier().equals(nextElse.getFirstIfBlock().getDomFrontier())) {
+ 			return null;
+ 		}
+ 		nextThen = searchNestedIf(nextThen);
+ 		nextElse = searchNestedIf(nextElse);
+ 		if (nextThen == null || nextElse == null) {
+ 			return null;
+ 		}
+ 		if (nextThen.getThenBlock() == nextElse.getThenBlock()
+ 				&& nextThen.getElseBlock() == nextElse.getElseBlock()) {
+ 			return mergeTernaryConditions(currentIf, nextThen, nextElse);
+ 		}
+ 		if (nextThen.getThenBlock() == nextElse.getElseBlock()
+ 				&& nextThen.getElseBlock() == nextElse.getThenBlock()) {
+ 			nextElse = IfInfo.invert(nextElse);
+ 			return mergeTernaryConditions(currentIf, nextThen, nextElse);
+ 		}
+ 		return null;
+}
+  ```
+    ]]>
+  </code>
+</response>

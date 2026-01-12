@@ -1,0 +1,137 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static boolean extractFinally(MethodNode mth, TryCatchBlockAttr tryBlock, ExceptionHandler allHandler) {
+ 		BlockNode handlerBlock = allHandler.getHandlerBlock();
+ 		if (handlerBlock == null) {
+ 			mth.addDebugComment("Null handler block in: " + allHandler);
+ 			return false;
+ 		}
+ 		List<BlockNode> handlerBlocks =
+ 				new ArrayList<>(BlockUtils.collectBlocksDominatedByWithExcHandlers(mth, handlerBlock, handlerBlock));
+ 		handlerBlocks.remove(handlerBlock); // exclude block with 'move-exception'
+ 		cutPathEnds(mth, handlerBlocks);
+ 		if (handlerBlocks.isEmpty() || BlockUtils.isAllBlocksEmpty(handlerBlocks)) {
+ 			// remove empty catch
+ 			TryCatchBlockAttr handlerTryBlock = allHandler.getTryBlock();
+ 			if (handlerTryBlock != null) {
+ 				handlerTryBlock.removeHandler(allHandler);
+ 			}
+ 			return true;
+ 		}
+ 		BlockNode startBlock = Utils.getOne(handlerBlock.getCleanSuccessors());
+ 		FinallyExtractInfo extractInfo = new FinallyExtractInfo(mth, allHandler, startBlock, handlerBlocks);
+ 		if (Consts.DEBUG_FINALLY) {
+ 			LOG.debug("Finally info: handler=({}), start={}, blocks={}", allHandler, startBlock, handlerBlocks);
+ 		}
+ 
+ 		boolean hasInnerBlocks = !tryBlock.getInnerTryBlocks().isEmpty();
+ 		List<ExceptionHandler> handlers;
+ 		if (hasInnerBlocks) {
+ 			// collect handlers from this and all inner blocks
+ 			// (intentionally not using recursive collect for now)
+ 			handlers = new ArrayList<>(tryBlock.getHandlers());
+ 			for (TryCatchBlockAttr innerTryBlock : tryBlock.getInnerTryBlocks()) {
+ 				handlers.addAll(innerTryBlock.getHandlers());
+ 			}
+ 		} else {
+ 			handlers = tryBlock.getHandlers();
+ 		}
+ 		if (handlers.isEmpty()) {
+ 			return false;
+ 		}
+ 		// search 'finally' instructions in other handlers
+ 		for (ExceptionHandler otherHandler : handlers) {
+ 			if (otherHandler == allHandler) {
+ 				continue;
+ 			}
+ 			for (BlockNode checkBlock : otherHandler.getBlocks()) {
+ 				if (searchDuplicateInsns(checkBlock, extractInfo)) {
+ 					break;
+ 				} else {
+ 					extractInfo.getFinallyInsnsSlice().resetIncomplete();
+ 				}
+ 			}
+ 		}
+ 		if (Consts.DEBUG_FINALLY) {
+ 			LOG.debug("Handlers slices:\n{}", extractInfo);
+ 		}
+ 		boolean mergeInnerTryBlocks;
+ 		int duplicatesCount = extractInfo.getDuplicateSlices().size();
+ 		if (duplicatesCount == (handlers.size() - 1)) {
+ 			// all collected handlers have duplicate block
+ 			mergeInnerTryBlocks = hasInnerBlocks;
+ 		} else {
+ 			// some handlers don't have duplicated blocks
+ 			if (!hasInnerBlocks || duplicatesCount != (tryBlock.getHandlers().size() - 1)) {
+ 				// unexpected count of duplicated slices
+ 				return false;
+ 			}
+ 			mergeInnerTryBlocks = false;
+ 		}
+ 
+ 		// remove 'finally' from 'try' blocks, check all up paths on each exit (connected with finally exit)
+ 		List<BlockNode> tryBlocks = allHandler.getTryBlock().getBlocks();
+ 		BlockNode bottomBlock = BlockUtils.getBottomBlock(allHandler.getBlocks());
+ 		if (bottomBlock == null) {
+ 			return false;
+ 		}
+ 		BlockNode bottomFinallyBlock = BlockUtils.followEmptyPath(bottomBlock);
+ 		BlockNode bottom = BlockUtils.getNextBlock(bottomFinallyBlock);
+ 		if (bottom == null) {
+ 			return false;
+ 		}
+ 		boolean found = false;
+ 		List<BlockNode> pathBlocks = getPathStarts(mth, bottom, bottomFinallyBlock);
+ 		for (BlockNode pred : pathBlocks) {
+ 			List<BlockNode> upPath = BlockUtils.collectPredecessors(mth, pred, tryBlocks);
+ 			if (upPath.size() < handlerBlocks.size()) {
+ 				continue;
+ 			}
+ 			if (Consts.DEBUG_FINALLY) {
+ 				LOG.debug("Checking dup path starts: {} from {}", upPath, pred);
+ 			}
+ 			for (BlockNode block : upPath) {
+ 				if (searchDuplicateInsns(block, extractInfo)) {
+ 					found = true;
+ 					if (Consts.DEBUG_FINALLY) {
+ 						LOG.debug("Found dup in: {} from {}", block, pred);
+ 					}
+ 					break;
+ 				} else {
+ 					extractInfo.getFinallyInsnsSlice().resetIncomplete();
+ 				}
+ 			}
+ 		}
+ 		if (Consts.DEBUG_FINALLY) {
+ 			LOG.debug("Result slices:\n{}", extractInfo);
+ 		}
+ 		if (!found) {
+ 			return false;
+ 		}
+ 		if (!checkSlices(extractInfo)) {
+ 			mth.addWarnComment("Finally extract failed");
+ 			return false;
+ 		}
+ 
+ 		// 'finally' extract confirmed, apply
+ 		apply(extractInfo);
+ 		allHandler.setFinally(true);
+ 
+ 		if (mergeInnerTryBlocks) {
+ 			List<TryCatchBlockAttr> innerTryBlocks = tryBlock.getInnerTryBlocks();
+ 			for (TryCatchBlockAttr innerTryBlock : innerTryBlocks) {
+ 				tryBlock.getHandlers().addAll(innerTryBlock.getHandlers());
+ 				tryBlock.getBlocks().addAll(innerTryBlock.getBlocks());
+ 				innerTryBlock.setMerged(true);
+ 			}
+ 			tryBlock.setBlocks(ListUtils.distinctList(tryBlock.getBlocks()));
+ 			innerTryBlocks.clear();
+ 		}
+ 		return true;
+}
+  ```
+    ]]>
+  </code>
+</response>

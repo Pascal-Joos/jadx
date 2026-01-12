@@ -1,0 +1,34 @@
+<response>
+  <reason><![CDATA[
+getCleanSuccessors() is a plain field getter:
+
+  public List<BlockNode> getCleanSuccessors() {
+      return this.cleanSuccessors;
+  }
+
+So the only way it could return null is if the instance field `cleanSuccessors` is null.
+
+At the specific call site in ClassModifier.removeFieldUsageFromConstructor:
+
+  BlockNode block = mth.getEnterBlock().getCleanSuccessors().get(0);
+
+this happens under the following control flow:
+
+- The method immediately returns if `mth.isNoCode()` is true.
+- It later uses `mth.getEnterBlock()` as a normal block and directly calls `.getCleanSuccessors().get(0)` with no null checks.
+
+Elsewhere in the provided codebase, `getCleanSuccessors()` is systematically treated as non-null:
+- It is iterated directly in enhanced for-loops (e.g. `for (BlockNode node : block.getCleanSuccessors())`, `for (BlockNode s : block.getCleanSuccessors())`).
+- Code that must defensively handle possible null lists uses `Nullability.castToNonnull(...)`, but those usages are *not* applied here to `mth.getEnterBlock().getCleanSuccessors()`.
+- Utility methods like `BlockUtils.getNextBlock`, `isEmptySimplePath`, `buildSimplePath`, etc., all assume `getCleanSuccessors()` returns a non-null `List<BlockNode>` and only check for emptiness/size, not nullity.
+
+If `cleanSuccessors` could be null for `mth.getEnterBlock()`, many of these uses (especially in core traversal logic and RegionMakerVisitor.visit) would throw `NullPointerException`. The design of the surrounding utilities (e.g. unconditional loops and size checks) indicates `cleanSuccessors` is always initialized to a non-null list (possibly empty) once blocks are constructed and `updateCleanSuccessors()` is called.
+
+Given:
+- `removeFieldUsageFromConstructor` is only called for methods where `mth.isNoCode()` is false.
+- `mth.getEnterBlock()` is a valid `BlockNode` (method has basic blocks).
+- The broader code consistently relies on `getCleanSuccessors()` being non-null and only guards against emptiness, not null,
+
+the specific invocation `mth.getEnterBlock().getCleanSuccessors()` cannot yield null; at worst it yields an empty list. Therefore, at this call site, the method does not return null.]]></reason>
+  <value>NO</value>
+</response>

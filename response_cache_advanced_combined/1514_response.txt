@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static boolean canMerge(IfInfo a, IfInfo b, boolean followThenBranch) {
+		if (followThenBranch) {
+			return isEqualPaths(Nullability.castToNonnull(a.getElseBlock()), b.getElseBlock());
+		} else {
+			return isEqualPaths(a.getThenBlock(), b.getThenBlock());
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

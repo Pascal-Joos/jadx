@@ -1,0 +1,26 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+```java
+ClassNode currentCls = this;
+ClassNode parentCls = currentCls.getParentClass();
+```
+
+inside `ClassNode.visitParentClasses`, `getParentClass()` simply returns the field `parentClass`:
+
+```java
+public ClassNode getParentClass() {
+    return parentClass;
+}
+```
+
+There is no guarding logic in `getParentClass()` itself that would prevent `null` from being returned. The rest of the code base clearly treats a `null` parent as a valid and expected situation:
+
+- `visitParentClasses` itself uses `while (parentCls != null && parentCls != currentCls)`, explicitly allowing `parentCls` to be `null`.
+- `AndroidResourcesUtils.isResourceClass` also checks `parentClass != null` after calling `cls.getParentClass()`, again indicating that `getParentClass()` may return `null`.
+
+No invariant is shown that would guarantee `parentClass` is always non-null for all `ClassNode` instances, nor for `this` specifically at this call site. Therefore, at this specific invocation, `currentCls.getParentClass()` can evaluate to `null` and assign `null` to `parentCls`.
+  ]]></reason>
+  <value>YES</value>
+</response>

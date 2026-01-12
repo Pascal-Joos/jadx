@@ -1,0 +1,60 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone, there is no explicit null check or initialization inside the method that guarantees `blockNodes` is non-null. It is a parameter:
+
+    public static Map<BlockNode, BitSet> calcPartialPostDominance(
+        MethodNode mth,
+        Collection<BlockNode> blockNodes,
+        BlockNode exitBlock
+    ) {
+
+The method immediately uses `blockNodes` in enhanced for-loops:
+
+    for (BlockNode block : blockNodes) {
+        initSet.set(block.getId());
+    }
+
+and later:
+
+    for (BlockNode block : blockNodes) {
+        BitSet postDoms = new BitSet(blocksCount);
+        postDoms.or(initSet);
+        map.put(block, postDoms);
+    }
+
+and:
+
+    for (BlockNode block : blockNodes) {
+        ...
+    }
+
+and finally:
+
+    blockNodes.forEach(block -> { ... });
+
+In Java, if `blockNodes` is null, the very first `for (BlockNode block : blockNodes)` will throw a `NullPointerException`. Therefore, for these loops to run safely, the caller must pass a non-null collection.
+
+However, the question is whether `blockNodes` *can possibly* be null at that line. From intra-method analysis alone:
+
+- There is no assignment to `blockNodes` inside the method.
+- There is no null check (`Objects.requireNonNull`, `if (blockNodes == null)`, etc.).
+- The method signature does not use any annotation like `@NonNull` that the Java language itself enforces at runtime.
+- Java semantics allow the caller to pass `null` for a reference-typed parameter unless some external contract/annotation or calling code guarantees otherwise.
+
+Because you did not provide the calling code or a formal, enforced contract (such as runtime checks or framework guarantees) that `blockNodes` will never be null, the static possibility remains that a caller can invoke:
+
+    calcPartialPostDominance(mth, null, exitBlock);
+
+In that scenario, the expression `blockNodes` at `for (BlockNode block : blockNodes)` *would* be null and would immediately cause a `NullPointerException`.
+
+Therefore, considering:
+- Only the method body you provided,
+- Standard Java language rules,
+- No visible null-safety annotations or checks,
+
+we cannot say that `blockNodes` is guaranteed non-null; it is *possible* for it to be null at that line if the caller passes null.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

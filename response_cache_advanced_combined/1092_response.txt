@@ -1,0 +1,31 @@
+<response>
+  <reason><![CDATA[
+We are analyzing the specific call:
+
+ArgType type = var.getTypeInfo().getType();
+
+Here, var.getTypeInfo() returns a TypeInfo whose method is:
+
+@NotNull
+public ArgType getType() {
+    return type;
+}
+
+The only possible source of null here would be the field `type` inside `TypeInfo`. The provided code shows many usages of `var.getTypeInfo().getType()` throughout the type-inference and visitor code, and all of them treat the returned value as non-null:
+
+- It is passed into `Nullability.castToNonnull(...)`, which assumes a non-null reference but is used purely for analysis (not a runtime null guard).
+- It is used directly in equals comparisons, method calls (e.g., `isTypeKnown()`, `isPrimitive()`, `isObject()`), and logging, without any null checks.
+- Where a type might be “unknown”, the code uses the special value `ArgType.UNKNOWN`, not `null`, to represent that state.
+- When the system wants to ensure a non-null type for an uninitialized value, it explicitly sets `ArgType.UNKNOWN` instead of using null (e.g., in `FinishTypeInference.visit`, it sets `codeVar` type to `ArgType.UNKNOWN` if `null`).
+
+Across the call chain, the convention is consistent: “unknown” is encoded as a non-null constant (`ArgType.UNKNOWN` or similar), and consumers assume `getType()` never returns null. There is no code path shown that would ever set `TypeInfo.type` to null as a valid state; instead, special “unknown” ArgType instances are used.
+
+Given:
+- `TypeInfo.getType()` directly returns the field `type`.
+- `@NotNull` is declared on `getType()` and the rest of the system relies on that contract.
+- The ecosystem of callers uses `ArgType.UNKNOWN` rather than null to represent an unset type.
+
+At this specific call site, `var.getTypeInfo().getType()` is therefore not expected to be null; by design it should always be an `ArgType` instance (possibly `ArgType.UNKNOWN`), but not null.
+  ]]></reason>
+  <value>NO</value>
+</response>

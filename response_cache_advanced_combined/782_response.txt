@@ -1,0 +1,14 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static boolean isClsKnown(RootNode root, ArgType cls) {
+		if (root == null || !cls.isObject()) {
+			return false;
+		}
+		return root.getClsp().isClsKnown(cls.getObject());
+}
+  ```
+    ]]>
+  </code>
+</response>

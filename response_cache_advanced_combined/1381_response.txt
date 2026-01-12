@@ -1,0 +1,18 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private static void anonymousCallArgMod(InsnArg arg) {
+		arg.add(AFlag.DONT_INLINE);
+		if (arg.isRegister()) {
+			RegisterArg reg = (RegisterArg) arg;
+			SSAVar sVar = reg.getSVar();
+			if (sVar != null) {
+				sVar.getCodeVar().setFinal(true);
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

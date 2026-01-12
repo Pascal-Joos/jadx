@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private boolean isBinaryXml() throws IOException {
+		if (is == null) {
+			return false;
+		}
+		is.mark(4);
+		int v = is.readInt16(); // version
+		int h = is.readInt16(); // header size
+		// Some APK Manifest.xml the version is 0
+		if (h == 0x0008) {
+			return true;
+		}
+		is.reset();
+		return false;
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,40 @@
+```xml
+<response>
+    <reason><![CDATA[
+Within the shown method, there is no null check that guarantees ri.getNamedValues() is non-null in the final else-branch where the loop
+
+    for (RawNamedValue value : ri.getNamedValues()) {
+
+appears.
+
+The control flow is:
+
+1. If ri.getProtoValue() != null:
+   - If protoValue.getValue() != null && protoValue.getNamedValues() == null:
+       • This branch is taken only when protoValue.getNamedValues() is null.
+       • It does not read ri.getNamedValues() at all.
+   - Else:
+       • Uses protoValue.getNamedValues(), not ri.getNamedValues().
+       • Wrapped in Nullability.castToNonnull(protoValue.getNamedValues()), which suggests protoValue.getNamedValues() itself may be null and is being normalized, but this says nothing about ri.getNamedValues().
+
+2. Else if ri.getSimpleValue() != null:
+   - No access to ri.getNamedValues().
+
+3. Else (the branch in question):
+   - It uses ri.getNamedValues() multiple times:
+       • In condition: ri.getTypeName().equals("attr") && !ri.getNamedValues().isEmpty()
+       • To access first element: ri.getNamedValues().get(0) ...
+       • In the loop: for (RawNamedValue value : ri.getNamedValues())
+
+In this third branch, the only guard applied to ri.getNamedValues() is .isEmpty(), which itself would throw a NullPointerException if ri.getNamedValues() were null. There is no preceding null check such as ri.getNamedValues() != null, nor is there any local assignment that initializes it.
+
+Therefore, from this method alone, there is no internal guarantee that ri.getNamedValues() is non-null on entry to this branch. Whether it is actually non-null at runtime depends entirely on the contract and implementation of ResourceEntry.getNamedValues(): if that method is documented/implemented to always return a non-null (possibly empty) List, then it is safe; if not, null is possible and would cause an NPE at the first call to ri.getNamedValues().isEmpty().
+
+Since the provided code gives no visibility into ResourceEntry.getNamedValues()’s contract or implementation, we cannot conclude purely from this method that ri.getNamedValues() cannot be null. The nullability depends on external guarantees not shown here.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or documented contract of ResourceEntry.getNamedValues(). Specifically, confirm whether it is guaranteed to never return null (returning an empty collection instead) or if null is a valid return value.]]></request>
+    </requests>
+</response>
+```

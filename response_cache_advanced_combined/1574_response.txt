@@ -1,0 +1,48 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private TypeUpdateResult applyInvokeTypes(TypeUpdateInfo updateInfo, BaseInvokeNode invoke, int argsCount,
+			Set<ArgType> knownTypeVars, Supplier<ArgType> getReturnType, Function<Integer, ArgType> getArgType) {
+		boolean allSame = true;
+		RegisterArg resultArg = invoke.getResult();
+		if (resultArg != null && !resultArg.isTypeImmutable()) {
+			ArgType returnType = checkType(knownTypeVars, getReturnType.get());
+			if (returnType != null) {
+				TypeUpdateResult result = updateTypeChecked(updateInfo, resultArg, returnType);
+				if (result == REJECT) {
+					TypeCompareEnum compare = comparator.compareTypes(returnType, Nullability.castToNonnull(resultArg.getType()));
+					if (compare.isWider()) {
+						return REJECT;
+					}
+				}
+				if (result == CHANGED) {
+					allSame = false;
+				}
+			}
+		}
+		int argOffset = invoke.getFirstArgOffset();
+		for (int i = 0; i < argsCount; i++) {
+			InsnArg invokeArg = invoke.getArg(argOffset + i);
+			if (!invokeArg.isTypeImmutable()) {
+				ArgType argType = checkType(knownTypeVars, getArgType.apply(i));
+				if (argType != null) {
+					TypeUpdateResult result = updateTypeChecked(updateInfo, invokeArg, argType);
+					if (result == REJECT) {
+						TypeCompareEnum compare = comparator.compareTypes(argType, invokeArg.getType());
+						if (compare.isNarrow()) {
+							return REJECT;
+						}
+					}
+					if (result == CHANGED) {
+						allSame = false;
+					}
+				}
+			}
+		}
+		return allSame ? SAME : CHANGED;
+}
+  ```
+    ]]>
+  </code>
+</response>

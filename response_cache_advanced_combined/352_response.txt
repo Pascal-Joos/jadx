@@ -1,0 +1,8 @@
+```xml
+<response>
+    <reason><![CDATA[
+The method body unconditionally executes the statement `return null;` with no other code paths, conditions, or computations. Therefore, the returned expression is always the literal `null` on every invocation. There are no prior assignments, method calls, or control flow constructs that could change this. Hence, the expression at `return null;` is definitively and always null.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

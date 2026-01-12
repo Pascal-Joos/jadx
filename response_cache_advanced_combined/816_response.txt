@@ -1,0 +1,42 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public void makeTryCatch(TryCatchRegion region, ICodeWriter code) throws CodegenException {
+		code.startLine("try {");
+
+		TryCatchBlockAttr tryCatchBlock = region.getTryCatchBlock();
+		if (tryCatchBlock != null) {
+			InsnNode insn = BlockUtils.getFirstInsn(Utils.first(tryCatchBlock.getBlocks()));
+			InsnCodeOffset.attach(code, insn);
+			CodeGenUtils.addCodeComments(code, mth, insn);
+		}
+
+		makeRegionIndent(code, region.getTryRegion());
+		// TODO: move search of 'allHandler' to 'TryCatchRegion'
+		ExceptionHandler allHandler = null;
+		for (Map.Entry<ExceptionHandler, IContainer> entry : region.getCatchRegions().entrySet()) {
+			ExceptionHandler handler = entry.getKey();
+			if (handler.isCatchAll()) {
+				if (allHandler != null) {
+					LOG.warn("Several 'all' handlers in try/catch block in {}", mth);
+				}
+				allHandler = handler;
+			} else {
+				makeCatchBlock(code, handler);
+			}
+		}
+		if (allHandler != null) {
+			makeCatchBlock(code, allHandler);
+		}
+		IContainer finallyRegion = region.getFinallyRegion();
+		if (finallyRegion != null) {
+			code.startLine("} finally {");
+			makeRegionIndent(code, finallyRegion);
+		}
+		code.startLine('}');
+}
+  ```
+    ]]>
+  </code>
+</response>

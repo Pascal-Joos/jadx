@@ -1,0 +1,29 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void processType( ArgType type, Consumer<ClassNode> consumer) {
+		if (type == null) {
+			return;
+		}
+		if (type.isArray()) {
+			processType(type.getArrayRootElement(), consumer);
+			return;
+		}
+		if (type.isObject() && !type.isGenericType()) {
+			ClassNode clsNode = root.resolveClass(type);
+			if (clsNode != null) {
+				consumer.accept(clsNode);
+			}
+			List<ArgType> genericTypes = type.getGenericTypes();
+			if (type.isGeneric() && genericTypes != null && notEmpty(genericTypes)) {
+				for (ArgType argType : genericTypes) {
+					processType(argType, consumer);
+				}
+			}
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,17 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>getMode</method>
+    <method>getCompare</method>
+    <method>first</method>
+    <method>second</method>
+    <method>third</method>
+    <method>getArgs</method>
+    <method>fromIfNode</method>
+    <method>simplifyCmpOp</method>
+    <method>normalize</method>
+    <method>isCompare</method>
+    <method>not</method>
+    <method>ternary</method>
+  </methods>
+</response>

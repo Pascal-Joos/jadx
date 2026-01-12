@@ -1,0 +1,36 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+private void parseMethodSignature(MethodNode mth) {
+		SignatureParser sp = SignatureParser.fromNode(mth);
+		if (sp == null) {
+			return;
+		}
+		try {
+			List<ArgType> typeParameters = sp.consumeGenericTypeParameters();
+			List<ArgType> parsedArgTypes = sp.consumeMethodArgs(mth.getMethodInfo().getArgsCount());
+			ArgType parsedRetType = sp.consumeType();
+
+			if (!validateInnerType(parsedRetType) || !validateInnerType(parsedArgTypes)) {
+				mth.addWarnComment("Incorrect inner types in method signature: " + sp.getSignature());
+				return;
+			}
+
+			mth.updateTypeParameters(typeParameters); // apply before expand args
+			TypeUtils typeUtils = root.getTypeUtils();
+			ArgType retType = typeUtils.expandTypeVariables(mth, Nullability.castToNonnull(parsedRetType));
+			List<ArgType> argTypes = Utils.collectionMap(parsedArgTypes, t -> typeUtils.expandTypeVariables(mth, t));
+
+			if (!validateAndApplyTypes(mth, sp, retType, argTypes)) {
+				// bad types -> reset typed parameters
+				mth.updateTypeParameters(Collections.emptyList());
+			}
+		} catch (Exception e) {
+			mth.addWarnComment("Failed to parse method signature: " + sp.getSignature(), e);
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

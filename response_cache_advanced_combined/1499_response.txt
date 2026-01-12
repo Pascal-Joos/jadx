@@ -1,0 +1,34 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private static BlockNode getBranchBlock(BlockNode first, BlockNode second, Set<BlockNode> skipBlocks, MethodNode mth) {
+  		if (first == second) {
+  			return second;
+  		}
+  		if (isEqualReturnBlocks(first, second)) {
+  			skipBlocks.add(first);
+  			return second;
+  		}
+  		BlockNode cross = BlockUtils.getPathCross(mth, Nullability.castToNonnull(first), Nullability.castToNonnull(second));
+  		if (cross != null) {
+  			BlockUtils.visitBlocksOnPath(mth, Nullability.castToNonnull(first), cross, skipBlocks::add);
+  			BlockUtils.visitBlocksOnPath(mth, Nullability.castToNonnull(second), cross, skipBlocks::add);
+  			skipBlocks.remove(cross);
+  			return cross;
+  		}
+  		BlockNode firstSkip = BlockUtils.followEmptyPath(Nullability.castToNonnull(first));
+  		BlockNode secondSkip = BlockUtils.followEmptyPath(second);
+  		if (firstSkip.equals(secondSkip) || isEqualReturnBlocks(firstSkip, secondSkip)) {
+  			skipBlocks.add(first);
+  			skipBlocks.add(second);
+  			BlockUtils.visitBlocksOnEmptyPath(Nullability.castToNonnull(first), skipBlocks::add);
+  			BlockUtils.visitBlocksOnEmptyPath(second, skipBlocks::add);
+  			return secondSkip;
+  		}
+  		throw new JadxRuntimeException("Unexpected merge pattern");
+  }
+  ```
+    ]]>
+  </code>
+</response>

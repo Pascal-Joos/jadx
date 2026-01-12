@@ -1,0 +1,77 @@
+<response>
+  <reason><![CDATA[At the call site
+
+```java
+Region oldRootRegion = mth.getRegion();
+```
+
+`mth` is a `MethodNode` being processed inside `PrepareForCodeGen.moveConstructorInConstructor(MethodNode mth)`.
+
+`moveConstructorInConstructor` is invoked from `PrepareForCodeGen.visit(MethodNode mth)`:
+
+```java
+@Override
+public void visit(MethodNode mth) throws JadxException {
+    if (mth.isNoCode()) {
+        return;
+    }
+    ...
+    moveConstructorInConstructor(mth);
+}
+```
+
+So the only precondition enforced here is `!mth.isNoCode()`. There is no check that `mth.getRegion()` is non‑null before `moveConstructorInConstructor` is called.
+
+Across the rest of the codebase, callers frequently *do* check for null before using `mth.getRegion()`:
+
+- `CheckRegions.visit` returns early if `mth.getRegion() == null`
+- `DebugUtils.printRegions` returns if `mth.getRegion() == null`
+- `DotGraphVisitor.DumpDotGraph.process` returns if `useRegions` and `mth.getRegion() == null`
+- `RegionUtils.isBlocksInSameRegion` explicitly checks `if (region == null) return false;`
+- `EnumVisitor.convertToEnum` checks `Region staticRegion = classInitMth.getRegion(); if (staticRegion == null ...) return false;`
+
+These patterns show that `MethodNode.region` is expected to be nullable and is treated as such in many places.
+
+The code that sets the region is in `RegionMakerVisitor.visit`:
+
+```java
+@Override
+public void visit(MethodNode mth) throws JadxException {
+    if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
+        return;
+    }
+    RegionMaker rm = new RegionMaker(mth);
+    RegionStack state = new RegionStack(mth);
+
+    // fill region structure
+    BlockNode startBlock = Utils.first(mth.getEnterBlock().getCleanSuccessors());
+    mth.setRegion(rm.makeRegion(startBlock, state));
+
+    if (!mth.isNoExceptionHandlers()) {
+        IRegion expOutBlock = rm.processTryCatchBlocks(mth);
+        if (expOutBlock != null) {
+            mth.getRegion().add(expOutBlock);
+        }
+    }
+    postProcessRegions(mth);
+}
+```
+
+`rm.makeRegion(startBlock, state)` is an external method whose implementation is not provided here, so:
+
+- It might return `null` under some conditions (e.g., malformed CFG, missing start block, internal failure).
+- If it returns `null`, then `mth.region` is explicitly set to `null`.
+
+No invariant is shown that guarantees `rm.makeRegion` always returns a non‑null `Region` when `!mth.isNoCode()` and `!mth.getBasicBlocks().isEmpty()`. On the contrary, the many defensive null checks around `mth.getRegion()` indicate that a null region is an expected possibility at various stages.
+
+`PrepareForCodeGen.visit` only guards against `mth.isNoCode()` and does not verify that regions were successfully built. Therefore, when `moveConstructorInConstructor` is run, `mth.getRegion()` may legitimately be `null`, and the call:
+
+```java
+Region oldRootRegion = mth.getRegion();
+```
+
+can observe that null value.
+
+Because of the unknown behavior of `RegionMaker.makeRegion`, and the explicit use of `null` checks throughout the code, we must conclude that at this call site `getRegion()` can return `null`.]]></reason>
+  <value>YES</value>
+</response>

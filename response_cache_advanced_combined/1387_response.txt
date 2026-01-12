@@ -1,0 +1,49 @@
+```xml
+<response>
+    <reason><![CDATA[
+We are asked whether `elseResArg.getSVar()` can be null at:
+
+    PhiInsn thenPhi = thenResArg.getSVar().getOnlyOneUseInPhi();
+    PhiInsn elsePhi = elseResArg.getSVar().getOnlyOneUseInPhi();
+
+Given only this method, we can analyze control flow and local null checks, but we do not see the implementations or contracts of:
+- `RegisterArg.getSVar()`
+- `InsnNode.getResult()`
+- How `elseInsn` is constructed / guaranteed
+
+Within `makeTernaryInsn`:
+
+1. `elseInsn` is taken as:
+   - `BlockNode eb = getTernaryInsnBlock(elseRegion);`
+   - `InsnNode elseInsn = eb.getInstructions().get(0);`
+   There is no explicit guarantee in this method that `elseInsn` must have a result.
+
+2. `elseResArg` is:
+   - `RegisterArg elseResArg = elseInsn.getResult();`
+
+3. The subsequent null check:
+
+       if (thenResArg != null && elseResArg != null) {
+           PhiInsn thenPhi = thenResArg.getSVar().getOnlyOneUseInPhi();
+           PhiInsn elsePhi = elseResArg.getSVar().getOnlyOneUseInPhi();
+           ...
+
+   ensures only that `elseInsn.getResult()` is non-null, not that its `getSVar()` is non-null.
+
+4. Whether `elseResArg.getSVar()` can be null depends entirely on the contract of `RegisterArg`:
+   - If `RegisterArg` always has an associated `SSAVar` (e.g., SSA form is mandatory, and `getResult()` for such insns always returns an SSA-backed arg), then `getSVar()` might be guaranteed non-null.
+   - If there are cases where a `RegisterArg` is not yet SSA-linked or may legally lack an associated `SSAVar`, then `getSVar()` could be null, making `elseResArg.getSVar()` potentially null despite the preceding `elseResArg != null` check.
+
+5. The method itself does not perform a null check on `elseResArg.getSVar()` before dereferencing it, nor is there any local logic that would guarantee that `getSVar()` is initialized by this point. That guarantee, if it exists, must come from the broader framework (SSA construction phase, invariants of `getTernaryInsnBlock`, or invariants of the decompiler pipeline).
+
+Because these class/method contracts are not shown, and nothing in this method alone logically prevents a `RegisterArg` from having a null `SVar`, we cannot definitively state that `elseResArg.getSVar()` is non-null.
+
+Therefore, based solely on the provided code and without the external contracts for `RegisterArg.getSVar()` and the SSA-building phase, whether `elseResArg.getSVar()` can be null is not determinable from the snippet.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the implementation or documented contract of RegisterArg.getSVar(): can it ever return null for a non-null RegisterArg in this phase of processing?]]></request>
+        <request><![CDATA[Provide guarantees or invariants (if any) for getTernaryInsnBlock(...) and the instructions it returns (e.g., must their results always be SSA-linked RegisterArgs)?]]></request>
+    </requests>
+</response>
+```

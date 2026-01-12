@@ -1,0 +1,29 @@
+```xml
+<response>
+    <reason><![CDATA[
+There is not enough information in the provided snippet to determine whether the parameter `from` can be null at the call site.
+
+In the method itself:
+
+private static boolean checkConditionBranches(BlockNode from, BlockNode to) {
+    return from.getCleanSuccessors().size() == 1 && from.getCleanSuccessors().contains(to);
+}
+
+- `from` is a method parameter of type `BlockNode`.
+- Inside the method, there is no null check on `from` before dereferencing it via `from.getCleanSuccessors()`.
+- If `from` is null at runtime, this line will throw a NullPointerException.
+
+Whether `from` can actually be null depends on:
+- How `checkConditionBranches` is called elsewhere.
+- Any guarantees provided by the codebase or framework (e.g., annotations like @NonNull on parameters, or project-wide conventions that `BlockNode` parameters are never null).
+- The implementation and contracts of logic that produces the `BlockNode` objects passed in.
+
+None of that is visible in the snippet you provided. So, from this method alone, it is not possible to prove that `from` is always non-null, nor to show that it is ever passed as null. Therefore, we cannot definitively say whether `from` can be null at this expression without additional context.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show the code where checkConditionBranches is called, including any surrounding null checks or contracts (e.g., annotations like @NotNull/@NonNull on the parameters).]]></request>
+        <request><![CDATA[Provide the definition of BlockNode and any documentation or annotations that specify whether a BlockNode reference may be null.]]></request>
+    </requests>
+</response>
+```

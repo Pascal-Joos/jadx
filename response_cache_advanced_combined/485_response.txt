@@ -1,0 +1,25 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Nullable
+	public static BlockNode getNextBlockToPath(BlockNode block, BlockNode pathEnd) {
+		List<BlockNode> successors = block.getCleanSuccessors();
+		if (successors == null) {
+			return null;
+		}
+		if (successors.contains(pathEnd)) {
+			return pathEnd;
+		}
+		Set<BlockNode> path = getAllPathsBlocks(block, pathEnd);
+		for (BlockNode s : successors) {
+			if (path.contains(s)) {
+				return s;
+			}
+		}
+		return null;
+}
+  ```
+    ]]>
+  </code>
+</response>

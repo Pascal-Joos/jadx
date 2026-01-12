@@ -1,0 +1,20 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static void getAllRegionBlocks(IContainer container, Set<IBlock> blocks) {
+		if (container instanceof IBlock) {
+			blocks.add((IBlock) container);
+		} else if (container instanceof IRegion) {
+			IRegion region = (IRegion) container;
+			for (IContainer block : region.getSubBlocks()) {
+				getAllRegionBlocks(block, blocks);
+			}
+		} else {
+			throw new JadxRuntimeException(unknownContainerType(Nullability.castToNonnull(container)));
+		}
+}
+  ```
+    ]]>
+  </code>
+</response>

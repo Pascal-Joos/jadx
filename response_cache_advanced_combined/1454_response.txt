@@ -1,0 +1,25 @@
+<response>
+    <reason><![CDATA[
+The parameter `insnArr` is obtained in `processDebugInfo` as:
+
+```java
+InsnNode[] insnArr = mth.getInstructions();
+attachSourceLines(mth, debugInfo.getSourceLineMapping(), Nullability.castToNonnull(insnArr));
+attachDebugInfo(mth, debugInfo.getLocalVars(), insnArr);
+setMethodSourceLine(mth, Nullability.castToNonnull(insnArr));
+```
+
+The only source of `insnArr` is `mth.getInstructions()`. We do not have the declaration or implementation of `getInstructions()`, nor do we have any guarantees (from the shown code alone) that `MethodNode.instructions` is never null at this point. The presence of `Nullability.castToNonnull(insnArr)` on the other calls actually suggests that null is at least considered possible by the surrounding codebase.
+
+Inside `attachDebugInfo`, `insnArr` is used directly:
+
+```java
+InsnNode insn = insnArr[i];
+```
+
+with no null check on `insnArr` itself, so if `insnArr` were null, the method would crash with a `NullPointerException`.
+
+Since `insnArr`’s nullability depends entirely on `MethodNode.getInstructions()` and we do not have that method’s declaration or contract, we cannot safely conclude that `insnArr` can never be null. To determine this, we must inspect the declaration of `getInstructions()`.
+    ]]></reason>
+    <value>YES</value>
+</response>

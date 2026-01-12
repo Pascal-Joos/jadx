@@ -1,0 +1,24 @@
+<response>
+    <reason><![CDATA[
+In connectElseIf, the parameter els is used immediately without any reassignment:
+
+    if (els.contains(AFlag.ELSE_IF_CHAIN) && els instanceof Region) {
+
+If els were null here, els.contains(...) would throw a NullPointerException.
+
+From the call chain:
+- makeIf obtains els via region.getElseRegion().
+- It then calls RegionUtils.notEmpty(els) and only enters the block (and calls connectElseIf) if RegionUtils.notEmpty(els) returns true.
+- RegionUtils.notEmpty(els) explicitly returns false when container (els) is null:
+
+    if (container == null) {
+        return false;
+    }
+
+Therefore, connectElseIf is called only when notEmpty(els) is true, which implies els is not null at that call site.
+
+The parameter els is neither modified nor reassigned within connectElseIf, and no other methods are involved in changing its value between the notEmpty check and the call. Based solely on this method and its provided callers, there is no execution path where els could be null when connectElseIf is invoked.
+
+Thus, under the given context and call chain, els cannot be null when passed to connectElseIf.]]></reason>
+    <value>NO</value>
+</response>

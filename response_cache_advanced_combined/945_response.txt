@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static void removeConnection(BlockNode from, BlockNode to) {
+		from.getSuccessors().remove(to);
+		Nullability.castToNonnull(to).getPredecessors().remove(from);
+}
+  ```
+    ]]>
+  </code>
+</response>

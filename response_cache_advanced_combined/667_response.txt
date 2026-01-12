@@ -1,0 +1,31 @@
+<response>
+    <reason><![CDATA[
+The parameter `insnByOffset` in `initJumps(MethodNode mth, InsnNode[] insnByOffset)` is used immediately via `insnByOffset.length` in the `for` loop header:
+
+```java
+for (int offset = 0; offset < insnByOffset.length; offset++) {
+```
+
+If `insnByOffset` were null, this line would throw a `NullPointerException`. Inside `initJumps`, the parameter is never reassigned or modified to another value—it is only read and passed to helper methods, so its nullability within this method depends entirely on what the caller passes.
+
+The only caller shown is:
+
+```java
+initJumps(mth, mth.getInstructions());
+```
+
+Here, `insnByOffset` is exactly the result of `mth.getInstructions()`. We have no implementation for `MethodNode.getInstructions()`, and that method directly determines whether the passed value can be null. Since:
+
+- The method will crash if `insnByOffset` is null (due to `.length`).
+- A caller can in principle pass null.
+- The actual value comes from `getInstructions()`, whose behavior we have not seen.
+
+we cannot safely conclude that `insnByOffset` is never null without examining `getInstructions()`.
+
+Therefore, to determine `insnByOffset`’s nullability, we need the declaration/implementation of `getInstructions`.
+    ]]></reason>
+    <success>false</success>
+    <methods>
+      <method>getInstructions</method>
+    </methods>
+</response>

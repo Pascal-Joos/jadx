@@ -1,0 +1,27 @@
+<response>
+  <reason><![CDATA[
+The method `getAliasPkg()` has two return paths:
+
+1. `if (isInner()) { return parentClass.getAliasPkg(); }`
+   - The return value depends entirely on `parentClass.getAliasPkg()`. Without the full declaration of `getAliasPkg` for `parentClass`'s type (and its own dependencies), we cannot determine if it may return `null`.
+
+2. `return alias == null ? getPackage() : alias.getPkg();`
+   - If `alias == null`, the return value is `getPackage()`.
+   - If `alias != null`, the return value is `alias.getPkg()`.
+
+In both branches of this ternary, the actual string returned depends on other methods: `getPackage()` and `alias.getPkg()`. We do not have their declarations, so we cannot know whether they can return `null`.
+
+Because:
+- `parentClass.getAliasPkg()`
+- `getPackage()`
+- `alias.getPkg()`
+
+are not fully disclosed and directly determine the returned `String`, we cannot safely conclude that `getAliasPkg()` always returns non-null or that it can return null without seeing these methods’ declarations.]]></reason>
+  <value>UNKNOWN</value>
+  <methods>
+    <method>isInner</method>
+    <method>getAliasPkg</method>
+    <method>getPackage</method>
+    <method>getPkg</method>
+  </methods>
+</response>

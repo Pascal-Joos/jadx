@@ -1,0 +1,79 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to determine whether `postDoms` in:
+
+    blockNodes.forEach(block -> {
+        BitSet postDoms = map.get(block);
+        postDoms.clear(block.getId());
+        ...
+
+can ever be `null`.
+
+1. How `map` is populated:
+   - `map` is created as `new HashMap<>(blocksCount);`.
+   - Then we iterate over `blockNodes`:
+
+        for (BlockNode block : blockNodes) {
+            BitSet postDoms = new BitSet(blocksCount);
+            postDoms.or(initSet);
+            map.put(block, postDoms);
+        }
+
+     For every `block` in `blockNodes`, we unconditionally do `map.put(block, postDoms)` where `postDoms` is a newly created `BitSet`. Therefore, after this loop, for every `block` in `blockNodes`, `map.get(block)` is non-null and refers to a `BitSet`.
+
+2. Mutations to entries in `map`:
+   - In the main do/while loop, for each `block` in `blockNodes` (except `exitBlock`) we do:
+
+        BitSet d = map.get(block);
+        ...
+        if (!changed && !Nullability.castToNonnull(d).equals(domSet)) {
+            changed = true;
+            map.put(block, d);
+        }
+
+     Here:
+     - `d` comes from `map.get(block)` where `block` is from `blockNodes`, so from step 1 it’s initially non-null.
+     - We never assign `null` into `map` anywhere in the method.
+     - `map.put(block, d);` only ever puts a (non-null) `BitSet` (either the original one or the same reference after mutation) back into the map.
+
+   - The only other change to `map` is in the final `forEach`:
+
+        if (postDoms.isEmpty()) {
+            map.put(block, EmptyBitSet.EMPTY);
+        }
+
+     `EmptyBitSet.EMPTY` is, by naming and intended usage, a non-null singleton `BitSet` (or BitSet-like) instance. Even if its exact implementation is unknown, the code clearly assumes it is non-null and uses it in place of a `BitSet` instance. Nowhere do we set a value in `map` to `null`.
+
+3. Uses of `map.get` that might remove or alter entries:
+   - There is no call to `map.remove`, `map.clear`, or any method that would remove keys.
+   - All keys used to access `map` at the end:
+
+        blockNodes.forEach(block -> {
+            BitSet postDoms = map.get(block);
+            ...
+
+     are exactly those keys inserted earlier in the initial population loop (`for (BlockNode block : blockNodes)`).
+
+4. Effect of `Nullability.castToNonnull`:
+   - `Nullability.castToNonnull(x)` is only used for static nullability analysis aid; it does not change runtime values.
+   - It does help suggest that the author expects `d`, `exitBitSet`, etc. to be non-null.
+   - Importantly, `castToNonnull` is never used on `postDoms` in the final lambda; we’re directly doing `map.get(block)` and calling `.clear()`.
+
+5. Conclusion on nullability of `postDoms`:
+   - Every `block` in `blockNodes` is inserted into `map` with a non-null `BitSet`.
+   - No entry is ever set to `null`.
+   - No key is ever removed.
+   - In the final `forEach`, we iterate over exactly the same `blockNodes` set for which we populated `map`.
+   - Therefore, for each such `block`, `map.get(block)` returns a non-null instance (either the initialized `BitSet` or `EmptyBitSet.EMPTY`), and cannot be `null`.
+
+Thus, at the line:
+
+    BitSet postDoms = map.get(block);
+    postDoms.clear(block.getId());
+
+`postDoms` cannot be null under the given method’s logic and assumptions about `blockNodes` (i.e., that it is the same or a subset used consistently throughout the method, which is exactly how it is used here).
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

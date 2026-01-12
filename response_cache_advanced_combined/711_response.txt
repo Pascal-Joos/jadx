@@ -1,0 +1,8 @@
+<response>
+  <success>false</success>
+  <methods>
+    <method>castToNonnull</method>
+    <method>generate</method>
+    <method>getRegion</method>
+  </methods>
+</response>
