@@ -270,9 +270,10 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		InsnNode hasNextCall = itUseList.get(0).getParentInsn();
 		InsnNode nextCall = itUseList.get(1).getParentInsn();
 		if (!checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z")
-				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;")) {
+				|| !checkInvoke(Nullability.castToNonnull(nextCall), "java.util.Iterator", "next()Ljava/lang/Object;")) {
 			return false;
 		}
+		nextCall = Nullability.castToNonnull(nextCall);
 		List<InsnNode> toSkip = new ArrayList<>();
 		RegisterArg iterVar;
 		if (nextCall.contains(AFlag.WRAPPED)) {
