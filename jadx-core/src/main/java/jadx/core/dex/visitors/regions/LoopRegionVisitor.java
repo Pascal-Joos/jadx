@@ -8,6 +8,8 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
@@ -264,7 +266,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		if (!checkInvoke(assignInsn, null, "iterator()Ljava/util/Iterator;")) {
 			return false;
 		}
-		InsnArg iterableArg = assignInsn.getArg(0);
+		InsnArg iterableArg = Nullability.castToNonnull(assignInsn).getArg(0);
 		InsnNode hasNextCall = itUseList.get(0).getParentInsn();
 		InsnNode nextCall = itUseList.get(1).getParentInsn();
 		if (!checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z")
@@ -326,8 +328,8 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			toSkip.add(nextCall);
 		}
 
-		assignInsn.add(AFlag.DONT_GENERATE);
-		assignInsn.getResult().add(AFlag.DONT_GENERATE);
+		Nullability.castToNonnull(assignInsn).add(AFlag.DONT_GENERATE);
+		Nullability.castToNonnull(assignInsn).getResult().add(AFlag.DONT_GENERATE);
 
 		for (InsnNode insnNode : toSkip) {
 			insnNode.add(AFlag.DONT_GENERATE);
