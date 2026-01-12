@@ -57,6 +57,7 @@ public class ShadowFieldVisitor extends AbstractVisitor {
 	}
 
 	private static class FieldFixInfo {
+
 		@Nullable
 		Map<FieldInfo, FieldFixType> fieldFixMap;
 	}
@@ -134,6 +135,9 @@ public class ShadowFieldVisitor extends AbstractVisitor {
 	}
 
 	private static void processInsn(MethodNode mth, InsnNode insn, @Nullable Map<String, FieldFixInfo> fixInfoMap) {
+		if (fixInfoMap == null) {
+			return;
+		}
 		FieldInfo fieldInfo = getFieldInfo(insn);
 		if (fieldInfo == null) {
 			return;
@@ -147,7 +151,11 @@ public class ShadowFieldVisitor extends AbstractVisitor {
 		if (fieldFixInfo == null) {
 			return;
 		}
-		FieldFixType fieldFixType = fieldFixInfo.fieldFixMap.get(fieldInfo);
+		Map<FieldInfo, FieldFixType> fieldFixMap = fieldFixInfo.fieldFixMap;
+		if (fieldFixMap == null) {
+			return;
+		}
+		FieldFixType fieldFixType = fieldFixMap.get(fieldInfo);
 		if (fieldFixType == null) {
 			return;
 		}
