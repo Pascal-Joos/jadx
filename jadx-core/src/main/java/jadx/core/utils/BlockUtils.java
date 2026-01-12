@@ -1163,8 +1163,8 @@ public class BlockUtils {
 			map.put(block, postDoms);
 		}
 		BitSet exitBitSet = map.get(exitBlock);
-		exitBitSet.clear();
-		exitBitSet.set(exitBlock.getId());
+		Nullability.castToNonnull(exitBitSet).clear();
+		Nullability.castToNonnull(exitBitSet).set(exitBlock.getId());
 
 		BitSet domSet = new BitSet(blocksCount);
 		boolean changed;
